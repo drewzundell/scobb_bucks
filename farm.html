@@ -171,7 +171,7 @@ input[type="text"]:focus { border-color: var(--grape); }
 
 <script type="module">
   /* ================= setup ================= */
-  const ENV = 'farmPreview';
+  let ENV = 'farmPreview', LIVE = false, FSK = null;
   const FB_VERSION = '12.15.0';
   const EMAIL_DOMAIN = '@scobbbucks.example.com';
 
@@ -237,7 +237,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   const BUILD_ORDER = ['farm', 'mill', 'barracks', 'wall', 'tower'];
   const AGES = ['Village', 'Town', 'Castle', 'Empire'];
   const AGE_UP = { 1: { j: 250, c: 300, ms: 45000 }, 2: { j: 500, c: 650, ms: 60000 }, 3: { j: 900, c: 1200, ms: 75000 } };
-  const PRIZES = [50, 25, 10];
+  const PRIZES = [25];
   const atkOf = a => 1 + 0.4 * (a - 1);
   const defenseOf = p => 10 * p.age + p.wall * 12 + p.tower * 20 + p.home * atkOf(p.age) * 1.2;
   const jellyRate = p => p.farm * G.FARM_RATE * (1 + G.MILL_BONUS * p.mill);
@@ -454,7 +454,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   const lookOf = u => (players[u] && players[u].avatar) || { color: 'grape', eyes: 'dots', mouth: 'smile', blush: true };
   const now = () => Date.now() + skew;
   const isBank = () => uname === BANK;
-  const allowed = () => isBank() || TESTERS.includes(uname);
+  const allowed = () => LIVE || isBank() || TESTERS.includes(uname);
   const round = () => (curId ? rounds[curId] : null);
   const me = () => (S && S.players[uid]) || null;
 
@@ -522,6 +522,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     if (r === 'rules') { app.innerHTML = msg('Scobb Farm couldn’t load', 'The database turned the request down. Make sure you published the updated Firestore rules from the README.'); return; }
     if (r === 'login') { app.innerHTML = msg('Log in first', 'Log in on the ScobbBucks page, then come back here.', '<a class="btn btn-grape" style="display:inline-grid;place-items:center;text-decoration:none" href="./">Go to ScobbBucks</a>'); return; }
     if (r === 'noprofile') { app.innerHTML = msg('Finish your account', 'Make your ScobbBucks avatar first, then come back.', '<a class="btn btn-grape" style="display:inline-grid;place-items:center;text-decoration:none" href="./">Go to ScobbBucks</a>'); return; }
+    if (r === 'noskins') { app.innerHTML = msg('Almost ready', 'Upload farm-skins.js next to this page. ScobbBucks and Scobb Farm both need it.'); return; }
     if (r === 'closed') { app.innerHTML = msg('Scobb Farm isn’t open yet', 'The bank is still testing it. Check back soon.'); return; }
     sim();
     sig = signature();
@@ -530,8 +531,8 @@ input[type="text"]:focus { border-color: var(--grape); }
 
   function header() {
     const r = round();
-    let h = `<header class="top"><h1>Scobb Farm <span class="pill">Preview</span></h1><a class="link" href="./">ScobbBucks</a></header>`;
-    h += `<p class="notice">Preview mode uses test data and pretend prizes. Real ScobbBucks aren’t touched.</p>`;
+    let h = `<header class="top"><h1>Scobb Farm <span class="pill"${LIVE ? ' style="background:#3E9B2F"' : ''}>${LIVE ? 'Live' : 'Preview'}</span></h1><a class="link" href="./">ScobbBucks</a></header>`;
+    if (!LIVE) h += `<p class="notice">Preview mode uses test data and pretend prizes. Real ScobbBucks aren’t touched.</p>`;
     if (!r || !S) return h;
     const label = S.phase === 'lobby' ? 'Starts in' : S.phase === 'live' ? 'Time left' : 'Round over';
     h += `<div class="status mt"><span>Round ${r.n}</span><span>${label} <b data-live="timer">${S.phase === 'over' ? '' : clock((S.phase === 'lobby' ? S.startAt : S.endAt) - now())}</b></span></div>`;
@@ -602,8 +603,8 @@ input[type="text"]:focus { border-color: var(--grape); }
     const w = S.winner;
     let h = `<h2>${w ? `${esc(nameOf(w))} wins!` : 'Round over'}</h2>`;
     h += w ? `<p class="small soft">${S.reason === 'monopoly' ? 'They took over half of all the farms. Scobb monopoly!' : 'They owned the most farms when time ran out.'}</p>` : '';
-    h += `<div class="podium">${S.standings.slice(0, 10).map((p, i) => `<div class="pcard"><span class="place">${['🥇', '🥈', '🥉'][i] || i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}</div><div class="s">${plural(p.farm, 'farm', 'farms')}${i < 3 ? `. Prize: ${PRIZES[i]} pretend ScobbBucks` : ''}</div></div></div>`).join('')}</div>`;
-    h += `<p class="small soft mt">In preview, prizes are pretend. Once Scobb Farm goes live, the top 3 get real ScobbBucks from the bank.</p>`;
+    h += `<div class="podium">${S.standings.slice(0, 10).map((p, i) => `<div class="pcard"><span class="place">${['🥇', '🥈', '🥉'][i] || i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}</div><div class="s">${plural(p.farm, 'farm', 'farms')}${i < PRIZES.length ? `. Prize: ${PRIZES[i]}${LIVE ? '' : ' pretend'} ScobbBucks` : ''}</div></div></div>`).join('')}</div>`;
+    h += LIVE ? `<p class="small soft mt">The winner gets ${PRIZES[0]} real ScobbBucks from the bank’s vault. ${isBank() ? 'They go out automatically the next time you open ScobbBucks.' : 'They show up in the winner’s wallet once the bank opens the app.'}</p>` : `<p class="small soft mt">In preview, prizes are pretend. Once Scobb Farm goes live, the winner gets ${PRIZES[0]} real ScobbBucks from the bank.</p>`;
     h += isBank() ? bankOpen() : `<p class="soft mt">Waiting for the bank to open the next round.</p>`;
     return h;
   }
@@ -623,40 +624,33 @@ input[type="text"]:focus { border-color: var(--grape); }
     if (age === 3) return `<rect x="146" y="126" width="68" height="54" fill="#B8C0C8"/>${bat(146, 126, 68, 6)}<rect x="134" y="118" width="18" height="62" fill="#A3ACB6"/>${bat(134, 118, 18, 2)}<rect x="208" y="118" width="18" height="62" fill="#A3ACB6"/>${bat(208, 118, 18, 2)}<path d="M168 180V158Q180 146 192 158V180Z" fill="#5B3A1C"/><rect x="158" y="136" width="8" height="12" rx="4" fill="#2E3440"/><rect x="194" y="136" width="8" height="12" rx="4" fill="#2E3440"/><path d="M143 110V96" stroke="#5B4426" stroke-width="2"/><path d="M143 96L157 101L143 106Z" fill="${col}"/><path d="M217 110V96" stroke="#5B4426" stroke-width="2"/><path d="M217 96L231 101L217 106Z" fill="${col}"/>`;
     return `<rect x="132" y="138" width="96" height="44" fill="#F3EBDD"/><rect x="132" y="138" width="96" height="6" fill="#E3B341"/>${[140, 160, 196, 216].map(x => `<rect x="${x}" y="150" width="6" height="32" fill="#E9DFCC"/>`).join('')}<path d="M150 138Q180 92 210 138Z" fill="#E3B341"/><path d="M160 138Q180 106 200 138Z" fill="#FFE07A" opacity=".7"/><circle cx="180" cy="96" r="4" fill="#E3B341"/><path d="M168 182V160Q180 150 192 160V182Z" fill="#7A4E2A"/><path d="M180 92V74" stroke="#5B4426" stroke-width="2"/><path d="M180 74L196 79L180 84Z" fill="${col}"/>`;
   }
-  function villageSVG(p, col, t) {
-    let s = `<svg class="village" viewBox="0 0 360 300" role="img" aria-label="Farm with ${p.farm} farms"><defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9E07E"/><stop offset="1" stop-color="#7DC455"/></linearGradient></defs>`;
-    s += `<rect width="360" height="300" rx="22" fill="url(#vg)"/><path d="M180 300V190M0 150H136M224 150H360" stroke="#E3CD97" stroke-width="14" stroke-linecap="round" opacity=".85"/>`;
-    s += DECOR;
+  const equipOf = u => { const eq = (players[u] && players[u].farmEquip) || {}, out = {}; for (const k in eq) { const it = FSK && FSK.farmItem(eq[k]); if (it && it.b === k) out[k] = eq[k]; } return out; };
+  let VN = 0;
+  function villageSVG(p, col, t, eq) {
+    eq = eq || {};
+    const ctx = FSK.newCtx('v' + (++VN));
+    const at = (x, y, inner, sc) => `<g transform="translate(${x} ${y})${sc ? ` scale(${sc})` : ''}">${inner}</g>`;
+    let s = `<rect width="360" height="300" rx="22" fill="url(#vg)"/><path d="M180 300V190M0 150H136M224 150H360" stroke="#E3CD97" stroke-width="14" stroke-linecap="round" opacity=".85"/>` + DECOR;
     const nf = Math.min(p.farm, FARM_SLOTS.length);
-    for (let i = 0; i < nf; i++) {
-      const [x, y] = FARM_SLOTS[i];
-      s += `<rect x="${x}" y="${y}" width="46" height="30" rx="6" fill="#8B5E3C"/><rect x="${x}" y="${y}" width="46" height="30" rx="6" fill="none" stroke="#6B4429" stroke-width="2"/>`;
-      for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) s += `<circle cx="${x + 6 + c * 8.5}" cy="${y + 7 + r * 8}" r="2.9" fill="${JELLY[(i + r + c) % JELLY.length]}"/>`;
-    }
+    const plot = FSK.building('farm', eq.farm, ctx);
+    for (let i = 0; i < nf; i++) { const [x, y] = FARM_SLOTS[i]; s += at(x, y, plot); }
     if (p.farm > FARM_SLOTS.length) s += `<text x="180" y="292" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="12" fill="#1F2A14">+${p.farm - FARM_SLOTS.length} more farms</text>`;
     if (p.build && p.build.b === 'farm' && nf < FARM_SLOTS.length) { const [x, y] = FARM_SLOTS[nf]; s += `<rect x="${x}" y="${y}" width="46" height="30" rx="6" fill="#C9A46B" stroke="#8B5E3C" stroke-width="2" stroke-dasharray="4 3"/><text x="${x + 23}" y="${y + 19}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="10" fill="#5B3A1C">building</text>`; }
-    for (let i = 0; i < Math.min(p.mill, MILL_SLOTS.length); i++) {
-      const [x, y] = MILL_SLOTS[i];
-      s += `<g transform="translate(${x} ${y})"><path d="M-7 30L-5 8H5L7 30Z" fill="#EFE3CC" stroke="#B9A988" stroke-width="1.5"/><g class="spin"><path d="M0 8V-10M0 8H18M0 8V26M0 8H-18" stroke="#8B5A2B" stroke-width="4" stroke-linecap="round"/></g><circle cx="0" cy="8" r="2.6" fill="#5B3A1C"/></g>`;
-    }
-    if (p.barracks) s += `<rect x="96" y="122" width="48" height="30" rx="3" fill="#A0522D"/><path d="M92 124L120 104L148 124Z" fill="#6B3A20"/><rect x="114" y="134" width="12" height="18" rx="2" fill="#3B2312"/><path d="M103 128L111 136M111 128L103 136M129 128L137 136M137 128L129 136" stroke="#F2C14E" stroke-width="2" stroke-linecap="round"/>`;
+    const mill = FSK.building('mill', eq.mill, ctx);
+    for (let i = 0; i < Math.min(p.mill, MILL_SLOTS.length); i++) { const [x, y] = MILL_SLOTS[i]; s += at(x - 20, y - 6, mill); }
+    if (p.barracks) s += at(92, 104, FSK.building('barracks', eq.barracks, ctx));
     else if (p.build && p.build.b === 'barracks') s += `<rect x="96" y="122" width="48" height="30" rx="3" fill="#C9A46B" stroke="#8B5E3C" stroke-width="2" stroke-dasharray="4 3"/>`;
-    s += `<rect x="220" y="130" width="42" height="22" fill="#EFE3CC"/><path d="M216 130H266L262 116H220Z" fill="#E5484D"/>${[0, 1, 2, 3, 4].map(i => `<path d="M${224 + i * 9} 116L${222 + i * 9} 130H${226 + i * 9}L${228 + i * 9} 116Z" fill="#fff" opacity=".75"/>`).join('')}<rect x="226" y="138" width="12" height="10" rx="2" fill="#B98BFF"/><rect x="242" y="138" width="12" height="10" rx="2" fill="#FFC233"/>`;
-    s += hallSVG(p.age, col);
+    s += at(212, 106, FSK.building('market', eq.market, ctx));
+    s += at(130, 72, FSK.building('hall', eq.hall, ctx, { age: p.age }));
     if (p.aging) s += `<text x="180" y="200" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="11" fill="#1F2A14">upgrading…</text>`;
     const shown = Math.min(p.home, 12);
     for (let i = 0; i < shown; i++) s += scobb(118 + (i % 6) * 12 + (i >= 6 ? 6 : 0), 206 + (i >= 6 ? 14 : 0), col, 0.8, 'bob');
     if (p.home > 12) s += `<text x="244" y="226" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="12" fill="#1F2A14">×${p.home}</text>`;
-    if (p.wall > 0) {
-      const w = Math.min(4 + p.wall * 1.4, 18);
-      s += `<rect x="12" y="12" width="336" height="276" rx="34" fill="none" stroke="#8E98A3" stroke-width="${w}"/><rect x="12" y="12" width="336" height="276" rx="34" fill="none" stroke="#C4CBD2" stroke-width="${(w * 0.35).toFixed(1)}" stroke-dasharray="10 8"/><rect x="162" y="276" width="36" height="22" rx="6" fill="#8B5A2B"/><path d="M180 276V298" stroke="#5B3A1C" stroke-width="2"/>`;
-    }
-    for (let i = 0; i < Math.min(p.tower, TOWER_SLOTS.length); i++) {
-      const [x, y] = TOWER_SLOTS[i];
-      s += `<g transform="translate(${x} ${y})"><rect x="-8" y="-6" width="16" height="22" fill="#9AA3AD"/><path d="M-10 -6L0 -20L10 -6Z" fill="#4B6CB7"/><rect x="-3" y="2" width="6" height="8" rx="3" fill="#3B3F45"/></g>`;
-    }
+    if (p.wall > 0) s += FSK.wallRing(eq.wall, p.wall, ctx) + at(160, 274, FSK.building('gate', eq.gate, ctx));
+    const tw = FSK.building('tower', eq.tower, ctx);
+    for (let i = 0; i < Math.min(p.tower, TOWER_SLOTS.length); i++) { const [x, y] = TOWER_SLOTS[i]; s += at(x - 12, y - 22, tw); }
     if (p.shield > t) s += `<ellipse cx="180" cy="150" rx="176" ry="146" fill="#7CC4F2" fill-opacity=".18" stroke="#7CC4F2" stroke-width="3" stroke-dasharray="6 6"/>`;
-    return s + '</svg>';
+    return `<svg class="village" viewBox="0 0 360 300" role="img" aria-label="Farm with ${p.farm} farms">${FSK.defsOf(ctx).replace('<defs>', '<defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9E07E"/><stop offset="1" stop-color="#7DC455"/></linearGradient>')}${s}</svg>`;
   }
 
   /* ---- farm tab ---- */
@@ -664,7 +658,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   function costText(j, c) { return [c ? `${fmt(c)} coins` : '', j ? `${fmt(j)} Jelly` : ''].filter(Boolean).join(' + '); }
   function farmView() {
     const p = me(), t = now();
-    let h = villageSVG(p, colorOf(lookOf(uid)), t);
+    let h = villageSVG(p, colorOf(lookOf(uid)), t, equipOf(uid));
     h += `<p class="small soft" style="margin-top:8px">Your farms make <b>${jellyRate(p).toFixed(1)}</b> Jelly a second, and your Town Hall adds <b>${(G.HALL_COINS * p.age).toFixed(1)}</b> coins a second.</p>`;
     if (p.build) h += `<div class="prog"><div class="t"><span>Building a ${BUILDS[p.build.b].name}</span><span data-cd="${p.build.at}">${secs(p.build.at - t)}</span></div><div class="bar"><i data-prog="${p.build.from}:${p.build.at}"></i></div></div>`;
     if (p.aging) h += `<div class="prog"><div class="t"><span>Upgrading to ${AGES[p.age]}</span><span data-cd="${p.aging.at}">${secs(p.aging.at - t)}</span></div><div class="bar"><i data-prog="${p.aging.from}:${p.aging.at}"></i></div></div>`;
@@ -803,7 +797,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   function openPeek(u) {
     const o = S.players[u];
     if (!o) return;
-    openSheet(sheetHead(`${esc(nameOf(u))}’s farm`) + villageSVG(o, colorOf(lookOf(u)), now()) + `<p class="small soft" style="margin-top:8px">${plural(o.farm, 'farm', 'farms')}, ${plural(o.mill, 'mill', 'mills')}, wall level ${o.wall}, ${plural(o.tower, 'tower', 'towers')}, ${plural(o.home, 'scobb', 'scobbs')} home. Defense ${Math.round(defenseOf(o))}.</p>`);
+    openSheet(sheetHead(`${esc(nameOf(u))}’s farm`) + villageSVG(o, colorOf(lookOf(u)), now(), equipOf(u)) + `<p class="small soft" style="margin-top:8px">${plural(o.farm, 'farm', 'farms')}, ${plural(o.mill, 'mill', 'mills')}, wall level ${o.wall}, ${plural(o.tower, 'tower', 'towers')}, ${plural(o.home, 'scobb', 'scobbs')} home. Defense ${Math.round(defenseOf(o))}.</p>`);
   }
 
   /* ---- live updates ---- */
@@ -827,9 +821,17 @@ input[type="text"]:focus { border-color: var(--grape); }
     updateQuotes();
   }
   function editing() { const a = document.activeElement; return !!(a && a.tagName === 'INPUT' && app.contains(a)); }
+  const wroteResult = new Set();
+  function writeResult() {
+    const r = round();
+    if (!LIVE || !S || S.phase !== 'over' || !isBank() || !r || r.by !== uid || wroteResult.has(curId)) return;
+    wroteResult.add(curId);
+    FB.setDoc(FB.doc(fs, 'farmResults/' + curId), { by: uid, rd: curId, n: r.n, reason: S.reason || '', places: S.standings.slice(0, 3).map(p => p.uid), st: FB.serverTimestamp() }).catch(() => {});
+  }
   function refresh(force) {
     if (route() !== 'game') { render(); return; }
     sim();
+    writeResult();
     reportBad();
     const s = signature();
     if ((force || s !== sig) && !editing() && $('#sheet-root').hidden) { sig = s; renderGame(); }
@@ -990,6 +992,9 @@ input[type="text"]:focus { border-color: var(--grape); }
     const bank = String((cfg && cfg.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!fc || !fc.apiKey || /paste/i.test(fc.apiKey) || !bank || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
     BANK = bank;
+    LIVE = cfg.FARM_LIVE === true;
+    ENV = LIVE ? 'farm' : 'farmPreview';
+    try { FSK = await import('./farm-skins.js'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     TESTERS = Array.isArray(cfg.FARM_TESTERS) ? cfg.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(fc);
