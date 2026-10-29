@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scobb Farm</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #EEF7E6; --card: #FFFFFF; --card-2: #F3F9EC; --ink: #1F2A14; --soft: #5E6E4E; --line: #D8E8C8;
+  --grape: #6C2BD9; --grape-deep: #4A16A6; --tint: #E6F4D7; --on-grape: #FFFFFF;
+  --lime: #8ED435; --lime-deep: #528A10; --on-lime: #1E3205;
+  --tomato: #E9453C; --tomato-deep: #A52A23; --gold: #C98A00;
+  --shadow: rgba(40, 70, 20, .16); --scrim: rgba(20, 35, 10, .46);
+  --font: "Baloo 2", "Trebuchet MS", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #101A0B; --card: #1A2912; --card-2: #22351A; --ink: #EDF6E3; --soft: #A9BE95; --line: #2F4724;
+    --grape: #8C58FF; --grape-deep: #5A2FD0; --tint: #26401A; --lime: #9BE33A; --lime-deep: #528A10;
+    --tomato: #FF6A60; --tomato-deep: #B3332B; --gold: #FFC44D; --shadow: rgba(0, 0, 0, .45); --scrim: rgba(0, 0, 0, .62);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #101A0B; --card: #1A2912; --card-2: #22351A; --ink: #EDF6E3; --soft: #A9BE95; --line: #2F4724;
+  --grape: #8C58FF; --grape-deep: #5A2FD0; --tint: #26401A; --lime: #9BE33A; --lime-deep: #528A10;
+  --tomato: #FF6A60; --tomato-deep: #B3332B; --gold: #FFC44D; --shadow: rgba(0, 0, 0, .45); --scrim: rgba(0, 0, 0, .62);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+*, *::before, *::after { box-sizing: inherit; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 500 16px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--grape); outline-offset: 2px; }
+#app { max-width: 520px; margin: 0 auto; padding: 12px 16px 120px; }
+h1 { font-size: 30px; line-height: 1.05; font-weight: 800; margin: 0; }
+h2 { font-size: 20px; font-weight: 800; margin: 22px 0 8px; }
+h3 { font-size: 16px; font-weight: 800; margin: 16px 0 6px; }
+p { margin: 0; }
+.soft { color: var(--soft); }
+.small { font-size: 14px; line-height: 1.4; }
+.card { background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 14px; }
+.mt { margin-top: 16px; }
+.btn { border: 0; border-radius: 16px; height: 50px; padding: 0 18px; font: 800 16px/1 var(--font); transition: transform .08s ease, box-shadow .08s ease; margin-bottom: 5px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn-grape { background: var(--grape); color: var(--on-grape); box-shadow: 0 5px 0 var(--grape-deep); }
+.btn-lime { background: var(--lime); color: var(--on-lime); box-shadow: 0 5px 0 var(--lime-deep); }
+.btn-ghost { background: var(--card); color: var(--ink); box-shadow: 0 5px 0 var(--line), inset 0 0 0 2px var(--line); }
+.btn-danger { background: var(--tomato); color: #fff; box-shadow: 0 5px 0 var(--tomato-deep); }
+.btn:active:not(:disabled) { transform: translateY(4px); }
+.btn-block { display: block; width: 100%; }
+.btn-sm { height: 38px; padding: 0 14px; font-size: 14.5px; border-radius: 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.link { border: 0; background: none; padding: 0; color: var(--grape); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 4px 0 10px; }
+.pill { display: inline-block; border-radius: 999px; padding: 1px 10px; font-size: 13px; font-weight: 800; background: var(--gold); color: #fff; vertical-align: middle; }
+.status { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 10px 14px; font-weight: 700; }
+.status b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.res { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+.res div { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 4px 6px; text-align: center; }
+.res span { display: block; font-size: 11.5px; font-weight: 800; color: var(--soft); }
+.res b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.alert { margin-top: 8px; background: var(--tomato); color: #fff; border-radius: 14px; padding: 8px 12px; font-weight: 800; animation: pulse 1s ease-in-out infinite alternate; }
+@keyframes pulse { from { opacity: .85; } to { opacity: 1; } }
+.notice { margin-top: 8px; background: var(--tint); border-radius: 14px; padding: 8px 12px; font-weight: 700; font-size: 14px; }
+
+.village { display: block; width: 100%; height: auto; border-radius: 22px; margin-top: 12px; box-shadow: 0 6px 0 var(--line); }
+.village .spin { transform-box: fill-box; transform-origin: center; animation: spin 3s linear infinite; }
+.village .bob { animation: bob 1.6s ease-in-out infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+
+.blist { margin-top: 10px; }
+.brow { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 2px solid var(--line); }
+.brow:last-child { border-bottom: 0; }
+.brow .main { flex: 1; min-width: 0; }
+.brow .t { font-weight: 800; }
+.brow .s { font-size: 13.5px; color: var(--soft); }
+.cost { font-size: 13.5px; font-weight: 700; }
+.bar { height: 10px; border-radius: 6px; background: var(--card-2); overflow: hidden; margin-top: 6px; border: 1px solid var(--line); }
+.bar i { display: block; height: 100%; width: 0; background: var(--lime); border-radius: 6px; }
+.prog { margin-top: 10px; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 10px 12px; }
+.prog .t { font-weight: 800; display: flex; justify-content: space-between; gap: 8px; }
+
+.plist .pcard { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 2px solid var(--line); }
+.pcard .main { flex: 1; min-width: 0; }
+.pcard .t { font-weight: 800; overflow-wrap: anywhere; }
+.pcard .s { font-size: 13.5px; color: var(--soft); }
+.hb { flex: none; display: inline-block; border-radius: 50%; overflow: hidden; background: var(--card-2); }
+.hb svg { width: 100%; height: 100%; display: block; }
+.ev { padding: 8px 0; border-bottom: 2px solid var(--line); font-size: 14.5px; }
+.ev:last-child { border-bottom: 0; }
+.ev .when { color: var(--soft); font-size: 12.5px; }
+.win { color: var(--lime-deep); font-weight: 800; }
+.lose { color: var(--tomato); font-weight: 800; }
+
+.price { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.field { margin-top: 12px; }
+.field > label { display: block; font-weight: 800; font-size: 14.5px; margin-bottom: 4px; }
+input[type="text"] { width: 100%; height: 48px; padding: 0 12px; border-radius: 14px; border: 2px solid var(--line); background: var(--card); font-size: 17px; font-weight: 600; outline: none; }
+input[type="text"]:focus { border-color: var(--grape); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 3px 12px; font-weight: 800; font-size: 14px; color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--grape); border-color: var(--grape); color: #fff; }
+.quote { margin-top: 6px; font-weight: 700; font-size: 14.5px; min-height: 1.4em; }
+.err { color: var(--tomato); font-weight: 700; font-size: 14px; margin-top: 6px; }
+.step { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.sb { width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); font-size: 22px; font-weight: 800; padding: 0; color: var(--ink); }
+.sv { width: 80px; height: 44px; text-align: center; border: 2px solid var(--line); border-radius: 12px; background: var(--card); font: 800 18px/1 var(--font); }
+
+.chat { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.msg { display: flex; gap: 8px; align-items: flex-start; }
+.msg .bub { background: var(--card); border: 2px solid var(--line); border-radius: 4px 16px 16px 16px; padding: 6px 10px; max-width: 82%; overflow-wrap: anywhere; }
+.msg.me { flex-direction: row-reverse; }
+.msg.me .bub { background: var(--tint); border-radius: 16px 4px 16px 16px; }
+.msg .who { font-size: 12.5px; font-weight: 800; color: var(--soft); }
+.sendrow { display: flex; gap: 8px; margin-top: 12px; }
+.sendrow input { flex: 1; }
+.sendrow .btn { height: 48px; margin: 0; }
+
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 2px solid var(--line); padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(4, 1fr); }
+.tab { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; border: 0; background: none; padding: 4px 0; color: var(--soft); font-weight: 800; font-size: 12.5px; }
+.tab .ib { font-size: 20px; line-height: 30px; width: 52px; border-radius: 999px; }
+.tab[aria-current="page"] { color: var(--grape); }
+.tab[aria-current="page"] .ib { background: var(--tint); }
+.badge { position: absolute; top: 0; left: calc(50% + 10px); min-width: 18px; height: 18px; border-radius: 9px; background: var(--tomato); color: #fff; font-size: 11px; font-weight: 800; display: grid; place-items: center; padding: 0 4px; }
+
+.sheet-root { position: fixed; inset: 0; z-index: 40; }
+.backdrop { position: absolute; inset: 0; background: var(--scrim); }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 540px; max-height: 92%; overflow-y: auto; background: var(--bg); border-radius: 26px 26px 0 0; padding: 10px 16px calc(24px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -12px 40px var(--shadow); animation: rise .28s cubic-bezier(.2, .9, .25, 1.05) both; outline: none; }
+@keyframes rise { from { transform: translateY(100%); } to { transform: none; } }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.sheet-head h2 { margin: 4px 0 0; }
+.x { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--line); background: var(--card); font-size: 18px; font-weight: 800; padding: 0; color: var(--ink); }
+.toast-wrap { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; display: flex; justify-content: center; padding: 0 16px calc(92px + env(safe-area-inset-bottom, 0px)); pointer-events: none; }
+.toast { max-width: 420px; background: var(--ink); color: var(--bg); font-weight: 800; font-size: 15px; padding: 11px 15px; border-radius: 16px; box-shadow: 0 10px 30px var(--shadow); }
+.msgscreen { min-height: 70vh; display: grid; place-content: center; justify-items: center; text-align: center; gap: 12px; }
+.msgscreen p { max-width: 34ch; color: var(--soft); }
+.podium { display: grid; gap: 8px; margin-top: 10px; }
+.podium .pcard { border: 2px solid var(--line); border-radius: 16px; padding: 8px 10px; background: var(--card); }
+.place { font-size: 22px; font-weight: 800; width: 34px; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .village .spin, .village .bob, .alert, .sheet { animation: none; } }
+</style>
+</head>
+<body>
+<div id="app"><div class="msgscreen"><h1>Loading Scobb Farm…</h1></div></div>
+
+<nav class="tabs" id="tabs" hidden aria-label="Scobb Farm">
+  <button type="button" class="tab" data-act="tab" data-tab="farm"><span class="ib" aria-hidden="true">🏡</span><span>Farm</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="battle"><span class="ib" aria-hidden="true">⚔️</span><span>Battle</span><i class="badge" id="bd-battle" hidden></i></button>
+  <button type="button" class="tab" data-act="tab" data-tab="market"><span class="ib" aria-hidden="true">🍮</span><span>Market</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="chat"><span class="ib" aria-hidden="true">💬</span><span>Chat</span><i class="badge" id="bd-chat" hidden></i></button>
+</nav>
+
+<div class="sheet-root" id="sheet-root" hidden>
+  <div class="backdrop" data-act="close"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1"><div id="sheet-body"></div></div>
+</div>
+<div class="toast-wrap"><div class="toast" id="toast" role="status" hidden></div></div>
+
+<script type="module">
+  /* ================= setup ================= */
+  const ENV = 'farmPreview';
+  const FB_VERSION = '12.15.0';
+  const EMAIL_DOMAIN = '@scobbbucks.example.com';
+
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const fmt = n => Math.floor(Math.max(0, n)).toLocaleString('en-US');
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]); }
+  function rid() { const a = new Uint32Array(2); crypto.getRandomValues(a); return (a[0].toString(36) + a[1].toString(36)).slice(0, 10); }
+  const plural = (n, one, many) => `${fmt(n)} ${Math.floor(n) === 1 ? one : many}`;
+  function clock(ms) { const s = Math.max(0, Math.ceil(ms / 1000)); const m = Math.floor(s / 60); return `${m}:${String(s % 60).padStart(2, '0')}`; }
+  function secs(ms) { const s = Math.max(0, Math.ceil(ms / 1000)); return s >= 60 ? clock(ms) : s + 's'; }
+
+  const BODY = { grape: '#A98BF5', bubblegum: '#F78FB3', ruby: '#E85A68', tangerine: '#F79B54', lemon: '#F6D25A', lime: '#ABDB5A', mint: '#7EDDB0', teal: '#3FBFBD', sky: '#7CC4F2', cocoa: '#A6714E', slate: '#6E7B8C', snow: '#ECEDF2' };
+  const colorOf = look => BODY[(look && look.color) || 'grape'] || BODY.grape;
+
+  function faceSVG(look) {
+    const ink = '#1E1B24';
+    let e;
+    switch (look.eyes) {
+      case 'happy': e = `<path d="M78 66Q85 57 92 66M108 66Q115 57 122 66" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`; break;
+      case 'sleepy': e = `<path d="M78 63Q85 69 92 63M108 63Q115 69 122 63" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`; break;
+      case 'wide': e = `<circle cx="85" cy="63" r="9" fill="#fff"/><circle cx="115" cy="63" r="9" fill="#fff"/><circle cx="86.5" cy="64.5" r="4.6" fill="${ink}"/><circle cx="116.5" cy="64.5" r="4.6" fill="${ink}"/>`; break;
+      case 'angry': e = `<circle cx="85" cy="66" r="5.5" fill="${ink}"/><circle cx="115" cy="66" r="5.5" fill="${ink}"/><path d="M76 54L93 59M124 54L107 59" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>`; break;
+      case 'wink': e = `<circle cx="85" cy="64" r="5.5" fill="${ink}"/><path d="M108 65Q115 59 122 65" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`; break;
+      default: e = `<circle cx="85" cy="64" r="5.5" fill="${ink}"/><circle cx="115" cy="64" r="5.5" fill="${ink}"/><circle cx="86.6" cy="62.2" r="1.6" fill="#fff"/><circle cx="116.6" cy="62.2" r="1.6" fill="#fff"/>`;
+    }
+    let m = '';
+    switch (look.mouth) {
+      case 'grin': m = `<path d="M87 80H113Q112 95 100 95Q88 95 87 80Z" fill="${ink}"/><path d="M90 81H110V85H90Z" fill="#fff"/>`; break;
+      case 'o': m = `<ellipse cx="100" cy="86" rx="5.5" ry="6.5" fill="${ink}"/>`; break;
+      case 'flat': m = `<path d="M92 85H108" stroke="${ink}" stroke-width="3.6" stroke-linecap="round"/>`; break;
+      case 'tongue': m = `<path d="M90 82Q100 90 110 82" stroke="${ink}" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M96 86Q96 94 101 94Q106 94 106 86Z" fill="#FF6F91"/>`; break;
+      case 'none': break;
+      default: m = `<path d="M90 82Q100 91 110 82" stroke="${ink}" stroke-width="3.6" fill="none" stroke-linecap="round"/>`;
+    }
+    const blush = look.blush ? '<ellipse cx="72" cy="78" rx="7" ry="4.5" fill="#FF7FA0" fill-opacity=".45"/><ellipse cx="128" cy="78" rx="7" ry="4.5" fill="#FF7FA0" fill-opacity=".45"/>' : '';
+    return e + m + blush;
+  }
+  function headSVG(look) {
+    look = look || {};
+    const c = colorOf(look);
+    return `<svg viewBox="48 14 104 104" aria-hidden="true"><circle cx="100" cy="66" r="45" fill="${c}"/><ellipse cx="80" cy="41" rx="14" ry="8" fill="#fff" fill-opacity=".38" transform="rotate(-24 80 41)"/>${faceSVG(look)}</svg>`;
+  }
+  const hb = (u, s) => `<span class="hb" style="width:${s}px;height:${s}px">${headSVG(lookOf(u))}</span>`;
+  const scobb = (x, y, col, s, cls) => `<g transform="translate(${x} ${y}) scale(${s || 1})"><g class="${cls || ''}" style="animation-delay:${((x * 7 + y) % 13) / 10}s"><ellipse cx="0" cy="13" rx="8" ry="2.4" fill="#000" opacity=".15"/><rect x="-6" y="0" width="12" height="12" rx="6" fill="${col}"/><circle cx="0" cy="-3" r="7" fill="${col}"/><circle cx="-2.5" cy="-4" r="1.2" fill="#1E1B24"/><circle cx="2.5" cy="-4" r="1.2" fill="#1E1B24"/><ellipse cx="-2" cy="-7.5" rx="2.4" ry="1.3" fill="#fff" opacity=".5"/></g></g>`;
+
+  /* ================= game rules ================= */
+  const G = {
+    MATCH_MS: 30 * 60000, JOIN_LATE_MS: 10 * 60000,
+    START_J: 80, START_C: 120, START_FARMS: 2, START_SCOBBS: 6,
+    FARM_RATE: 1.2, MILL_BONUS: 0.2, HALL_COINS: 0.8,
+    MARCH_MS: 30000, TRAIN_MS: 4000, SHIELD_MS: 90000,
+    SCOBB_J: 25, SCOBB_C: 10, POOL: 4000, FEE: 0.02, MONO_MIN: 10
+  };
+  const BUILDS = {
+    farm: { name: 'Farm', j: 0, c: 70, ms: 20000, max: a => 3 + a * 3, what: 'Grows Jelly' },
+    mill: { name: 'Mill', j: 40, c: 90, ms: 25000, max: a => a, what: 'Every farm grows 20% faster' },
+    barracks: { name: 'Barracks', j: 0, c: 120, ms: 30000, max: () => 1, what: 'Lets you train more scobbs' },
+    wall: { name: 'Wall', j: 0, c: 60, ms: 15000, max: a => a * 3, what: '+12 defense per level' },
+    tower: { name: 'Tower', j: 50, c: 110, ms: 30000, max: a => a * 2, what: '+20 defense each' }
+  };
+  const BUILD_ORDER = ['farm', 'mill', 'barracks', 'wall', 'tower'];
+  const AGES = ['Village', 'Town', 'Castle', 'Empire'];
+  const AGE_UP = { 1: { j: 250, c: 300, ms: 45000 }, 2: { j: 500, c: 650, ms: 60000 }, 3: { j: 900, c: 1200, ms: 75000 } };
+  const PRIZES = [50, 25, 10];
+  const atkOf = a => 1 + 0.4 * (a - 1);
+  const defenseOf = p => 10 * p.age + p.wall * 12 + p.tower * 20 + p.home * atkOf(p.age) * 1.2;
+  const jellyRate = p => p.farm * G.FARM_RATE * (1 + G.MILL_BONUS * p.mill);
+  const toInt = (v, lo, hi) => { const n = Math.floor(Number(v)); return Number.isFinite(n) && n >= lo && n <= hi ? n : null; };
+  function ammOut(pool, side, amt) {
+    const k = pool.j * pool.c, eff = amt * (1 - G.FEE);
+    if (side === 'j') { const out = pool.c - k / (pool.j + eff); pool.j += amt; pool.c -= out; return out; }
+    const out = pool.j - k / (pool.c + eff); pool.c += amt; pool.j -= out; return out;
+  }
+  const quote = (pool, side, amt) => ammOut({ j: pool.j, c: pool.c }, side, amt);
+  function newPlayer(u, t) { return { uid: u, joinedAt: t, j: G.START_J, c: G.START_C, farm: G.START_FARMS, mill: 0, barracks: 0, wall: 0, tower: 0, age: 1, home: G.START_SCOBBS, away: 0, trainQ: 0, trainAt: 0, trainFrom: 0, build: null, aging: null, shield: 0, captured: 0, raids: 0 }; }
+
+  // Replays every move in the round, in server-time order, to get the state at `now`.
+  function simulate(round, moves, now) {
+    const S = { phase: 'lobby', startAt: 0, endAt: 0, players: {}, order: [], market: { j: G.POOL, c: G.POOL }, offers: {}, reports: [], marches: [], log: [], winner: null, reason: '', bad: {}, standings: [] };
+    const mv = moves.slice().sort((x, y) => (x.t - y.t) || (x.a < y.a ? -1 : x.a > y.a ? 1 : 0) || ((x.q || 0) - (y.q || 0)));
+    let startAt = round.t + round.lobbyMs;
+    for (const m of mv) if (m.k === 'start' && m.a === round.by && m.t >= round.t && m.t < startAt) { startAt = m.t; break; }
+    let endAt = startAt + round.matchMs;
+    const P = S.players, ev = [];
+    const pushEv = e => { let i = ev.length; while (i > 0 && ev[i - 1].t > e.t) i--; ev.splice(i, 0, e); };
+    let lastT = startAt;
+    const adv = t => {
+      const to = Math.min(t, endAt);
+      if (to <= lastT) return;
+      const dt = (to - lastT) / 1000;
+      for (const u in P) { const p = P[u]; p.j += jellyRate(p) * dt; p.c += G.HALL_COINS * p.age * dt; }
+      lastT = to;
+    };
+    const note = (t, who, text, tone, extra) => S.log.push(Object.assign({ t, who, text, tone }, extra || {}));
+    const checkWin = t => {
+      const list = Object.values(P);
+      if (S.winner || list.length < 2) return;
+      const tot = list.reduce((a, p) => a + p.farm, 0);
+      const sorted = list.slice().sort((a, b) => b.farm - a.farm);
+      const top = sorted[0], second = sorted[1];
+      if (top.farm >= G.MONO_MIN && top.farm * 2 >= tot && top.farm >= second.farm * 2) { S.winner = top.uid; S.reason = 'monopoly'; endAt = t; }
+    };
+    const train = (p, t) => { if (p.trainQ > 0 && !p.trainAt) { p.trainAt = t + G.TRAIN_MS; p.trainFrom = t; pushEv({ t: p.trainAt, k: 'trained', a: p.uid }); } };
+
+    function onMove(m, t) {
+      const bad = why => { S.bad[m.a + '_' + m.i] = why; };
+      if (m.k === 'start') return;
+      if (m.k === 'join') {
+        if (P[m.a]) return bad('joined');
+        if (t >= startAt + G.JOIN_LATE_MS) return bad('late');
+        P[m.a] = newPlayer(m.a, t);
+        S.order.push(m.a);
+        return note(t, m.a, 'joined the round', 'info');
+      }
+      const p = P[m.a];
+      if (!p) return bad('not in');
+      if (t < startAt) return bad('lobby');
+      if (m.k === 'build') {
+        const B = BUILDS[m.b];
+        if (!B) return bad('shape');
+        if (p.build) return bad('busy');
+        if (p[m.b] >= B.max(p.age)) return bad('max');
+        if (p.j < B.j || p.c < B.c) return bad('funds');
+        p.j -= B.j; p.c -= B.c;
+        p.build = { b: m.b, from: t, at: t + B.ms };
+        return pushEv({ t: t + B.ms, k: 'built', a: p.uid, b: m.b });
+      }
+      if (m.k === 'age') {
+        if (p.age >= 4) return bad('age');
+        if (p.aging) return bad('busy');
+        const A = AGE_UP[p.age];
+        if (p.j < A.j || p.c < A.c) return bad('funds');
+        p.j -= A.j; p.c -= A.c;
+        p.aging = { from: t, at: t + A.ms };
+        return pushEv({ t: t + A.ms, k: 'aged', a: p.uid });
+      }
+      if (m.k === 'train') {
+        const n = toInt(m.n, 1, 50);
+        if (!n) return bad('shape');
+        if (!p.barracks) return bad('no barracks');
+        if (p.j < n * G.SCOBB_J || p.c < n * G.SCOBB_C) return bad('funds');
+        p.j -= n * G.SCOBB_J; p.c -= n * G.SCOBB_C;
+        p.trainQ += n;
+        return train(p, t);
+      }
+      if (m.k === 'attack') {
+        const d = P[m.to], n = toInt(m.n, 1, 100000);
+        if (!d || d === p || !n) return bad('who');
+        if (n > p.home) return bad('scobbs');
+        if (d.shield > t) return bad('shield');
+        p.home -= n; p.away += n; p.shield = 0;
+        pushEv({ t: t + G.MARCH_MS, k: 'arrive', a: p.uid, to: d.uid, n, atk: n * atkOf(p.age), id: m.a + '_' + m.i, sent: t });
+        return note(t, p.uid, 'attack', 'war', { to: d.uid, n });
+      }
+      if (m.k === 'sell') {
+        const j = toInt(m.j, 1, 1e8);
+        if (!j) return bad('shape');
+        if (p.j < j) return bad('funds');
+        p.j -= j; p.c += ammOut(S.market, 'j', j);
+        return;
+      }
+      if (m.k === 'buy') {
+        const c = toInt(m.c, 1, 1e8);
+        if (!c) return bad('shape');
+        if (p.c < c) return bad('funds');
+        p.c -= c; p.j += ammOut(S.market, 'c', c);
+        return;
+      }
+      if (m.k === 'offer') {
+        const gj = toInt(m.gj || 0, 0, 1e8), gc = toInt(m.gc || 0, 0, 1e8), wj = toInt(m.wj || 0, 0, 1e8), wc = toInt(m.wc || 0, 0, 1e8);
+        if (gj === null || gc === null || wj === null || wc === null) return bad('shape');
+        const sellJelly = gj > 0 && wc > 0 && !gc && !wj, buyJelly = gc > 0 && wj > 0 && !gj && !wc;
+        if (!sellJelly && !buyJelly) return bad('shape');
+        if (p.j < gj || p.c < gc) return bad('funds');
+        p.j -= gj; p.c -= gc;
+        S.offers[m.a + '_' + m.i] = { id: m.a + '_' + m.i, a: p.uid, gj, gc, wj, wc, t, open: true };
+        return;
+      }
+      if (m.k === 'take') {
+        const o = S.offers[m.o];
+        if (!o || !o.open || o.a === p.uid) return bad('closed');
+        if (p.j < o.wj || p.c < o.wc) return bad('funds');
+        const seller = P[o.a];
+        p.j += o.gj - o.wj; p.c += o.gc - o.wc;
+        seller.j += o.wj; seller.c += o.wc;
+        o.open = false; o.by = p.uid; o.end = t;
+        return note(t, p.uid, 'deal', 'info', { with: o.a });
+      }
+      if (m.k === 'cancel') {
+        const o = S.offers[m.o];
+        if (!o || !o.open || o.a !== p.uid) return bad('closed');
+        p.j += o.gj; p.c += o.gc;
+        o.open = false; o.cancelled = true; o.end = t;
+        return;
+      }
+      bad('shape');
+    }
+
+    function onEv(e, t) {
+      const p = P[e.a];
+      if (e.k === 'built') { p[e.b] += 1; p.build = null; if (e.b === 'farm') checkWin(t); return; }
+      if (e.k === 'aged') { p.age += 1; p.aging = null; return note(t, p.uid, 'aged', 'info', { age: p.age }); }
+      if (e.k === 'trained') { p.trainAt = 0; if (p.trainQ > 0) { p.trainQ -= 1; p.home += 1; } return train(p, t); }
+      if (e.k === 'return') { p.away -= e.n; p.home += e.n; return; }
+      if (e.k === 'arrive') {
+        const d = P[e.to];
+        if (d.shield > t) {
+          pushEv({ t: t + G.MARCH_MS, k: 'return', a: p.uid, n: e.n });
+          S.reports.push({ t, a: p.uid, d: d.uid, n: e.n, shield: true });
+          return;
+        }
+        const A = e.atk, D = defenseOf(d);
+        const r = { t, a: p.uid, d: d.uid, n: e.n, A: Math.round(A), D: Math.round(D) };
+        if (A > D) {
+          r.win = true;
+          r.aLoss = Math.min(e.n, Math.round(e.n * Math.min(0.9, 0.6 * D / A)));
+          r.dLoss = Math.round(d.home * 0.6);
+          d.home -= r.dLoss;
+          r.lj = d.j * 0.3; r.lc = d.c * 0.3;
+          d.j -= r.lj; d.c -= r.lc; p.j += r.lj; p.c += r.lc;
+          if (A >= 1.5 * D && d.farm > 0) { d.farm -= 1; p.farm += 1; p.captured += 1; r.cap = true; }
+          if (d.wall > 0) { d.wall -= 1; r.wall = true; }
+          d.shield = t + G.SHIELD_MS;
+          p.raids += 1;
+        } else {
+          r.win = false;
+          r.aLoss = Math.min(e.n, Math.round(e.n * 0.7));
+          r.dLoss = Math.min(d.home, Math.round(d.home * Math.min(0.5, 0.4 * A / Math.max(D, 1))));
+          d.home -= r.dLoss;
+        }
+        p.away -= r.aLoss;
+        const back = e.n - r.aLoss;
+        if (back > 0) pushEv({ t: t + G.MARCH_MS, k: 'return', a: p.uid, n: back });
+        S.reports.push(r);
+        if (r.cap) checkWin(t);
+      }
+    }
+
+    let mi = 0;
+    while (true) {
+      const e = ev[0], m = mv[mi];
+      if (!e && !m) break;
+      const useEv = !!e && (!m || e.t <= m.t);
+      const t = useEv ? e.t : m.t;
+      if (t > now || t >= endAt) break;
+      if (t >= startAt) adv(t);
+      if (useEv) { ev.shift(); onEv(e, t); } else { mi++; onMove(m, t); }
+      if (S.winner) break;
+    }
+    if (!S.winner) adv(Math.min(now, endAt));
+    S.startAt = startAt;
+    S.endAt = endAt;
+    S.phase = S.winner || now >= endAt ? 'over' : now < startAt ? 'lobby' : 'live';
+    S.standings = Object.values(P).sort((a, b) => (b.farm - a.farm) || ((b.j + b.c) - (a.j + a.c)));
+    if (S.phase === 'over' && !S.winner && S.standings.length) { S.winner = S.standings[0].uid; S.reason = 'time'; }
+    S.marches = S.phase === 'live' ? ev.filter(x => x.k === 'arrive') : [];
+    S.returns = S.phase === 'live' ? ev.filter(x => x.k === 'return') : [];
+    return S;
+  }
+
+  /* ================= state ================= */
+  let FB = null, auth = null, fs = null, BANK = '', TESTERS = [];
+  let uid = null, uname = '', authReady = false, authed = false;
+  let players = {}, playersLoaded = false;
+  let rounds = {}, roundsLoaded = false;
+  let moveDocs = {}, movesLoaded = false;
+  let chatDocs = {};
+  const pending = new Map();
+  let curId = null, roundUnsubs = [], unsubs = [];
+  let skew = 0, myQ = 0;
+  let S = null, sig = '';
+  const seenBad = new Set();
+  let chatSeen = 0;
+  const ui = { tab: 'farm', fatal: '' };
+
+  const P_ = u => players[u];
+  const nameOf = u => (players[u] && players[u].username ? '@' + players[u].username : 'someone');
+  const lookOf = u => (players[u] && players[u].avatar) || { color: 'grape', eyes: 'dots', mouth: 'smile', blush: true };
+  const now = () => Date.now() + skew;
+  const isBank = () => uname === BANK;
+  const allowed = () => isBank() || TESTERS.includes(uname);
+  const round = () => (curId ? rounds[curId] : null);
+  const me = () => (S && S.players[uid]) || null;
+
+  function allMoves() {
+    const m = new Map();
+    for (const k in moveDocs) m.set(k, moveDocs[k]);
+    for (const [k, v] of pending) if (!m.has(k)) m.set(k, v);
+    return [...m.values()];
+  }
+  function sim() { const r = round(); S = r ? simulate(r, allMoves(), now()) : null; return S; }
+
+  /* ================= writes ================= */
+  function move(k, f) {
+    if (!curId) return;
+    myQ += 1;
+    const e = Object.assign({ i: rid(), q: myQ, k, a: uid, rd: curId }, f || {});
+    const id = uid + '_' + e.i;
+    pending.set(id, Object.assign({}, e, { t: now() }));
+    const body = Object.assign({}, e, { ct: Date.now(), st: FB.serverTimestamp() });
+    FB.setDoc(FB.doc(fs, ENV + 'Moves/' + id), body).catch(err => {
+      pending.delete(id);
+      toast(err && err.code === 'permission-denied' ? 'The database refused that move. Check the Firestore rules step in the README.' : 'That move didn’t go through. Try again.');
+      refresh(true);
+    });
+    refresh(true);
+  }
+  function sendChat(text) {
+    if (!curId) return;
+    const i = rid();
+    const id = uid + '_' + i;
+    chatDocs[id] = { id, a: uid, i, rd: curId, text, t: now(), pending: true };
+    renderChatList();
+    FB.setDoc(FB.doc(fs, ENV + 'Chat/' + id), { a: uid, i, rd: curId, text, ct: Date.now(), st: FB.serverTimestamp() }).catch(() => { delete chatDocs[id]; renderChatList(); toast('Your message didn’t send.'); });
+  }
+  async function openRound(lobbyMin) {
+    const n = Object.keys(rounds).length + 1;
+    const id = 'r' + Date.now().toString(36) + rid().slice(0, 4);
+    try {
+      await FB.setDoc(FB.doc(fs, ENV + 'Rounds/' + id), { n, by: uid, lobbyMs: lobbyMin * 60000, matchMs: G.MATCH_MS, st: FB.serverTimestamp() });
+      toast(`Round ${n} is open. Players can join now.`);
+    } catch (e) {
+      toast(e && e.code === 'permission-denied' ? 'Only the bank can open rounds. Check the Firestore rules step in the README.' : 'That didn’t work. Try again.');
+    }
+  }
+
+  /* ================= rendering ================= */
+  const app = $('#app');
+  function msg(title, text, extra) { return `<div class="msgscreen"><h1>${title}</h1>${text ? `<p>${text}</p>` : ''}${extra || ''}</div>`; }
+  function route() {
+    if (ui.fatal) return ui.fatal;
+    if (!authReady) return 'loading';
+    if (!authed) return 'login';
+    if (!playersLoaded || !roundsLoaded) return 'loading';
+    if (!players[uid] || !players[uid].avatar) return 'noprofile';
+    if (!allowed()) return 'closed';
+    return 'game';
+  }
+
+  function render() {
+    const r = route();
+    $('#tabs').hidden = r !== 'game';
+    if (r === 'loading') { app.innerHTML = msg('Loading Scobb Farm…', ''); return; }
+    if (r === 'notconfigured') { app.innerHTML = msg('Almost ready', 'Scobb Farm uses the same firebase-config.js as ScobbBucks. Upload it next to this page.'); return; }
+    if (r === 'offline') { app.innerHTML = msg('Can’t reach Scobb Farm', 'Check your internet connection, then reload.'); return; }
+    if (r === 'rules') { app.innerHTML = msg('Scobb Farm couldn’t load', 'The database turned the request down. Make sure you published the updated Firestore rules from the README.'); return; }
+    if (r === 'login') { app.innerHTML = msg('Log in first', 'Log in on the ScobbBucks page, then come back here.', '<a class="btn btn-grape" style="display:inline-grid;place-items:center;text-decoration:none" href="./">Go to ScobbBucks</a>'); return; }
+    if (r === 'noprofile') { app.innerHTML = msg('Finish your account', 'Make your ScobbBucks avatar first, then come back.', '<a class="btn btn-grape" style="display:inline-grid;place-items:center;text-decoration:none" href="./">Go to ScobbBucks</a>'); return; }
+    if (r === 'closed') { app.innerHTML = msg('Scobb Farm isn’t open yet', 'The bank is still testing it. Check back soon.'); return; }
+    sim();
+    sig = signature();
+    renderGame();
+  }
+
+  function header() {
+    const r = round();
+    let h = `<header class="top"><h1>Scobb Farm <span class="pill">Preview</span></h1><a class="link" href="./">ScobbBucks</a></header>`;
+    h += `<p class="notice">Preview mode uses test data and pretend prizes. Real ScobbBucks aren’t touched.</p>`;
+    if (!r || !S) return h;
+    const label = S.phase === 'lobby' ? 'Starts in' : S.phase === 'live' ? 'Time left' : 'Round over';
+    h += `<div class="status mt"><span>Round ${r.n}</span><span>${label} <b data-live="timer">${S.phase === 'over' ? '' : clock((S.phase === 'lobby' ? S.startAt : S.endAt) - now())}</b></span></div>`;
+    const p = me();
+    if (p && S.phase === 'live') {
+      h += `<div class="res"><div><span>Jelly</span><b data-res="j">${fmt(p.j)}</b></div><div><span>Coins</span><b data-res="c">${fmt(p.c)}</b></div><div><span>Scobbs</span><b data-res="home">${fmt(p.home)}</b></div><div><span>Farms</span><b>${p.farm}</b></div><div><span>Age</span><b style="font-size:14px">${AGES[p.age - 1]}</b></div></div>`;
+      const inc = S.marches.filter(x => x.to === uid);
+      if (inc.length) { const x = inc[0]; h += `<p class="alert">Incoming! ${esc(nameOf(x.a))}’s ${x.n} scobbs arrive in <span data-cd="${x.t}">${secs(x.t - now())}</span></p>`; }
+      if (p.shield > now()) h += `<p class="notice">You’re shielded for <span data-cd="${p.shield}">${secs(p.shield - now())}</span>. Attacking someone drops your shield.</p>`;
+    }
+    return h;
+  }
+
+  function renderGame() {
+    $('#tabs').hidden = false;
+    const r = round();
+    let body = header();
+    if (!r || !S) body += noRoundView();
+    else if (ui.tab === 'chat') body += chatView();
+    else if (S.phase === 'lobby') body += lobbyView();
+    else if (S.phase === 'over') body += overView();
+    else if (!me()) body += spectatorView();
+    else if (ui.tab === 'battle') body += battleView();
+    else if (ui.tab === 'market') body += marketView();
+    else body += farmView();
+    app.innerHTML = body;
+    $$('.tab').forEach(b => { if (b.dataset.tab === ui.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    if (ui.tab === 'chat') { renderChatList(); chatSeen = chatCount(); }
+    updateBadges();
+    wireView();
+  }
+
+  function noRoundView() {
+    let h = `<h2>No round right now</h2>`;
+    h += howTo();
+    h += isBank() ? bankOpen() : `<p class="soft mt">Waiting for the bank to open a round.</p>`;
+    return h;
+  }
+  function bankOpen() {
+    return `<div class="card mt"><h3 style="margin-top:0">Open a round</h3><p class="small soft">Players get a lobby to join, then the 30-minute match starts. You can also start early.</p><div class="chips" id="lobby-len">${[1, 2, 5].map(n => `<button type="button" class="chip" data-act="lobby-len" data-v="${n}" aria-pressed="${n === 2}">${n} min lobby</button>`).join('')}</div><button type="button" class="btn btn-grape btn-block mt" data-act="open-round">Open a new round</button></div>`;
+  }
+  function howTo() {
+    return `<div class="card mt"><h3 style="margin-top:0">How to play</h3>
+      <p class="small">Build farms to grow Jelly. Sell Jelly at the market for coins, or trade with friends.</p>
+      <p class="small mt" style="margin-top:6px">Spend coins on more farms, mills, walls and towers, and upgrade your Town Hall through ${AGES.join(', ')}.</p>
+      <p class="small" style="margin-top:6px">Send your scobbs to raid other farms. A big enough win takes one of their farms.</p>
+      <p class="small" style="margin-top:6px"><b>Win early</b> by owning half of all the farms, with at least ${G.MONO_MIN} of them and twice as many as anyone else. Otherwise, whoever owns the most farms after 30 minutes wins.</p></div>`;
+  }
+  function lobbyView() {
+    const r = round();
+    const joined = S.order;
+    let h = `<h2>Lobby</h2><div class="card"><p class="small soft">${joined.length ? 'In this round:' : 'Nobody has joined yet.'}</p><div class="plist">${joined.map(u => `<div class="pcard">${hb(u, 36)}<div class="main"><div class="t">${esc(nameOf(u))}</div></div></div>`).join('')}</div>`;
+    h += S.players[uid] ? `<p class="small mt" style="margin-top:10px">You’re in. Get ready!</p>` : `<button type="button" class="btn btn-lime btn-block mt" data-act="join">Join round ${r.n}</button>`;
+    if (isBank() && r.by === uid) h += `<button type="button" class="btn btn-ghost btn-block mt" data-act="start"${joined.length < 1 ? ' disabled' : ''}>Start now</button>`;
+    h += `</div>` + howTo();
+    return h;
+  }
+  function spectatorView() {
+    const lateOk = now() < S.startAt + G.JOIN_LATE_MS;
+    let h = `<h2>You’re watching</h2>`;
+    h += lateOk ? `<p class="small soft">You can still join for <span data-cd="${S.startAt + G.JOIN_LATE_MS}">${secs(S.startAt + G.JOIN_LATE_MS - now())}</span>.</p><button type="button" class="btn btn-lime btn-block mt" data-act="join">Join this round</button>` : `<p class="small soft">This round is too far along to join. Watch the chat and catch the next one.</p>`;
+    return h + standingsHTML();
+  }
+  function standingsHTML() {
+    return `<h2>Standings</h2><div class="podium">${S.standings.map((p, i) => `<div class="pcard"><span class="place">${i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}${p.uid === uid ? ' (you)' : ''}</div><div class="s">${plural(p.farm, 'farm', 'farms')}, ${AGES[p.age - 1]}, ${plural(p.home + p.away, 'scobb', 'scobbs')}</div></div></div>`).join('')}</div>`;
+  }
+  function overView() {
+    const w = S.winner;
+    let h = `<h2>${w ? `${esc(nameOf(w))} wins!` : 'Round over'}</h2>`;
+    h += w ? `<p class="small soft">${S.reason === 'monopoly' ? 'They took over half of all the farms. Scobb monopoly!' : 'They owned the most farms when time ran out.'}</p>` : '';
+    h += `<div class="podium">${S.standings.slice(0, 10).map((p, i) => `<div class="pcard"><span class="place">${['🥇', '🥈', '🥉'][i] || i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}</div><div class="s">${plural(p.farm, 'farm', 'farms')}${i < 3 ? `. Prize: ${PRIZES[i]} pretend ScobbBucks` : ''}</div></div></div>`).join('')}</div>`;
+    h += `<p class="small soft mt">In preview, prizes are pretend. Once Scobb Farm goes live, the top 3 get real ScobbBucks from the bank.</p>`;
+    h += isBank() ? bankOpen() : `<p class="soft mt">Waiting for the bank to open the next round.</p>`;
+    return h;
+  }
+
+  /* ---- the farm picture ---- */
+  const FARM_SLOTS = [[40, 34], [92, 34], [222, 34], [274, 34], [40, 74], [274, 74], [40, 114], [274, 114], [40, 154], [274, 154], [40, 194], [274, 194], [40, 234], [92, 234], [222, 234], [274, 234]];
+  const MILL_SLOTS = [[160, 34], [200, 34], [160, 236], [200, 236]];
+  const TOWER_SLOTS = [[24, 24], [336, 24], [24, 276], [336, 276], [24, 150], [336, 150], [120, 18], [240, 18]];
+  const JELLY = ['#FF5DA2', '#FFC233', '#5BE38A', '#3EC1FF', '#B98BFF'];
+  const DECOR = [[56, 52], [112, 90], [302, 60], [248, 96], [62, 182], [112, 204], [300, 204], [252, 254], [70, 262], [292, 266], [150, 112], [212, 204]].map(([x, y], i) => i % 3 === 0
+    ? `<g opacity=".9"><circle cx="${x}" cy="${y}" r="7" fill="#5FAE3E"/><circle cx="${x + 7}" cy="${y + 2}" r="6" fill="#6CBF47"/><circle cx="${x - 6}" cy="${y + 3}" r="5" fill="#4E9A33"/></g>`
+    : `<g>${[0, 1, 2].map(k => `<circle cx="${x + k * 6 - 6}" cy="${y + (k % 2) * 4}" r="2.4" fill="${['#FF7FA0', '#FFE066', '#FFFFFF'][(i + k) % 3]}"/>`).join('')}<path d="M${x - 8} ${y + 7}q3 -5 5 0M${x} ${y + 8}q3 -6 5 0" stroke="#4E9A33" stroke-width="1.6" fill="none"/></g>`).join('');
+  function hallSVG(age, col) {
+    if (age === 1) return `<rect x="160" y="140" width="40" height="34" rx="3" fill="#C8955C"/><path d="M154 143L180 118L206 143Z" fill="#E8C468"/><rect x="174" y="156" width="12" height="18" rx="6" fill="#7A4E2A"/><path d="M180 118V104" stroke="#5B4426" stroke-width="2"/><path d="M180 104L192 108L180 112Z" fill="${col}"/>`;
+    if (age === 2) return `<rect x="150" y="136" width="60" height="42" rx="3" fill="#E6D7BC"/><rect x="150" y="166" width="60" height="12" fill="#B3A68E"/><path d="M144 139L180 108L216 139Z" fill="#D9534F"/><rect x="172" y="152" width="16" height="26" rx="8" fill="#6B4226"/><rect x="156" y="146" width="10" height="10" rx="2" fill="#7CC4F2"/><rect x="194" y="146" width="10" height="10" rx="2" fill="#7CC4F2"/><path d="M180 108V90" stroke="#5B4426" stroke-width="2"/><path d="M180 90L195 95L180 100Z" fill="${col}"/>`;
+    const bat = (x, y, w, n) => Array.from({ length: n }, (_, i) => `<rect x="${x + i * (w / n)}" y="${y - 6}" width="${(w / n) * 0.55}" height="6" fill="#9AA3AD"/>`).join('');
+    if (age === 3) return `<rect x="146" y="126" width="68" height="54" fill="#B8C0C8"/>${bat(146, 126, 68, 6)}<rect x="134" y="118" width="18" height="62" fill="#A3ACB6"/>${bat(134, 118, 18, 2)}<rect x="208" y="118" width="18" height="62" fill="#A3ACB6"/>${bat(208, 118, 18, 2)}<path d="M168 180V158Q180 146 192 158V180Z" fill="#5B3A1C"/><rect x="158" y="136" width="8" height="12" rx="4" fill="#2E3440"/><rect x="194" y="136" width="8" height="12" rx="4" fill="#2E3440"/><path d="M143 110V96" stroke="#5B4426" stroke-width="2"/><path d="M143 96L157 101L143 106Z" fill="${col}"/><path d="M217 110V96" stroke="#5B4426" stroke-width="2"/><path d="M217 96L231 101L217 106Z" fill="${col}"/>`;
+    return `<rect x="132" y="138" width="96" height="44" fill="#F3EBDD"/><rect x="132" y="138" width="96" height="6" fill="#E3B341"/>${[140, 160, 196, 216].map(x => `<rect x="${x}" y="150" width="6" height="32" fill="#E9DFCC"/>`).join('')}<path d="M150 138Q180 92 210 138Z" fill="#E3B341"/><path d="M160 138Q180 106 200 138Z" fill="#FFE07A" opacity=".7"/><circle cx="180" cy="96" r="4" fill="#E3B341"/><path d="M168 182V160Q180 150 192 160V182Z" fill="#7A4E2A"/><path d="M180 92V74" stroke="#5B4426" stroke-width="2"/><path d="M180 74L196 79L180 84Z" fill="${col}"/>`;
+  }
+  function villageSVG(p, col, t) {
+    let s = `<svg class="village" viewBox="0 0 360 300" role="img" aria-label="Farm with ${p.farm} farms"><defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9E07E"/><stop offset="1" stop-color="#7DC455"/></linearGradient></defs>`;
+    s += `<rect width="360" height="300" rx="22" fill="url(#vg)"/><path d="M180 300V190M0 150H136M224 150H360" stroke="#E3CD97" stroke-width="14" stroke-linecap="round" opacity=".85"/>`;
+    s += DECOR;
+    const nf = Math.min(p.farm, FARM_SLOTS.length);
+    for (let i = 0; i < nf; i++) {
+      const [x, y] = FARM_SLOTS[i];
+      s += `<rect x="${x}" y="${y}" width="46" height="30" rx="6" fill="#8B5E3C"/><rect x="${x}" y="${y}" width="46" height="30" rx="6" fill="none" stroke="#6B4429" stroke-width="2"/>`;
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) s += `<circle cx="${x + 6 + c * 8.5}" cy="${y + 7 + r * 8}" r="2.9" fill="${JELLY[(i + r + c) % JELLY.length]}"/>`;
+    }
+    if (p.farm > FARM_SLOTS.length) s += `<text x="180" y="292" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="12" fill="#1F2A14">+${p.farm - FARM_SLOTS.length} more farms</text>`;
+    if (p.build && p.build.b === 'farm' && nf < FARM_SLOTS.length) { const [x, y] = FARM_SLOTS[nf]; s += `<rect x="${x}" y="${y}" width="46" height="30" rx="6" fill="#C9A46B" stroke="#8B5E3C" stroke-width="2" stroke-dasharray="4 3"/><text x="${x + 23}" y="${y + 19}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="10" fill="#5B3A1C">building</text>`; }
+    for (let i = 0; i < Math.min(p.mill, MILL_SLOTS.length); i++) {
+      const [x, y] = MILL_SLOTS[i];
+      s += `<g transform="translate(${x} ${y})"><path d="M-7 30L-5 8H5L7 30Z" fill="#EFE3CC" stroke="#B9A988" stroke-width="1.5"/><g class="spin"><path d="M0 8V-10M0 8H18M0 8V26M0 8H-18" stroke="#8B5A2B" stroke-width="4" stroke-linecap="round"/></g><circle cx="0" cy="8" r="2.6" fill="#5B3A1C"/></g>`;
+    }
+    if (p.barracks) s += `<rect x="96" y="122" width="48" height="30" rx="3" fill="#A0522D"/><path d="M92 124L120 104L148 124Z" fill="#6B3A20"/><rect x="114" y="134" width="12" height="18" rx="2" fill="#3B2312"/><path d="M103 128L111 136M111 128L103 136M129 128L137 136M137 128L129 136" stroke="#F2C14E" stroke-width="2" stroke-linecap="round"/>`;
+    else if (p.build && p.build.b === 'barracks') s += `<rect x="96" y="122" width="48" height="30" rx="3" fill="#C9A46B" stroke="#8B5E3C" stroke-width="2" stroke-dasharray="4 3"/>`;
+    s += `<rect x="220" y="130" width="42" height="22" fill="#EFE3CC"/><path d="M216 130H266L262 116H220Z" fill="#E5484D"/>${[0, 1, 2, 3, 4].map(i => `<path d="M${224 + i * 9} 116L${222 + i * 9} 130H${226 + i * 9}L${228 + i * 9} 116Z" fill="#fff" opacity=".75"/>`).join('')}<rect x="226" y="138" width="12" height="10" rx="2" fill="#B98BFF"/><rect x="242" y="138" width="12" height="10" rx="2" fill="#FFC233"/>`;
+    s += hallSVG(p.age, col);
+    if (p.aging) s += `<text x="180" y="200" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="11" fill="#1F2A14">upgrading…</text>`;
+    const shown = Math.min(p.home, 12);
+    for (let i = 0; i < shown; i++) s += scobb(118 + (i % 6) * 12 + (i >= 6 ? 6 : 0), 206 + (i >= 6 ? 14 : 0), col, 0.8, 'bob');
+    if (p.home > 12) s += `<text x="244" y="226" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="12" fill="#1F2A14">×${p.home}</text>`;
+    if (p.wall > 0) {
+      const w = Math.min(4 + p.wall * 1.4, 18);
+      s += `<rect x="12" y="12" width="336" height="276" rx="34" fill="none" stroke="#8E98A3" stroke-width="${w}"/><rect x="12" y="12" width="336" height="276" rx="34" fill="none" stroke="#C4CBD2" stroke-width="${(w * 0.35).toFixed(1)}" stroke-dasharray="10 8"/><rect x="162" y="276" width="36" height="22" rx="6" fill="#8B5A2B"/><path d="M180 276V298" stroke="#5B3A1C" stroke-width="2"/>`;
+    }
+    for (let i = 0; i < Math.min(p.tower, TOWER_SLOTS.length); i++) {
+      const [x, y] = TOWER_SLOTS[i];
+      s += `<g transform="translate(${x} ${y})"><rect x="-8" y="-6" width="16" height="22" fill="#9AA3AD"/><path d="M-10 -6L0 -20L10 -6Z" fill="#4B6CB7"/><rect x="-3" y="2" width="6" height="8" rx="3" fill="#3B3F45"/></g>`;
+    }
+    if (p.shield > t) s += `<ellipse cx="180" cy="150" rx="176" ry="146" fill="#7CC4F2" fill-opacity=".18" stroke="#7CC4F2" stroke-width="3" stroke-dasharray="6 6"/>`;
+    return s + '</svg>';
+  }
+
+  /* ---- farm tab ---- */
+  function canAfford(p, j, c) { return p.j >= j && p.c >= c; }
+  function costText(j, c) { return [c ? `${fmt(c)} coins` : '', j ? `${fmt(j)} Jelly` : ''].filter(Boolean).join(' + '); }
+  function farmView() {
+    const p = me(), t = now();
+    let h = villageSVG(p, colorOf(lookOf(uid)), t);
+    h += `<p class="small soft" style="margin-top:8px">Your farms make <b>${jellyRate(p).toFixed(1)}</b> Jelly a second, and your Town Hall adds <b>${(G.HALL_COINS * p.age).toFixed(1)}</b> coins a second.</p>`;
+    if (p.build) h += `<div class="prog"><div class="t"><span>Building a ${BUILDS[p.build.b].name}</span><span data-cd="${p.build.at}">${secs(p.build.at - t)}</span></div><div class="bar"><i data-prog="${p.build.from}:${p.build.at}"></i></div></div>`;
+    if (p.aging) h += `<div class="prog"><div class="t"><span>Upgrading to ${AGES[p.age]}</span><span data-cd="${p.aging.at}">${secs(p.aging.at - t)}</span></div><div class="bar"><i data-prog="${p.aging.from}:${p.aging.at}"></i></div></div>`;
+    if (p.trainQ > 0) h += `<div class="prog"><div class="t"><span>Training ${plural(p.trainQ, 'scobb', 'scobbs')}</span><span data-cd="${p.trainAt + (p.trainQ - 1) * G.TRAIN_MS}">${secs(p.trainAt + (p.trainQ - 1) * G.TRAIN_MS - t)}</span></div><div class="bar"><i data-prog="${p.trainFrom}:${p.trainAt}"></i></div></div>`;
+    h += `<h2>Build</h2><div class="card blist">`;
+    for (const k of BUILD_ORDER) {
+      const B = BUILDS[k], max = B.max(p.age), have = p[k];
+      const full = have >= max, busy = !!p.build, afford = canAfford(p, B.j, B.c);
+      const why = full ? (p.age < 4 ? 'Upgrade your Town Hall for more' : 'Maxed out') : busy ? 'Busy building' : !afford ? 'Not enough yet' : '';
+      h += `<div class="brow"><div class="main"><div class="t">${B.name} <span class="soft small">${have}/${max}</span></div><div class="s">${B.what}. ${secs(B.ms)}</div><div class="cost">${costText(B.j, B.c)}</div></div><button type="button" class="btn btn-grape btn-sm" data-act="build" data-b="${k}"${why ? ` disabled title="${why}"` : ''}>Build</button></div>`;
+    }
+    if (p.age < 4) {
+      const A = AGE_UP[p.age], ok = !p.aging && canAfford(p, A.j, A.c);
+      h += `<div class="brow"><div class="main"><div class="t">Town Hall: ${AGES[p.age]}</div><div class="s">More buildings, stronger scobbs and more coins. ${secs(A.ms)}</div><div class="cost">${costText(A.j, A.c)}</div></div><button type="button" class="btn btn-lime btn-sm" data-act="age"${ok ? '' : ' disabled'}>Upgrade</button></div>`;
+    }
+    h += `</div><h2>Train scobbs</h2><div class="card">`;
+    if (!p.barracks) h += `<p class="small soft">Build a Barracks to train more scobbs.</p>`;
+    else {
+      const maxN = Math.max(0, Math.min(50, Math.floor(Math.min(p.j / G.SCOBB_J, p.c / G.SCOBB_C))));
+      h += `<p class="small soft">Each scobb costs ${G.SCOBB_J} Jelly + ${G.SCOBB_C} coins and takes ${G.TRAIN_MS / 1000}s. Attack power ${atkOf(p.age).toFixed(1)} each at ${AGES[p.age - 1]}.</p>
+        <div class="step"><button type="button" class="sb" data-act="tstep" data-d="-1" aria-label="One fewer">−</button><input class="sv" id="t-n" type="text" inputmode="numeric" value="${Math.min(5, maxN) || 1}" aria-label="Scobbs to train"><button type="button" class="sb" data-act="tstep" data-d="1" aria-label="One more">+</button><button type="button" class="btn btn-grape btn-sm" style="margin:0 0 0 auto" data-act="train"${maxN ? '' : ' disabled'}>Train</button></div><p class="small soft" style="margin-top:6px">You can afford ${maxN} right now.</p>`;
+    }
+    h += `</div>`;
+    return h;
+  }
+
+  /* ---- battle tab ---- */
+  function reportText(r) {
+    const mine = r.a === uid;
+    const other = mine ? r.d : r.a;
+    if (r.shield) return mine ? `Your ${r.n} scobbs bounced off ${esc(nameOf(other))}’s shield.` : `${esc(nameOf(other))}’s attack bounced off your shield.`;
+    if (mine) return r.win ? `<span class="win">You raided ${esc(nameOf(other))}!</span> Took ${fmt(r.lj)} Jelly and ${fmt(r.lc)} coins${r.cap ? ', plus one of their farms' : ''}. You lost ${r.aLoss} scobbs.` : `<span class="lose">Your attack on ${esc(nameOf(other))} failed.</span> Your ${r.A} attack couldn’t beat their ${r.D} defense. You lost ${r.aLoss} scobbs.`;
+    return r.win ? `<span class="lose">${esc(nameOf(other))} raided you.</span> They took ${fmt(r.lj)} Jelly and ${fmt(r.lc)} coins${r.cap ? ' and one of your farms' : ''}. You lost ${r.dLoss} scobbs.` : `<span class="win">You held off ${esc(nameOf(other))}!</span> Their ${r.A} attack lost to your ${r.D} defense.`;
+  }
+  function battleView() {
+    const p = me(), t = now();
+    let h = `<div class="card mt"><b>Your army</b><p class="small soft">${plural(p.home, 'scobb', 'scobbs')} home, ${fmt(p.away)} out, ${fmt(p.trainQ)} training. Your defense is <b>${Math.round(defenseOf(p))}</b>.</p></div>`;
+    const out = S.marches.filter(x => x.a === uid);
+    if (out.length) h += `<h3>Marching</h3>${out.map(x => `<div class="prog"><div class="t"><span>${x.n} scobbs to ${esc(nameOf(x.to))}</span><span data-cd="${x.t}">${secs(x.t - t)}</span></div><div class="bar"><i data-prog="${x.sent}:${x.t}"></i></div></div>`).join('')}`;
+    h += `<h2>Players</h2><div class="card plist">`;
+    const others = S.standings.filter(o => o.uid !== uid);
+    if (!others.length) h += `<p class="small soft">Nobody else is in this round yet.</p>`;
+    for (const o of others) {
+      const sh = o.shield > t;
+      h += `<div class="pcard">${hb(o.uid, 40)}<div class="main"><div class="t">${esc(nameOf(o.uid))}</div><div class="s">${plural(o.farm, 'farm', 'farms')}, ${AGES[o.age - 1]}, defense ${Math.round(defenseOf(o))}${sh ? `, shielded <span data-cd="${o.shield}">${secs(o.shield - t)}</span>` : ''}</div></div><div style="display:grid;gap:6px"><button type="button" class="btn btn-danger btn-sm" data-act="attack" data-u="${esc(o.uid)}"${sh || !p.home ? ' disabled' : ''}>Attack</button><button type="button" class="link" data-act="peek" data-u="${esc(o.uid)}">View farm</button></div></div>`;
+    }
+    h += `</div>`;
+    const reps = S.reports.filter(r => r.a === uid || r.d === uid).slice(-12).reverse();
+    h += `<h2>Battle reports</h2><div class="card">${reps.length ? reps.map(r => `<div class="ev">${reportText(r)} <span class="when">${clock(r.t - S.startAt)} in</span></div>`).join('') : '<p class="small soft">No battles yet.</p>'}</div>`;
+    return h;
+  }
+
+  /* ---- market tab ---- */
+  function marketView() {
+    const p = me(), mk = S.market;
+    const price = mk.c / mk.j;
+    let h = `<div class="card mt"><p class="small soft">Market price</p><p class="price">1 Jelly = ${price.toFixed(2)} coins</p><p class="small soft">The price drops when people sell Jelly and rises when they buy it. There’s a 2% fee.</p></div>`;
+    h += `<div class="card mt"><h3 style="margin-top:0">Sell Jelly</h3><div class="field"><input id="m-sell" type="text" inputmode="numeric" placeholder="How much Jelly" aria-label="Jelly to sell"></div><div class="chips">${[25, 50, 100].map(v => `<button type="button" class="chip" data-act="pct" data-f="m-sell" data-v="${v}">${v === 100 ? 'All' : v + '%'}</button>`).join('')}</div><p class="quote" id="q-sell"></p><button type="button" class="btn btn-grape btn-block" data-act="sell">Sell</button></div>`;
+    h += `<div class="card mt"><h3 style="margin-top:0">Buy Jelly</h3><div class="field"><input id="m-buy" type="text" inputmode="numeric" placeholder="How many coins to spend" aria-label="Coins to spend"></div><div class="chips">${[25, 50, 100].map(v => `<button type="button" class="chip" data-act="pct" data-f="m-buy" data-v="${v}">${v === 100 ? 'All' : v + '%'}</button>`).join('')}</div><p class="quote" id="q-buy"></p><button type="button" class="btn btn-ghost btn-block" data-act="buy">Buy</button></div>`;
+    const offers = Object.values(S.offers).filter(o => o.open).sort((a, b) => b.t - a.t);
+    h += `<h2>Player deals</h2><div class="card plist">`;
+    if (!offers.length) h += `<p class="small soft">No deals posted. Beat the market price and someone might bite.</p>`;
+    for (const o of offers) {
+      const mine = o.a === uid;
+      const what = o.gj ? `Selling ${fmt(o.gj)} Jelly for ${fmt(o.wc)} coins` : `Buying ${fmt(o.wj)} Jelly for ${fmt(o.gc)} coins`;
+      const each = o.gj ? o.wc / o.gj : o.gc / o.wj;
+      const can = mine || (o.gj ? p.c >= o.wc : p.j >= o.wj);
+      h += `<div class="pcard">${hb(o.a, 36)}<div class="main"><div class="t">${esc(nameOf(o.a))}</div><div class="s">${what} (${each.toFixed(2)} each)</div></div>${mine ? `<button type="button" class="btn btn-ghost btn-sm" data-act="cancel" data-o="${esc(o.id)}">Cancel</button>` : `<button type="button" class="btn btn-lime btn-sm" data-act="take" data-o="${esc(o.id)}"${can ? '' : ' disabled'}>Take</button>`}</div>`;
+    }
+    h += `</div><div class="card mt"><h3 style="margin-top:0">Post a deal</h3><div class="chips" id="d-side"><button type="button" class="chip" data-act="dside" data-v="sell" aria-pressed="true">Sell Jelly</button><button type="button" class="chip" data-act="dside" data-v="buy" aria-pressed="false">Buy Jelly</button></div>
+      <div class="row2"><div class="field" style="margin:0"><label for="d-j">Jelly</label><input id="d-j" type="text" inputmode="numeric" placeholder="0"></div><div class="field" style="margin:0"><label for="d-c">For coins</label><input id="d-c" type="text" inputmode="numeric" placeholder="0"></div></div>
+      <p class="small soft" style="margin-top:6px">What you offer is held until someone takes the deal or you cancel it.</p><button type="button" class="btn btn-grape btn-block mt" data-act="post">Post deal</button></div>`;
+    return h;
+  }
+
+  /* ---- chat ---- */
+  const chatList = () => Object.values(chatDocs).filter(m => m.rd === curId).sort((a, b) => a.t - b.t);
+  const chatCount = () => chatList().length;
+  function chatView() {
+    return `<h2>Round chat</h2><div class="chat" id="chat"></div><div class="sendrow"><input id="c-text" type="text" maxlength="200" autocomplete="off" placeholder="Say something" aria-label="Message"><button type="button" class="btn btn-grape" data-act="chat-send">Send</button></div>`;
+  }
+  function renderChatList() {
+    const box = $('#chat');
+    if (!box) return;
+    const list = chatList().slice(-100);
+    box.innerHTML = list.length ? list.map(m => `<div class="msg${m.a === uid ? ' me' : ''}">${hb(m.a, 30)}<div class="bub"><div class="who">${esc(nameOf(m.a))}</div>${esc(m.text)}</div></div>`).join('') : '<p class="small soft">No messages yet. Talk some trash.</p>';
+    if (ui.tab === 'chat') { chatSeen = chatCount(); updateBadges(); window.scrollTo(0, document.body.scrollHeight); }
+  }
+  function updateBadges() {
+    const bc = $('#bd-chat'), bb = $('#bd-battle');
+    const unread = ui.tab === 'chat' ? 0 : Math.max(0, chatCount() - chatSeen);
+    bc.hidden = !unread; bc.textContent = unread > 9 ? '9+' : String(unread);
+    const inc = S && S.phase === 'live' ? S.marches.filter(x => x.to === uid).length : 0;
+    bb.hidden = !inc; bb.textContent = String(inc);
+  }
+
+  /* ---- sheets ---- */
+  function openSheet(html, wire) {
+    $('#sheet-body').innerHTML = html;
+    $('#sheet-root').hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (wire) wire();
+    setTimeout(() => $('#sheet').focus({ preventScroll: true }), 40);
+  }
+  function closeSheet() { $('#sheet-root').hidden = true; $('#sheet-body').innerHTML = ''; document.body.style.overflow = ''; }
+  const sheetHead = t => `<div class="sheet-head"><h2 id="sheet-title">${t}</h2><button type="button" class="x" data-act="close" aria-label="Close">✕</button></div>`;
+  function openAttack(u) {
+    const p = me(), o = S.players[u];
+    if (!p || !o) return;
+    const html = sheetHead(`Attack ${esc(nameOf(u))}`)
+      + `<p class="small soft">Your scobbs march for ${G.MARCH_MS / 1000}s. If your attack beats their defense, you take 30% of their Jelly and coins. Beat it by 1.5× and you also take one of their farms.</p>`
+      + `<div class="step"><button type="button" class="sb" data-act="astep" data-d="-1" aria-label="One fewer">−</button><input class="sv" id="a-n" type="text" inputmode="numeric" value="${p.home}" aria-label="Scobbs to send"><button type="button" class="sb" data-act="astep" data-d="1" aria-label="One more">+</button><span class="small soft">of ${p.home} home</span></div>`
+      + `<p class="quote" id="a-q"></p><p class="err" id="a-err" hidden></p><button type="button" class="btn btn-danger btn-block mt" id="a-go">Send scobbs</button>`;
+    openSheet(html, () => {
+      const upd = () => {
+        const pp = me(), oo = S.players[u];
+        const n = Math.max(0, Math.min(pp.home, parseInt($('#a-n').value, 10) || 0));
+        const A = n * atkOf(pp.age), D = defenseOf(oo);
+        $('#a-q').innerHTML = `Your attack <b>${Math.round(A)}</b> vs their defense <b>${Math.round(D)}</b>. ${A >= 1.5 * D ? '<span class="win">Big win, you’d take a farm.</span>' : A > D ? '<span class="win">You’d win the raid.</span>' : '<span class="lose">You’d probably lose.</span>'} Defense can change while you march.`;
+      };
+      $('#a-n').addEventListener('input', upd);
+      upd();
+      ui.sheetUpd = upd;
+      $('#a-go').addEventListener('click', () => {
+        const pp = me(), n = parseInt($('#a-n').value, 10) || 0;
+        const err = $('#a-err');
+        if (n < 1 || n > pp.home) { err.textContent = `Send between 1 and ${pp.home} scobbs.`; err.hidden = false; return; }
+        if (S.players[u].shield > now()) { err.textContent = 'They’re shielded right now.'; err.hidden = false; return; }
+        move('attack', { to: u, n });
+        closeSheet();
+        ui.sheetUpd = null;
+        toast(`${n} scobbs are marching on ${nameOf(u)}`);
+      });
+    });
+  }
+  function openPeek(u) {
+    const o = S.players[u];
+    if (!o) return;
+    openSheet(sheetHead(`${esc(nameOf(u))}’s farm`) + villageSVG(o, colorOf(lookOf(u)), now()) + `<p class="small soft" style="margin-top:8px">${plural(o.farm, 'farm', 'farms')}, ${plural(o.mill, 'mill', 'mills')}, wall level ${o.wall}, ${plural(o.tower, 'tower', 'towers')}, ${plural(o.home, 'scobb', 'scobbs')} home. Defense ${Math.round(defenseOf(o))}.</p>`);
+  }
+
+  /* ---- live updates ---- */
+  function signature() {
+    if (!S) return 'none';
+    const p = S.players[uid];
+    const parts = [S.phase, S.order.length, S.reports.length, Object.values(S.offers).filter(o => o.open).length, S.marches.length, S.winner || ''];
+    for (const u of S.order) { const q = S.players[u]; parts.push(q.farm, q.age, q.shield > now() ? 1 : 0); }
+    if (p) parts.push(p.mill, p.barracks, p.wall, p.tower, p.home, p.away, p.trainQ, p.build ? p.build.b : '', p.aging ? 1 : 0, Math.floor(p.j / 25), Math.floor(p.c / 25));
+    return parts.join('|');
+  }
+  function liveTick() {
+    const t = now();
+    $$('[data-cd]').forEach(el => { el.textContent = secs(Number(el.dataset.cd) - t); });
+    $$('[data-prog]').forEach(el => { const [a, b] = el.dataset.prog.split(':').map(Number); el.style.width = Math.max(0, Math.min(100, ((t - a) / Math.max(1, b - a)) * 100)) + '%'; });
+    const tm = $('[data-live="timer"]');
+    if (tm && S) tm.textContent = S.phase === 'over' ? '' : clock((S.phase === 'lobby' ? S.startAt : S.endAt) - t);
+    const p = me();
+    if (p) { const j = $('[data-res="j"]'), c = $('[data-res="c"]'), h = $('[data-res="home"]'); if (j) j.textContent = fmt(p.j); if (c) c.textContent = fmt(p.c); if (h) h.textContent = fmt(p.home); }
+    if (ui.sheetUpd) ui.sheetUpd();
+    updateQuotes();
+  }
+  function editing() { const a = document.activeElement; return !!(a && a.tagName === 'INPUT' && app.contains(a)); }
+  function refresh(force) {
+    if (route() !== 'game') { render(); return; }
+    sim();
+    reportBad();
+    const s = signature();
+    if ((force || s !== sig) && !editing() && $('#sheet-root').hidden) { sig = s; renderGame(); }
+    else liveTick();
+    updateBadges();
+  }
+  function reportBad() {
+    if (!S) return;
+    const WHY = { funds: 'You didn’t have enough by the time that went through.', busy: 'You’re already building something.', max: 'You’ve hit the limit for your age.', lobby: 'The round hasn’t started yet.', late: 'It’s too late to join this round.', shield: 'They were shielded, so the attack didn’t go out.', scobbs: 'You didn’t have that many scobbs at home.', closed: 'That deal was already gone.', 'no barracks': 'Build a Barracks first.', age: 'You’re already at Empire.' };
+    for (const k in S.bad) {
+      if (!k.startsWith(uid + '_') || seenBad.has(k)) continue;
+      seenBad.add(k);
+      if (WHY[S.bad[k]]) toast(WHY[S.bad[k]]);
+    }
+  }
+  function updateQuotes() {
+    const p = me();
+    if (!p || !S) return;
+    const qs = $('#q-sell'), qb = $('#q-buy');
+    if (qs) { const v = parseInt(($('#m-sell') || {}).value, 10) || 0; qs.textContent = v > 0 ? (v > p.j ? `You only have ${fmt(p.j)} Jelly.` : `You’d get about ${fmt(quote(S.market, 'j', v))} coins.`) : ''; }
+    if (qb) { const v = parseInt(($('#m-buy') || {}).value, 10) || 0; qb.textContent = v > 0 ? (v > p.c ? `You only have ${fmt(p.c)} coins.` : `You’d get about ${fmt(quote(S.market, 'c', v))} Jelly.`) : ''; }
+  }
+  function wireView() {
+    const s = $('#m-sell'), b = $('#m-buy');
+    if (s) s.addEventListener('input', updateQuotes);
+    if (b) b.addEventListener('input', updateQuotes);
+    const ct = $('#c-text');
+    if (ct) ct.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ACT['chat-send'](); } });
+    liveTick();
+  }
+
+  let toastT = 0;
+  function toast(m) { const el = $('#toast'); el.textContent = m; el.hidden = true; void el.offsetWidth; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3000); }
+
+  /* ================= actions ================= */
+  let lobbyLen = 2, dealSide = 'sell';
+  const ACT = {
+    tab: b => { ui.tab = b.dataset.tab; closeSheet(); ui.sheetUpd = null; renderGame(); window.scrollTo(0, 0); },
+    close: () => { closeSheet(); ui.sheetUpd = null; refresh(true); },
+    'lobby-len': b => { lobbyLen = Number(b.dataset.v); $$('[data-act="lobby-len"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); },
+    'open-round': b => { b.disabled = true; openRound(lobbyLen); },
+    join: () => move('join'),
+    start: () => move('start'),
+    build: b => { const p = me(), B = BUILDS[b.dataset.b]; if (!p || p.build) return; if (!canAfford(p, B.j, B.c)) return toast('Not enough yet.'); move('build', { b: b.dataset.b }); toast(`Building a ${B.name}`); },
+    age: () => { const p = me(); if (!p || p.aging || p.age >= 4) return; move('age'); toast(`Upgrading to ${AGES[p.age]}`); },
+    tstep: b => { const el = $('#t-n'); el.value = String(Math.max(1, Math.min(50, (parseInt(el.value, 10) || 0) + Number(b.dataset.d)))); },
+    train: () => { const p = me(); const n = Math.max(1, Math.min(50, parseInt($('#t-n').value, 10) || 0)); if (!canAfford(p, n * G.SCOBB_J, n * G.SCOBB_C)) return toast('Not enough for that many.'); move('train', { n }); toast(`Training ${plural(n, 'scobb', 'scobbs')}`); },
+    attack: b => openAttack(b.dataset.u),
+    peek: b => openPeek(b.dataset.u),
+    astep: b => { const el = $('#a-n'); const p = me(); el.value = String(Math.max(1, Math.min(p.home, (parseInt(el.value, 10) || 0) + Number(b.dataset.d)))); if (ui.sheetUpd) ui.sheetUpd(); },
+    pct: b => { const p = me(); const el = $('#' + b.dataset.f); const base = b.dataset.f === 'm-sell' ? p.j : p.c; el.value = String(Math.floor(base * Number(b.dataset.v) / 100)); updateQuotes(); },
+    sell: () => { const p = me(); const v = parseInt($('#m-sell').value, 10) || 0; if (v < 1) return toast('Enter how much Jelly to sell.'); if (v > p.j) return toast(`You only have ${fmt(p.j)} Jelly.`); move('sell', { j: v }); $('#m-sell').value = ''; toast(`Sold ${fmt(v)} Jelly`); },
+    buy: () => { const p = me(); const v = parseInt($('#m-buy').value, 10) || 0; if (v < 1) return toast('Enter how many coins to spend.'); if (v > p.c) return toast(`You only have ${fmt(p.c)} coins.`); move('buy', { c: v }); $('#m-buy').value = ''; toast(`Bought Jelly for ${fmt(v)} coins`); },
+    dside: b => { dealSide = b.dataset.v; $$('[data-act="dside"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); },
+    post: () => {
+      const p = me(); const j = parseInt($('#d-j').value, 10) || 0, c = parseInt($('#d-c').value, 10) || 0;
+      if (j < 1 || c < 1) return toast('Enter the Jelly and the coins.');
+      if (dealSide === 'sell') { if (j > p.j) return toast(`You only have ${fmt(p.j)} Jelly.`); move('offer', { gj: j, wc: c }); }
+      else { if (c > p.c) return toast(`You only have ${fmt(p.c)} coins.`); move('offer', { gc: c, wj: j }); }
+      toast('Deal posted');
+    },
+    take: b => { move('take', { o: b.dataset.o }); toast('Deal taken'); },
+    cancel: b => { move('cancel', { o: b.dataset.o }); toast('Deal cancelled'); },
+    'chat-send': () => { const el = $('#c-text'); if (!el) return; const v = el.value.trim().slice(0, 200); if (!v) return; el.value = ''; sendChat(v); el.focus(); }
+  };
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]');
+    if (!b || b.disabled) return;
+    const fn = ACT[b.dataset.act];
+    if (fn) { e.preventDefault(); fn(b, e); }
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet-root').hidden) { closeSheet(); ui.sheetUpd = null; } });
+  document.addEventListener('focusout', () => setTimeout(() => { if (!editing()) refresh(); }, 50));
+
+  /* ================= data ================= */
+  function onDbError(err) { ui.fatal = err && err.code === 'permission-denied' ? 'rules' : 'offline'; render(); }
+  const tOf = (x, fallback) => (x && typeof x.toMillis === 'function' ? x.toMillis() : (typeof fallback === 'number' ? fallback : 0));
+  function pickRound() {
+    const list = Object.values(rounds).sort((a, b) => b.t - a.t);
+    const next = list.length ? list[0].id : null;
+    if (next === curId) return;
+    curId = next;
+    roundUnsubs.forEach(f => { try { f(); } catch (e) { /* stopped */ } });
+    roundUnsubs = [];
+    moveDocs = {}; chatDocs = {}; pending.clear(); movesLoaded = false; chatSeen = 0; seenBad.clear();
+    if (!curId) return;
+    roundUnsubs.push(FB.onSnapshot(FB.query(FB.collection(fs, ENV + 'Moves'), FB.where('rd', '==', curId)), qs => {
+      const next = {};
+      qs.forEach(d => {
+        const x = d.data({ serverTimestamps: 'estimate' });
+        if (!x || typeof x.a !== 'string' || typeof x.i !== 'string' || x.rd !== curId) return;
+        const e = Object.assign({}, x, { t: tOf(x.st, x.ct) });
+        delete e.st;
+        next[d.id] = e;
+        pending.delete(d.id);
+        if (x.a === uid) {
+          myQ = Math.max(myQ, x.q || 0);
+          if (d.metadata && !d.metadata.hasPendingWrites && typeof x.ct === 'number' && x.st) skew = e.t - x.ct;
+        }
+      });
+      moveDocs = next;
+      movesLoaded = true;
+      refresh();
+    }, onDbError));
+    roundUnsubs.push(FB.onSnapshot(FB.query(FB.collection(fs, ENV + 'Chat'), FB.where('rd', '==', curId)), qs => {
+      const next = {};
+      qs.forEach(d => {
+        const x = d.data({ serverTimestamps: 'estimate' });
+        if (!x || typeof x.text !== 'string' || x.rd !== curId) return;
+        next[d.id] = { id: d.id, a: x.a, rd: x.rd, text: x.text.slice(0, 200), t: tOf(x.st, x.ct) };
+      });
+      for (const k in chatDocs) if (chatDocs[k].pending && !next[k]) next[k] = chatDocs[k];
+      chatDocs = next;
+      renderChatList();
+      updateBadges();
+    }, onDbError));
+  }
+  function startSession(user) {
+    uid = user.uid;
+    uname = String(user.email || '').split('@')[0].toLowerCase();
+    authed = true;
+    unsubs.push(FB.onSnapshot(FB.collection(fs, 'players'), qs => {
+      const next = {};
+      qs.forEach(d => { next[d.id] = d.data(); });
+      players = next; playersLoaded = true;
+      refresh(true);
+    }, onDbError));
+    unsubs.push(FB.onSnapshot(FB.collection(fs, ENV + 'Rounds'), qs => {
+      const next = {};
+      qs.forEach(d => {
+        const x = d.data({ serverTimestamps: 'estimate' });
+        if (!x || typeof x.by !== 'string') return;
+        next[d.id] = { id: d.id, n: x.n || 1, by: x.by, t: tOf(x.st, Date.now()), lobbyMs: Math.max(0, Math.min(10 * 60000, Number(x.lobbyMs) || 0)), matchMs: G.MATCH_MS };
+      });
+      rounds = next; roundsLoaded = true;
+      pickRound();
+      refresh(true);
+    }, onDbError));
+    render();
+  }
+  function endSession() {
+    unsubs.concat(roundUnsubs).forEach(f => { try { f(); } catch (e) { /* stopped */ } });
+    unsubs = []; roundUnsubs = [];
+    authed = false; uid = null; uname = '';
+    players = {}; rounds = {}; moveDocs = {}; chatDocs = {}; curId = null;
+    playersLoaded = false; roundsLoaded = false;
+    render();
+  }
+  async function loadFirebase() {
+    const base = `https://www.gstatic.com/firebasejs/${FB_VERSION}/`;
+    const mods = await Promise.all(['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map(f => import(base + f)));
+    return Object.assign({}, ...mods);
+  }
+  async function boot() {
+    let cfg = null;
+    try { cfg = await import('./firebase-config.js'); } catch (e) { cfg = null; }
+    const fc = cfg && cfg.FIREBASE_CONFIG;
+    const bank = String((cfg && cfg.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
+    if (!fc || !fc.apiKey || /paste/i.test(fc.apiKey) || !bank || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
+    BANK = bank;
+    TESTERS = Array.isArray(cfg.FARM_TESTERS) ? cfg.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
+    try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
+    const fbApp = FB.initializeApp(fc);
+    auth = FB.getAuth(fbApp);
+    fs = FB.getFirestore(fbApp);
+    FB.onAuthStateChanged(auth, user => { authReady = true; if (user) startSession(user); else endSession(); });
+    setInterval(() => { if (route() === 'game') refresh(); }, 1000);
+  }
+  boot();
+</script>
+</body>
+</html>

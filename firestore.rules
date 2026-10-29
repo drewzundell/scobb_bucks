@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Put the bank's username here, in lowercase.
+    // It has to match BANK_USERNAME in firebase-config.js.
+    function bankUsername() {
+      return 'drewzundell';
+    }
+
+    function signedIn() {
+      return request.auth != null
+        && request.auth.token.email is string
+        && request.auth.token.email.matches('^[a-z0-9_.]{3,16}@scobbbucks[.]example[.]com$');
+    }
+
+    function myName() {
+      return request.auth.token.email.split('@')[0];
+    }
+
+    // Set once by the bank when the coins are minted. Nobody can change it after that.
+    match /config/{docId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && docId == 'main'
+        && myName() == bankUsername()
+        && request.resource.data.issuer == request.auth.uid
+        && request.resource.data.supply == 5000
+        && request.resource.data.caps is list
+        && request.resource.data.caps.size() == 6
+        && request.resource.data.caps[0] + request.resource.data.caps[1] + request.resource.data.caps[2]
+           + request.resource.data.caps[3] + request.resource.data.caps[4] + request.resource.data.caps[5] == 5000;
+      allow update, delete: if false;
+    }
+
+    // Each player's profile and avatar. Only that player can change it.
+    match /players/{userId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.uname == myName();
+      allow delete: if false;
+    }
+
+    // Every send, purchase, offer and trade answer. Added once, never edited or deleted.
+    match /entries/{entryId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.a == request.auth.uid
+        && request.resource.data.st == request.time
+        && entryId == request.auth.uid + '_' + request.resource.data.i;
+      allow update, delete: if false;
+    }
+
+    // Private to each player: which gifts they've already opened.
+    match /private/{userId} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
+    // Scobb Farm preview. Rounds are opened by the bank. Moves and chat are added once, never edited.
+    match /farmPreviewRounds/{roundId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && myName() == bankUsername()
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.st == request.time;
+      allow update, delete: if false;
+    }
+
+    match /farmPreviewMoves/{moveId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.a == request.auth.uid
+        && request.resource.data.st == request.time
+        && moveId == request.auth.uid + '_' + request.resource.data.i;
+      allow update, delete: if false;
+    }
+
+    match /farmPreviewChat/{msgId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.a == request.auth.uid
+        && request.resource.data.st == request.time
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 200
+        && msgId == request.auth.uid + '_' + request.resource.data.i;
+      allow update, delete: if false;
+    }
+  }
+}
