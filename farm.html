@@ -67,7 +67,7 @@ p { margin: 0; }
 .pill { display: inline-block; border-radius: 999px; padding: 1px 10px; font-size: 13px; font-weight: 800; background: var(--gold); color: #fff; vertical-align: middle; }
 .status { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 10px 14px; font-weight: 700; }
 .status b { font-size: 22px; font-variant-numeric: tabular-nums; }
-.res { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+.res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
 .res div { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 4px 6px; text-align: center; }
 .res span { display: block; font-size: 11.5px; font-weight: 800; color: var(--soft); }
 .res b { font-size: 17px; font-variant-numeric: tabular-nums; }
@@ -129,7 +129,7 @@ input[type="text"]:focus { border-color: var(--grape); }
 .sendrow input { flex: 1; }
 .sendrow .btn { height: 48px; margin: 0; }
 
-.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 2px solid var(--line); padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(4, 1fr); }
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 2px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(5, 1fr); }
 .tab { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; border: 0; background: none; padding: 4px 0; color: var(--soft); font-weight: 800; font-size: 12.5px; }
 .tab .ib { font-size: 20px; line-height: 30px; width: 52px; border-radius: 999px; }
 .tab[aria-current="page"] { color: var(--grape); }
@@ -150,6 +150,33 @@ input[type="text"]:focus { border-color: var(--grape); }
 .podium { display: grid; gap: 8px; margin-top: 10px; }
 .podium .pcard { border: 2px solid var(--line); border-radius: 16px; padding: 8px 10px; background: var(--card); }
 .place { font-size: 22px; font-weight: 800; width: 34px; text-align: center; }
+.row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.row3 .btn { width: 100%; padding: 0 6px; }
+.mapbar { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.world { position: relative; margin-top: 8px; height: 62vh; overflow: auto; border-radius: 22px; border: 2px solid var(--line); background: #7CBF55; cursor: grab; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.world.drag { cursor: grabbing; user-select: none; }
+.world svg { display: block; }
+.world .base-hit { cursor: pointer; }
+.world .base-hit:hover { fill: rgba(255, 255, 255, .12); }
+.village .hit { cursor: pointer; }
+.village .hit:hover { filter: brightness(1.1); }
+.mini { width: 34px; height: 34px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); font-weight: 800; font-size: 18px; padding: 0; color: var(--ink); }
+.mini:disabled { opacity: .4; }
+.jobs .brow .ctl { display: flex; align-items: center; gap: 6px; flex: none; }
+.ucard { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-bottom: 2px solid var(--line); }
+.ucard:last-child { border-bottom: 0; }
+.ucard .ui { flex: none; width: 56px; height: 56px; border-radius: 16px; background: var(--card-2); border: 2px solid var(--line); display: grid; place-items: center; }
+.ucard .ui .usvg { width: 50px; height: 50px; }
+.ucard .main { flex: 1; min-width: 0; }
+.ucard .t { font-weight: 800; }
+.stats { font-size: 13px; color: var(--soft); font-weight: 700; }
+.lock { font-size: 13px; font-weight: 800; color: var(--tomato); margin-top: 4px; }
+.armyrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.uchip { display: inline-flex; align-items: center; gap: 2px; border: 2px solid var(--line); border-radius: 999px; padding: 1px 10px 1px 2px; background: var(--card); font-weight: 800; font-size: 14px; }
+.uchip .usvg { width: 28px; height: 28px; }
+.seg { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+.seg .chip { padding: 2px 10px; font-size: 13px; }
+.preview { margin-top: 12px; border-radius: 14px; padding: 10px 12px; background: var(--card); border: 2px solid var(--line); font-size: 14.5px; }
 @media (prefers-reduced-motion: reduce) { .village .spin, .village .bob, .alert, .sheet { animation: none; } }
 </style>
 </head>
@@ -157,9 +184,10 @@ input[type="text"]:focus { border-color: var(--grape); }
 <div id="app"><div class="msgscreen"><h1>Loading Scobb Farm…</h1></div></div>
 
 <nav class="tabs" id="tabs" hidden aria-label="Scobb Farm">
-  <button type="button" class="tab" data-act="tab" data-tab="farm"><span class="ib" aria-hidden="true">🏡</span><span>Farm</span></button>
-  <button type="button" class="tab" data-act="tab" data-tab="battle"><span class="ib" aria-hidden="true">⚔️</span><span>Battle</span><i class="badge" id="bd-battle" hidden></i></button>
-  <button type="button" class="tab" data-act="tab" data-tab="market"><span class="ib" aria-hidden="true">🍮</span><span>Market</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="base"><span class="ib" aria-hidden="true">🏡</span><span>Base</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="map"><span class="ib" aria-hidden="true">🗺️</span><span>Map</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="army"><span class="ib" aria-hidden="true">⚔️</span><span>Army</span><i class="badge" id="bd-army" hidden></i></button>
+  <button type="button" class="tab" data-act="tab" data-tab="market"><span class="ib" aria-hidden="true">💰</span><span>Market</span></button>
   <button type="button" class="tab" data-act="tab" data-tab="chat"><span class="ib" aria-hidden="true">💬</span><span>Chat</span><i class="badge" id="bd-chat" hidden></i></button>
 </nav>
 
@@ -221,62 +249,197 @@ input[type="text"]:focus { border-color: var(--grape); }
 
   /* ================= game rules ================= */
   const G = {
-    MATCH_MS: 30 * 60000, JOIN_LATE_MS: 10 * 60000,
-    START_J: 80, START_C: 120, START_FARMS: 2, START_SCOBBS: 6,
-    FARM_RATE: 1.2, MILL_BONUS: 0.2, HALL_COINS: 0.8,
-    MARCH_MS: 30000, TRAIN_MS: 4000, SHIELD_MS: 90000,
-    SCOBB_J: 25, SCOBB_C: 10, POOL: 4000, FEE: 0.02, MONO_MIN: 10
+    MATCH_MS: 15 * 60000, JOIN_LATE_MS: 5 * 60000,
+    START_J: 150, START_C: 150,
+    FARM_RATE: 1.0, MINE_RATE: 0.6, HALL_GOLD: 0.3, MILL_BONUS: 0.15,
+    FARM_CAP: 900, MINE_CAP: 700, MAX_W: 5, MIL_W: 3,
+    MARCH_MS: 25000, SHIELD_MS: 60000, VIL_J: 30, VIL_MS: 5000,
+    REPLANT_C: 50, REPLANT_MS: 10000,
+    SELL: 0.5, BUY: 0.65, MONO_MIN: 8, ROUNDS: 8, QMAX: 30
   };
-  const BUILDS = {
-    farm: { name: 'Farm', j: 0, c: 70, ms: 20000, max: a => 3 + a * 3, what: 'Grows Jelly' },
-    mill: { name: 'Mill', j: 40, c: 90, ms: 25000, max: a => a, what: 'Every farm grows 20% faster' },
-    barracks: { name: 'Barracks', j: 0, c: 120, ms: 30000, max: () => 1, what: 'Lets you train more scobbs' },
-    wall: { name: 'Wall', j: 0, c: 60, ms: 15000, max: a => a * 3, what: '+12 defense per level' },
-    tower: { name: 'Tower', j: 50, c: 110, ms: 30000, max: a => a * 2, what: '+20 defense each' }
-  };
-  const BUILD_ORDER = ['farm', 'mill', 'barracks', 'wall', 'tower'];
   const AGES = ['Village', 'Town', 'Castle', 'Empire'];
-  const AGE_UP = { 1: { j: 250, c: 300, ms: 45000 }, 2: { j: 500, c: 650, ms: 60000 }, 3: { j: 900, c: 1200, ms: 75000 } };
+  const POP = [20, 35, 50, 70];
+  const AGE_UP = { 1: { j: 200, c: 150, ms: 30000 }, 2: { j: 400, c: 350, ms: 40000 }, 3: { j: 700, c: 650, ms: 50000 } };
+  const BUILDS = {
+    farm: { name: 'Farm', j: 0, c: 60, ms: 12000, age: 1, max: [4, 6, 9, 12], what: 'Villagers grow Jelly here' },
+    mine: { name: 'Gold mine', j: 30, c: 40, ms: 12000, age: 1, max: [2, 3, 4, 5], what: 'Villagers dig gold here' },
+    mill: { name: 'Mill', j: 40, c: 60, ms: 15000, age: 1, max: [1, 2, 2, 3], what: 'Every farm grows 15% faster' },
+    barracks: { name: 'Barracks', j: 0, c: 100, ms: 15000, age: 1, max: [1, 1, 1, 1], what: 'Trains foot soldiers' },
+    stable: { name: 'Stable', j: 60, c: 120, ms: 20000, age: 2, max: [0, 1, 1, 1], what: 'Trains scobbs that ride into battle' },
+    workshop: { name: 'Machine workshop', j: 80, c: 160, ms: 25000, age: 3, max: [0, 0, 1, 1], what: 'Builds machines that attack or defend' },
+    wall: { name: 'Wall', j: 0, c: 50, ms: 10000, age: 1, max: [2, 4, 6, 8], what: 'Attackers have to break through it first' },
+    tower: { name: 'Tower', j: 40, c: 80, ms: 15000, age: 1, max: [1, 2, 4, 6], what: 'Shoots attackers every round' }
+  };
+  const BUILD_ORDER = ['farm', 'mine', 'mill', 'barracks', 'stable', 'workshop', 'wall', 'tower'];
+  const MIL = ['barracks', 'stable', 'workshop'];
+  const UNITS = {
+    spear: { name: 'Spear scobb', b: 'barracks', age: 1, j: 20, c: 10, ms: 5000, atk: 4, hp: 14, spd: 1, tag: 'inf', vs: { ride: 2 }, line: 0, tip: 'Cheap. Great against riders.' },
+    axe: { name: 'Axe scobb', b: 'barracks', age: 2, j: 30, c: 25, ms: 6000, atk: 8, hp: 16, spd: 1, tag: 'inf', vs: { inf: 1.5 }, line: 1, tip: 'Chops through other foot soldiers.' },
+    gun: { name: 'Gun scobb', b: 'barracks', age: 3, j: 35, c: 50, ms: 8000, atk: 14, hp: 10, spd: 1, tag: 'rng', vs: { inf: 1.3 }, line: 2, tip: 'Huge damage but fragile. Keep them in the back.' },
+    guard: { name: 'Royal guard', b: 'barracks', age: 4, j: 60, c: 90, ms: 10000, atk: 20, hp: 40, spd: 1, tag: 'inf', vs: { ride: 1.4 }, line: 0, tip: 'Tough as nails. A great front line.' },
+    pig: { name: 'Pig rider', b: 'stable', age: 2, j: 45, c: 35, ms: 8000, atk: 9, hp: 24, spd: 0.6, tag: 'ride', vs: { rng: 1.8, siege: 1.5 }, loot: true, line: 1, tip: 'Fast. Runs down gunners and carries extra loot.' },
+    lancer: { name: 'Ostrich lancer', b: 'stable', age: 3, j: 60, c: 60, ms: 10000, atk: 15, hp: 34, spd: 0.6, tag: 'ride', vs: { rng: 1.8, siege: 1.5 }, loot: true, line: 1, tip: 'Fast and hits hard.' },
+    dragon: { name: 'Dragon rider', b: 'stable', age: 4, j: 110, c: 140, ms: 14000, atk: 32, hp: 60, spd: 0.5, tag: 'ride', vs: { inf: 1.2 }, loot: true, line: 1, tip: 'Flies in fast and burns everything.' },
+    ram: { name: 'Battering ram', b: 'workshop', age: 3, j: 30, c: 90, ms: 12000, atk: 4, hp: 80, spd: 1.4, tag: 'siege', sx: 8, line: 0, tip: 'Smashes walls and buildings. Slow.' },
+    cannon: { name: 'Jelly cannon', b: 'workshop', age: 3, j: 40, c: 110, ms: 12000, atk: 25, hp: 60, spd: 0, tag: 'def', vs: { ride: 1.3 }, home: true, line: 0, tip: 'Defense only. Stays home and blasts attackers.' },
+    catapult: { name: 'Catapult', b: 'workshop', age: 4, j: 40, c: 130, ms: 14000, atk: 12, hp: 30, spd: 1.4, tag: 'siege', sx: 6, line: 2, tip: 'Hurls rocks at walls and towers from the back.' },
+    mech: { name: 'Scobb mech', b: 'workshop', age: 4, j: 120, c: 200, ms: 18000, atk: 40, hp: 140, spd: 1.2, tag: 'siege', sx: 2, line: 0, tip: 'A giant robot. Wrecks troops and buildings.' }
+  };
+  const UNIT_ORDER = Object.keys(UNITS);
+  const TECHS = {
+    hoes: { name: 'Sharp hoes', age: 1, j: 0, c: 80, fx: { farm: 1.25 }, what: 'Farmers farm 25% faster' },
+    picks: { name: 'Better pickaxes', age: 1, j: 60, c: 30, fx: { mine: 1.25 }, what: 'Miners mine 25% faster' },
+    irrigation: { name: 'Irrigation', age: 2, j: 100, c: 120, fx: { farm: 1.25, cap: 1.5 }, what: 'Farmers 25% faster, and new or replanted farms hold 50% more' },
+    shafts: { name: 'Deep shafts', age: 2, j: 120, c: 80, fx: { mine: 1.3, mcap: 1.5 }, what: 'Miners 30% faster, and new mines hold 50% more' },
+    drill: { name: 'Drill sergeants', age: 2, j: 80, c: 120, fx: { train: 0.7 }, what: 'All training is 30% faster' },
+    plowpigs: { name: 'Plow pigs', age: 3, j: 150, c: 200, fx: { farm: 1.3 }, what: 'Farmers 30% faster' },
+    armor: { name: 'Iron armor', age: 3, j: 150, c: 220, fx: { hp: 1.25 }, what: 'Your troops get 25% more health' },
+    stone: { name: 'Stone walls', age: 3, j: 100, c: 200, fx: { def: 1.4 }, what: 'Walls and towers are 40% stronger' },
+    factory: { name: 'Jelly factory', age: 4, j: 200, c: 300, fx: { farm: 1.4 }, what: 'Farmers 40% faster' },
+    mint: { name: 'Royal mint', age: 4, j: 200, c: 300, fx: { mine: 1.4 }, what: 'Miners 40% faster' },
+    banners: { name: 'War banners', age: 4, j: 220, c: 320, fx: { atk: 1.25 }, what: 'Your troops hit 25% harder' }
+  };
+  const TARGETS = { farm: 'Farms', loot: 'Jelly and gold', mine: 'Gold mines', defense: 'Walls and towers', military: 'Barracks' };
+  const LINES = ['Front', 'Middle', 'Back'];
   const PRIZES = [25];
-  const atkOf = a => 1 + 0.4 * (a - 1);
-  const defenseOf = p => 10 * p.age + p.wall * 12 + p.tower * 20 + p.home * atkOf(p.age) * 1.2;
-  const jellyRate = p => p.farm * G.FARM_RATE * (1 + G.MILL_BONUS * p.mill);
   const toInt = (v, lo, hi) => { const n = Math.floor(Number(v)); return Number.isFinite(n) && n >= lo && n <= hi ? n : null; };
-  function ammOut(pool, side, amt) {
-    const k = pool.j * pool.c, eff = amt * (1 - G.FEE);
-    if (side === 'j') { const out = pool.c - k / (pool.j + eff); pool.j += amt; pool.c -= out; return out; }
-    const out = pool.j - k / (pool.c + eff); pool.c += amt; pool.j -= out; return out;
+  const mul = (p, k) => (p.fx && p.fx[k]) || 1;
+  const sumObj = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
+  const farmRate = p => G.FARM_RATE * mul(p, 'farm') * (1 + G.MILL_BONUS * p.mill);
+  const mineRate = p => G.MINE_RATE * mul(p, 'mine');
+  const farmsOf = p => p.sites.filter(s => s.k === 'farm').length;
+  const minesOf = p => p.sites.filter(s => s.k === 'mine').length;
+  const countOf = (p, b) => (b === 'farm' ? farmsOf(p) : b === 'mine' ? minesOf(p) : p[b]);
+  const workersOf = p => p.sites.reduce((a, s) => a + s.w, 0) + MIL.reduce((a, b) => a + p.milW[b], 0);
+  const queuedOf = p => Object.keys(p.q).reduce((a, b) => a + p.q[b].length + (p.cur[b] ? 1 : 0), 0);
+  const popOf = p => p.idle + workersOf(p) + sumObj(p.army) + p.awayN + queuedOf(p);
+  const capOf = p => POP[p.age - 1];
+  const jellyRate = p => p.sites.reduce((a, s) => a + (s.k === 'farm' && !s.rp && s.left > 0 ? s.w * farmRate(p) : 0), 0);
+  const goldRate = p => p.sites.reduce((a, s) => a + (s.k === 'mine' && s.left > 0 ? s.w * mineRate(p) : 0), 0) + G.HALL_GOLD * p.age;
+  const trainMs = (p, b, u) => (b === 'hall' ? G.VIL_MS : UNITS[u].ms) * mul(p, 'train') / (b === 'hall' ? 1 : 1 + 0.25 * p.milW[b]);
+  const marchMs = army => G.MARCH_MS * Math.max(...Object.keys(army).filter(u => army[u] > 0).map(u => UNITS[u].spd));
+  const defenseOf = p => {
+    let d = (p.wall * 8 + p.tower * 12) * mul(p, 'def');
+    for (const u in p.army) d += p.army[u] * (UNITS[u].atk + UNITS[u].hp / 4) * mul(p, 'atk');
+    return d;
+  };
+  const powerOf = army => { let a = 0; for (const u in army) a += army[u] * (UNITS[u].atk + UNITS[u].hp / 4); return a; };
+  function addSite(p, k, w) {
+    p.sn += 1;
+    const cap = k === 'farm' ? G.FARM_CAP * mul(p, 'cap') : G.MINE_CAP * mul(p, 'mcap');
+    p.sites.push({ id: (k === 'farm' ? 'f' : 'm') + p.sn, k, w: w || 0, left: cap, max: cap, rp: 0 });
   }
-  const quote = (pool, side, amt) => ammOut({ j: pool.j, c: pool.c }, side, amt);
-  function newPlayer(u, t) { return { uid: u, joinedAt: t, j: G.START_J, c: G.START_C, farm: G.START_FARMS, mill: 0, barracks: 0, wall: 0, tower: 0, age: 1, home: G.START_SCOBBS, away: 0, trainQ: 0, trainAt: 0, trainFrom: 0, build: null, aging: null, shield: 0, captured: 0, raids: 0 }; }
+  function newPlayer(u, t) {
+    const p = { uid: u, joinedAt: t, j: G.START_J, c: G.START_C, age: 1, aging: null, fx: {}, tech: {}, idle: 1, sites: [], sn: 0,
+      mill: 0, wall: 0, tower: 0, barracks: 1, stable: 0, workshop: 0, milW: { barracks: 0, stable: 0, workshop: 0 },
+      q: { hall: [], barracks: [], stable: [], workshop: [] }, cur: { hall: null, barracks: null, stable: null, workshop: null },
+      army: { spear: 3 }, awayN: 0, build: null, shield: 0, captured: 0, raids: 0 };
+    addSite(p, 'farm', 2); addSite(p, 'farm', 2); addSite(p, 'mine', 2);
+    return p;
+  }
+
+  // A battle runs in rounds. Attackers break the walls, then fight the defenders' troops, then hit their target.
+  // Towers and defenders shoot back, and their damage lands on the attackers' front line first.
+  function battle(att, def, army, lines, tgt) {
+    const A = {}, D = {};
+    for (const u in army) if (army[u] > 0) A[u] = army[u] * UNITS[u].hp * mul(att, 'hp');
+    for (const u in def.army) if (def.army[u] > 0) D[u] = def.army[u] * UNITS[u].hp * mul(def, 'hp');
+    const dm = mul(def, 'def'), wallPer = 50 * dm, towerHp = 70 * dm, hallHp = 150 * def.age, milHp = 150;
+    let wall = def.wall * wallPer, obj = 0, rounds = 0;
+    const alive = (P, side) => { const o = {}; for (const u in P) { const n = Math.ceil(P[u] / (UNITS[u].hp * mul(side, 'hp')) - 1e-6); if (n > 0) o[u] = n; } return o; };
+    const comp = o => { const tot = sumObj(o) || 1, c = {}; for (const u in o) { const tg = UNITS[u].tag; c[tg] = (c[tg] || 0) + o[u] / tot; } return c; };
+    const cm = (u, c) => { const vs = UNITS[u].vs || {}; let m = 1; for (const tg in vs) m += (vs[tg] - 1) * (c[tg] || 0); return m; };
+    const farmsCan = Math.max(0, Math.min(2, farmsOf(def) - 1)), minesCan = Math.min(1, minesOf(def));
+    const milCan = MIL.some(b => def[b] > 0) ? 1 : 0;
+    const need = tgt === 'farm' ? farmsCan * 60 : tgt === 'mine' ? minesCan * 60 : tgt === 'loot' ? hallHp * 0.6 : tgt === 'defense' ? def.tower * towerHp : milCan * milHp;
+    for (rounds = 1; rounds <= G.ROUNDS; rounds++) {
+      const nA = alive(A, att), nD = alive(D, def);
+      if (!Object.keys(nA).length) { rounds -= 1; break; }
+      const cD = comp(nD), cA = comp(nA);
+      let troopDmg = 0, structDmg = 0;
+      for (const u in nA) {
+        const U = UNITS[u], base = nA[u] * U.atk * mul(att, 'atk');
+        troopDmg += base * cm(u, cD) * (U.tag === 'siege' && u !== 'mech' ? 0.4 : 1);
+        structDmg += base * (U.sx || 1);
+      }
+      // While the wall stands, half the effort goes into the wall and the rest hits defenders at 75% strength.
+      let f = 1, cover = 1;
+      if (wall > 0) { const use = Math.min(wall, structDmg * 0.5); wall -= use; f = structDmg > 0 ? 1 - use / structDmg : 0; cover = wall > 0 ? 0.75 : 1; }
+      const dTot = sumObj(D);
+      if (f > 0 && dTot > 1e-6) { const dmg = troopDmg * f * cover, use = Math.min(dTot, dmg); for (const u in D) D[u] = Math.max(0, D[u] - use * D[u] / dTot); f = dmg > 0 ? f * (1 - use / dmg) : 0; }
+      if (f > 0 && wall <= 0 && sumObj(D) <= 1e-6) obj += structDmg * f;
+      const towersUp = tgt === 'defense' ? Math.max(0, def.tower - Math.floor(obj / towerHp)) : def.tower;
+      let dd = towersUp * 12 * dm;
+      const nD2 = alive(D, def);
+      for (const u in nD2) dd += nD2[u] * UNITS[u].atk * mul(def, 'atk') * cm(u, cA);
+      for (let ln = 0; ln < 3 && dd > 0; ln++) {
+        const us = Object.keys(A).filter(u => A[u] > 0 && (lines && lines[u] != null ? lines[u] : UNITS[u].line) === ln);
+        const tot = us.reduce((a, u) => a + A[u], 0);
+        if (!tot) continue;
+        const use = Math.min(tot, dd);
+        for (const u of us) A[u] = Math.max(0, A[u] - use * A[u] / tot);
+        dd -= use;
+      }
+      if (need > 0 && obj >= need) break;
+    }
+    const aliveA = alive(A, att), aliveD = alive(D, def);
+    const R = { rounds: Math.min(rounds, G.ROUNDS), aLoss: {}, dLoss: {}, tgt, farms: 0, mines: 0, pct: 0, towers: 0, mil: '', wallLost: 0 };
+    for (const u in army) if (army[u] > 0) R.aLoss[u] = army[u] - (aliveA[u] || 0);
+    for (const u in def.army) if (def.army[u] > 0) R.dLoss[u] = def.army[u] - (aliveD[u] || 0);
+    R.wallLost = def.wall - Math.ceil(wall / wallPer - 1e-6);
+    if (tgt === 'farm') R.farms = Math.min(farmsCan, Math.floor(obj / 60));
+    if (tgt === 'mine') R.mines = Math.min(minesCan, Math.floor(obj / 60));
+    if (tgt === 'loot') { const cap = Object.keys(aliveA).some(u => UNITS[u].loot) ? 0.6 : 0.4; R.pct = Math.min(cap, obj / hallHp); if (R.pct < 0.05) R.pct = 0; }
+    if (tgt === 'defense') { R.towers = Math.min(def.tower, Math.floor(obj / towerHp)); if (R.wallLost > 0) R.walls = R.wallLost; }
+    if (tgt === 'military' && milCan && obj >= milHp) R.mil = ['workshop', 'stable', 'barracks'].find(b => def[b] > 0) || '';
+    R.win = !!(R.farms || R.mines || R.pct || R.towers || R.walls || R.mil);
+    R.broke = !R.win && wall <= 0 && !Object.keys(aliveD).length && Object.keys(aliveA).length > 0;
+    return R;
+  }
 
   // Replays every move in the round, in server-time order, to get the state at `now`.
   function simulate(round, moves, now) {
-    const S = { phase: 'lobby', startAt: 0, endAt: 0, players: {}, order: [], market: { j: G.POOL, c: G.POOL }, offers: {}, reports: [], marches: [], log: [], winner: null, reason: '', bad: {}, standings: [] };
+    const S = { phase: 'lobby', startAt: 0, endAt: 0, players: {}, order: [], offers: {}, reports: [], marchMap: {}, marches: [], log: [], winner: null, reason: '', bad: {}, standings: [] };
     const mv = moves.slice().sort((x, y) => (x.t - y.t) || (x.a < y.a ? -1 : x.a > y.a ? 1 : 0) || ((x.q || 0) - (y.q || 0)));
     let startAt = round.t + round.lobbyMs;
     for (const m of mv) if (m.k === 'start' && m.a === round.by && m.t >= round.t && m.t < startAt) { startAt = m.t; break; }
     let endAt = startAt + round.matchMs;
     const P = S.players, ev = [];
+    let tok = 0;
     const pushEv = e => { let i = ev.length; while (i > 0 && ev[i - 1].t > e.t) i--; ev.splice(i, 0, e); };
     let lastT = startAt;
     const adv = t => {
       const to = Math.min(t, endAt);
       if (to <= lastT) return;
       const dt = (to - lastT) / 1000;
-      for (const u in P) { const p = P[u]; p.j += jellyRate(p) * dt; p.c += G.HALL_COINS * p.age * dt; }
+      for (const u in P) {
+        const p = P[u];
+        for (const s of p.sites) {
+          if (s.rp || s.left <= 0 || !s.w) continue;
+          const got = Math.min(s.left, s.w * (s.k === 'farm' ? farmRate(p) : mineRate(p)) * dt);
+          s.left -= got;
+          if (s.k === 'farm') p.j += got; else p.c += got;
+        }
+        p.c += G.HALL_GOLD * p.age * dt;
+      }
       lastT = to;
     };
-    const note = (t, who, text, tone, extra) => S.log.push(Object.assign({ t, who, text, tone }, extra || {}));
     const checkWin = t => {
       const list = Object.values(P);
       if (S.winner || list.length < 2) return;
-      const tot = list.reduce((a, p) => a + p.farm, 0);
-      const sorted = list.slice().sort((a, b) => b.farm - a.farm);
-      const top = sorted[0], second = sorted[1];
-      if (top.farm >= G.MONO_MIN && top.farm * 2 >= tot && top.farm >= second.farm * 2) { S.winner = top.uid; S.reason = 'monopoly'; endAt = t; }
+      const tot = list.reduce((a, p) => a + farmsOf(p), 0);
+      const sorted = list.slice().sort((a, b) => farmsOf(b) - farmsOf(a));
+      const top = farmsOf(sorted[0]), second = farmsOf(sorted[1]);
+      if (top >= G.MONO_MIN && top * 2 >= tot && top >= second * 2) { S.winner = sorted[0].uid; S.reason = 'monopoly'; endAt = t; }
     };
-    const train = (p, t) => { if (p.trainQ > 0 && !p.trainAt) { p.trainAt = t + G.TRAIN_MS; p.trainFrom = t; pushEv({ t: p.trainAt, k: 'trained', a: p.uid }); } };
+    const startNext = (p, b, t) => {
+      if (p.cur[b] || !p.q[b].length) return;
+      const u = p.q[b].shift();
+      tok += 1;
+      p.cur[b] = { u, from: t, at: t + trainMs(p, b, u), tok };
+      pushEv({ t: p.cur[b].at, k: 'trained', a: p.uid, b, tok });
+    };
+    const loseMil = (p, b) => { p[b] = 0; p.idle += p.milW[b]; p.milW[b] = 0; p.q[b] = []; p.cur[b] = null; };
 
     function onMove(m, t) {
       const bad = why => { S.bad[m.a + '_' + m.i] = why; };
@@ -284,9 +447,9 @@ input[type="text"]:focus { border-color: var(--grape); }
       if (m.k === 'join') {
         if (P[m.a]) return bad('joined');
         if (t >= startAt + G.JOIN_LATE_MS) return bad('late');
-        P[m.a] = newPlayer(m.a, t);
+        P[m.a] = newPlayer(m.a, Math.max(t, startAt));
         S.order.push(m.a);
-        return note(t, m.a, 'joined the round', 'info');
+        return;
       }
       const p = P[m.a];
       if (!p) return bad('not in');
@@ -294,8 +457,9 @@ input[type="text"]:focus { border-color: var(--grape); }
       if (m.k === 'build') {
         const B = BUILDS[m.b];
         if (!B) return bad('shape');
+        if (p.age < B.age) return bad('locked');
         if (p.build) return bad('busy');
-        if (p[m.b] >= B.max(p.age)) return bad('max');
+        if (countOf(p, m.b) >= B.max[p.age - 1]) return bad('max');
         if (p.j < B.j || p.c < B.c) return bad('funds');
         p.j -= B.j; p.c -= B.c;
         p.build = { b: m.b, from: t, at: t + B.ms };
@@ -310,36 +474,118 @@ input[type="text"]:focus { border-color: var(--grape); }
         p.aging = { from: t, at: t + A.ms };
         return pushEv({ t: t + A.ms, k: 'aged', a: p.uid });
       }
-      if (m.k === 'train') {
-        const n = toInt(m.n, 1, 50);
+      if (m.k === 'tech') {
+        const T = TECHS[m.tk];
+        if (!T) return bad('shape');
+        if (p.tech[m.tk]) return bad('owned');
+        if (p.age < T.age) return bad('locked');
+        if (p.j < T.j || p.c < T.c) return bad('funds');
+        p.j -= T.j; p.c -= T.c;
+        p.tech[m.tk] = true;
+        for (const k in T.fx) p.fx[k] = (p.fx[k] || 1) * T.fx[k];
+        return;
+      }
+      if (m.k === 'vtrain') {
+        const n = toInt(m.n, 1, 20);
         if (!n) return bad('shape');
-        if (!p.barracks) return bad('no barracks');
-        if (p.j < n * G.SCOBB_J || p.c < n * G.SCOBB_C) return bad('funds');
-        p.j -= n * G.SCOBB_J; p.c -= n * G.SCOBB_C;
-        p.trainQ += n;
-        return train(p, t);
+        if (p.q.hall.length + n > G.QMAX) return bad('queue');
+        if (popOf(p) + n > capOf(p)) return bad('pop');
+        if (p.j < n * G.VIL_J) return bad('funds');
+        p.j -= n * G.VIL_J;
+        for (let i = 0; i < n; i++) p.q.hall.push('vil');
+        return startNext(p, 'hall', t);
+      }
+      if (m.k === 'assign') {
+        const n = toInt(m.n, 0, 10);
+        if (n === null) return bad('shape');
+        if (MIL.includes(m.s)) {
+          if (!p[m.s]) return bad('shape');
+          if (n > G.MIL_W) return bad('full');
+          const d = n - p.milW[m.s];
+          if (d > p.idle) return bad('idle');
+          p.idle -= d; p.milW[m.s] = n;
+          return;
+        }
+        const s = p.sites.find(x => x.id === m.s);
+        if (!s) return bad('gone');
+        if (n > G.MAX_W) return bad('full');
+        const d = n - s.w;
+        if (d > p.idle) return bad('idle');
+        p.idle -= d; s.w = n;
+        return;
+      }
+      if (m.k === 'replant') {
+        const s = p.sites.find(x => x.id === m.s);
+        if (!s || s.k !== 'farm') return bad('gone');
+        if (s.rp) return bad('busy');
+        if (s.left > s.max * 0.5) return bad('full');
+        if (p.c < G.REPLANT_C) return bad('funds');
+        p.c -= G.REPLANT_C;
+        s.rp = t + G.REPLANT_MS;
+        return pushEv({ t: s.rp, k: 'replanted', a: p.uid, s: s.id });
+      }
+      if (m.k === 'close') {
+        const i = p.sites.findIndex(x => x.id === m.s);
+        if (i < 0 || p.sites[i].k !== 'mine') return bad('gone');
+        p.idle += p.sites[i].w;
+        p.sites.splice(i, 1);
+        return;
+      }
+      if (m.k === 'train') {
+        const U = UNITS[m.u], n = toInt(m.n, 1, 20);
+        if (!U || !n || U.b !== m.b) return bad('shape');
+        if (!p[m.b]) return bad('nobuilding');
+        if (p.age < U.age) return bad('locked');
+        if (p.q[m.b].length + n > G.QMAX) return bad('queue');
+        if (popOf(p) + n > capOf(p)) return bad('pop');
+        if (p.j < n * U.j || p.c < n * U.c) return bad('funds');
+        p.j -= n * U.j; p.c -= n * U.c;
+        for (let i = 0; i < n; i++) p.q[m.b].push(m.u);
+        return startNext(p, m.b, t);
       }
       if (m.k === 'attack') {
-        const d = P[m.to], n = toInt(m.n, 1, 100000);
-        if (!d || d === p || !n) return bad('who');
-        if (n > p.home) return bad('scobbs');
+        const d = P[m.to];
+        if (!d || d === p) return bad('who');
+        if (!TARGETS[m.tgt]) return bad('shape');
+        const army = {}, lines = {};
+        let tot = 0;
+        for (const u of UNIT_ORDER) {
+          const n = toInt((m.army || {})[u] || 0, 0, 100000);
+          if (n === null) return bad('shape');
+          if (!n) continue;
+          if (UNITS[u].home) return bad('shape');
+          if (n > (p.army[u] || 0)) return bad('troops');
+          army[u] = n; tot += n;
+          const ln = toInt((m.lines || {})[u], 0, 2);
+          lines[u] = ln === null ? UNITS[u].line : ln;
+        }
+        if (!tot) return bad('troops');
         if (d.shield > t) return bad('shield');
-        p.home -= n; p.away += n; p.shield = 0;
-        pushEv({ t: t + G.MARCH_MS, k: 'arrive', a: p.uid, to: d.uid, n, atk: n * atkOf(p.age), id: m.a + '_' + m.i, sent: t });
-        return note(t, p.uid, 'attack', 'war', { to: d.uid, n });
+        for (const u in army) p.army[u] -= army[u];
+        p.awayN += tot; p.shield = 0;
+        const id = m.a + '_' + m.i, ms = marchMs(army);
+        S.marchMap[id] = { id, a: p.uid, to: d.uid, army, lines, tgt: m.tgt, sent: t, at: t + ms, ms, state: 'out' };
+        return pushEv({ t: t + ms, k: 'arrive', id });
+      }
+      if (m.k === 'recall' || m.k === 'retarget') {
+        const x = S.marchMap[m.id];
+        if (!x || x.a !== p.uid || x.state !== 'out') return bad('gone');
+        if (m.k === 'retarget') { if (!TARGETS[m.tgt]) return bad('shape'); x.tgt = m.tgt; return; }
+        x.state = 'back'; x.from = t; x.at = t + (t - x.sent); x.recalled = true;
+        return pushEv({ t: x.at, k: 'home', id: x.id });
       }
       if (m.k === 'sell') {
         const j = toInt(m.j, 1, 1e8);
         if (!j) return bad('shape');
         if (p.j < j) return bad('funds');
-        p.j -= j; p.c += ammOut(S.market, 'j', j);
+        p.j -= j; p.c += j * G.SELL;
         return;
       }
       if (m.k === 'buy') {
         const c = toInt(m.c, 1, 1e8);
         if (!c) return bad('shape');
         if (p.c < c) return bad('funds');
-        p.c -= c; p.j += ammOut(S.market, 'c', c);
+        p.c -= c; p.j += c / G.BUY;
         return;
       }
       if (m.k === 'offer') {
@@ -360,7 +606,7 @@ input[type="text"]:focus { border-color: var(--grape); }
         p.j += o.gj - o.wj; p.c += o.gc - o.wc;
         seller.j += o.wj; seller.c += o.wc;
         o.open = false; o.by = p.uid; o.end = t;
-        return note(t, p.uid, 'deal', 'info', { with: o.a });
+        return;
       }
       if (m.k === 'cancel') {
         const o = S.offers[m.o];
@@ -373,42 +619,68 @@ input[type="text"]:focus { border-color: var(--grape); }
     }
 
     function onEv(e, t) {
-      const p = P[e.a];
-      if (e.k === 'built') { p[e.b] += 1; p.build = null; if (e.b === 'farm') checkWin(t); return; }
-      if (e.k === 'aged') { p.age += 1; p.aging = null; return note(t, p.uid, 'aged', 'info', { age: p.age }); }
-      if (e.k === 'trained') { p.trainAt = 0; if (p.trainQ > 0) { p.trainQ -= 1; p.home += 1; } return train(p, t); }
-      if (e.k === 'return') { p.away -= e.n; p.home += e.n; return; }
+      if (e.k === 'built') {
+        const p = P[e.a];
+        p.build = null;
+        if (e.b === 'farm' || e.b === 'mine') addSite(p, e.b, 0); else p[e.b] += 1;
+        if (e.b === 'farm') checkWin(t);
+        return;
+      }
+      if (e.k === 'aged') { const p = P[e.a]; p.age += 1; p.aging = null; return; }
+      if (e.k === 'trained') {
+        const p = P[e.a], c = p.cur[e.b];
+        if (!c || c.tok !== e.tok) return;
+        p.cur[e.b] = null;
+        if (e.b === 'hall') p.idle += 1; else p.army[c.u] = (p.army[c.u] || 0) + 1;
+        return startNext(p, e.b, t);
+      }
+      if (e.k === 'replanted') {
+        const p = P[e.a], s = p.sites.find(x => x.id === e.s);
+        if (s && s.rp) { s.rp = 0; s.max = G.FARM_CAP * mul(p, 'cap'); s.left = s.max; }
+        return;
+      }
+      if (e.k === 'home') {
+        const x = S.marchMap[e.id];
+        if (!x || x.state !== 'back') return;
+        const p = P[x.a];
+        for (const u in x.army) { p.army[u] = (p.army[u] || 0) + x.army[u]; p.awayN -= x.army[u]; }
+        x.state = 'done';
+        return;
+      }
       if (e.k === 'arrive') {
-        const d = P[e.to];
+        const x = S.marchMap[e.id];
+        if (!x || x.state !== 'out') return;
+        const p = P[x.a], d = P[x.to];
+        const rep = { id: x.id, t, a: p.uid, d: d.uid, tgt: x.tgt, sent: Object.assign({}, x.army) };
         if (d.shield > t) {
-          pushEv({ t: t + G.MARCH_MS, k: 'return', a: p.uid, n: e.n });
-          S.reports.push({ t, a: p.uid, d: d.uid, n: e.n, shield: true });
-          return;
-        }
-        const A = e.atk, D = defenseOf(d);
-        const r = { t, a: p.uid, d: d.uid, n: e.n, A: Math.round(A), D: Math.round(D) };
-        if (A > D) {
-          r.win = true;
-          r.aLoss = Math.min(e.n, Math.round(e.n * Math.min(0.9, 0.6 * D / A)));
-          r.dLoss = Math.round(d.home * 0.6);
-          d.home -= r.dLoss;
-          r.lj = d.j * 0.3; r.lc = d.c * 0.3;
-          d.j -= r.lj; d.c -= r.lc; p.j += r.lj; p.c += r.lc;
-          if (A >= 1.5 * D && d.farm > 0) { d.farm -= 1; p.farm += 1; p.captured += 1; r.cap = true; }
-          if (d.wall > 0) { d.wall -= 1; r.wall = true; }
-          d.shield = t + G.SHIELD_MS;
-          p.raids += 1;
+          rep.shield = true;
         } else {
-          r.win = false;
-          r.aLoss = Math.min(e.n, Math.round(e.n * 0.7));
-          r.dLoss = Math.min(d.home, Math.round(d.home * Math.min(0.5, 0.4 * A / Math.max(D, 1))));
-          d.home -= r.dLoss;
+          const R = battle(p, d, x.army, x.lines, x.tgt);
+          Object.assign(rep, R);
+          for (const u in R.dLoss) d.army[u] -= R.dLoss[u];
+          for (const u in R.aLoss) { x.army[u] -= R.aLoss[u]; p.awayN -= R.aLoss[u]; }
+          d.wall = Math.max(0, d.wall - R.wallLost);
+          d.tower = Math.max(0, d.tower - R.towers);
+          for (let k = 0; k < R.farms + R.mines; k++) {
+            const want = k < R.farms ? 'farm' : 'mine';
+            let idx = -1;
+            for (let i = d.sites.length - 1; i >= 0; i--) if (d.sites[i].k === want) { idx = i; break; }
+            if (idx < 0) continue;
+            const s = d.sites.splice(idx, 1)[0];
+            d.idle += s.w; s.w = 0; s.rp = 0;
+            p.sn += 1; s.id = (want === 'farm' ? 'f' : 'm') + p.sn;
+            p.sites.push(s);
+            if (want === 'farm') p.captured += 1;
+          }
+          if (R.pct) { rep.lj = d.j * R.pct; rep.lc = d.c * R.pct; d.j -= rep.lj; d.c -= rep.lc; p.j += rep.lj; p.c += rep.lc; }
+          if (R.mil) loseMil(d, R.mil);
+          if (R.win) { d.shield = t + G.SHIELD_MS; p.raids += 1; }
         }
-        p.away -= r.aLoss;
-        const back = e.n - r.aLoss;
-        if (back > 0) pushEv({ t: t + G.MARCH_MS, k: 'return', a: p.uid, n: back });
-        S.reports.push(r);
-        if (r.cap) checkWin(t);
+        S.reports.push(rep);
+        const left = sumObj(x.army);
+        if (left > 0) { x.state = 'back'; x.from = t; x.at = t + x.ms; pushEv({ t: x.at, k: 'home', id: x.id }); }
+        else x.state = 'done';
+        if (rep.farms) checkWin(t);
       }
     }
 
@@ -427,10 +699,9 @@ input[type="text"]:focus { border-color: var(--grape); }
     S.startAt = startAt;
     S.endAt = endAt;
     S.phase = S.winner || now >= endAt ? 'over' : now < startAt ? 'lobby' : 'live';
-    S.standings = Object.values(P).sort((a, b) => (b.farm - a.farm) || ((b.j + b.c) - (a.j + a.c)));
+    S.standings = Object.values(P).sort((a, b) => (farmsOf(b) - farmsOf(a)) || ((b.j + b.c) - (a.j + a.c)));
     if (S.phase === 'over' && !S.winner && S.standings.length) { S.winner = S.standings[0].uid; S.reason = 'time'; }
-    S.marches = S.phase === 'live' ? ev.filter(x => x.k === 'arrive') : [];
-    S.returns = S.phase === 'live' ? ev.filter(x => x.k === 'return') : [];
+    S.marches = S.phase === 'live' ? Object.values(S.marchMap).filter(x => x.state === 'out' || x.state === 'back') : [];
     return S;
   }
 
@@ -447,7 +718,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   let S = null, sig = '';
   const seenBad = new Set();
   let chatSeen = 0;
-  const ui = { tab: 'farm', fatal: '' };
+  const ui = { tab: 'base', fatal: '', st: {}, zoom: 0.6, sheet: null, atk: null, visit: null };
 
   const P_ = u => players[u];
   const nameOf = u => (players[u] && players[u].username ? '@' + players[u].username : 'someone');
@@ -529,6 +800,10 @@ input[type="text"]:focus { border-color: var(--grape); }
     renderGame();
   }
 
+  const costText = (j, c) => [c ? `${fmt(c)} gold` : '', j ? `${fmt(j)} Jelly` : ''].filter(Boolean).join(' + ') || 'Free';
+  const canAfford = (p, j, c) => p.j >= j && p.c >= c;
+  const armyChips = (army, col) => { const ks = UNIT_ORDER.filter(u => (army[u] || 0) > 0); return ks.length ? `<div class="armyrow">${ks.map(u => `<span class="uchip" title="${UNITS[u].name}">${unitSVG(u, col)}${fmt(army[u])}</span>`).join('')}</div>` : '<p class="small soft">No troops.</p>'; };
+
   function header() {
     const r = round();
     let h = `<header class="top"><h1>Scobb Farm <span class="pill"${LIVE ? ' style="background:#3E9B2F"' : ''}>${LIVE ? 'Live' : 'Preview'}</span></h1><a class="link" href="./">ScobbBucks</a></header>`;
@@ -538,9 +813,9 @@ input[type="text"]:focus { border-color: var(--grape); }
     h += `<div class="status mt"><span>Round ${r.n}</span><span>${label} <b data-live="timer">${S.phase === 'over' ? '' : clock((S.phase === 'lobby' ? S.startAt : S.endAt) - now())}</b></span></div>`;
     const p = me();
     if (p && S.phase === 'live') {
-      h += `<div class="res"><div><span>Jelly</span><b data-res="j">${fmt(p.j)}</b></div><div><span>Coins</span><b data-res="c">${fmt(p.c)}</b></div><div><span>Scobbs</span><b data-res="home">${fmt(p.home)}</b></div><div><span>Farms</span><b>${p.farm}</b></div><div><span>Age</span><b style="font-size:14px">${AGES[p.age - 1]}</b></div></div>`;
-      const inc = S.marches.filter(x => x.to === uid);
-      if (inc.length) { const x = inc[0]; h += `<p class="alert">Incoming! ${esc(nameOf(x.a))}’s ${x.n} scobbs arrive in <span data-cd="${x.t}">${secs(x.t - now())}</span></p>`; }
+      h += `<div class="res"><div><span>Jelly</span><b data-res="j">${fmt(p.j)}</b></div><div><span>Gold</span><b data-res="c">${fmt(p.c)}</b></div><div><span>Idle villagers</span><b>${p.idle}</b></div><div><span>Army</span><b>${fmt(sumObj(p.army))}</b></div><div><span>Farms</span><b>${farmsOf(p)}</b></div><div><span>Age</span><b style="font-size:14px">${AGES[p.age - 1]}</b></div></div>`;
+      const inc = S.marches.filter(x => x.to === uid && x.state === 'out');
+      if (inc.length) { const x = inc[0]; h += `<p class="alert">Incoming! ${esc(nameOf(x.a))} is sending ${fmt(sumObj(x.army))} troops at your ${TARGETS[x.tgt].toLowerCase()}. They arrive in <span data-cd="${x.at}">${secs(x.at - now())}</span></p>`; }
       if (p.shield > now()) h += `<p class="notice">You’re shielded for <span data-cd="${p.shield}">${secs(p.shield - now())}</span>. Attacking someone drops your shield.</p>`;
     }
     return h;
@@ -549,15 +824,18 @@ input[type="text"]:focus { border-color: var(--grape); }
   function renderGame() {
     $('#tabs').hidden = false;
     const r = round();
+    const w = $('#world');
+    if (w) ui.mapScroll = [w.scrollLeft, w.scrollTop];
     let body = header();
     if (!r || !S) body += noRoundView();
     else if (ui.tab === 'chat') body += chatView();
     else if (S.phase === 'lobby') body += lobbyView();
     else if (S.phase === 'over') body += overView();
     else if (!me()) body += spectatorView();
-    else if (ui.tab === 'battle') body += battleView();
+    else if (ui.tab === 'map') body += ui.visit && S.players[ui.visit] && ui.visit !== uid ? visitView(ui.visit) : mapView();
+    else if (ui.tab === 'army') body += armyView();
     else if (ui.tab === 'market') body += marketView();
-    else body += farmView();
+    else body += baseView();
     app.innerHTML = body;
     $$('.tab').forEach(b => { if (b.dataset.tab === ui.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     if (ui.tab === 'chat') { renderChatList(); chatSeen = chatCount(); }
@@ -572,14 +850,14 @@ input[type="text"]:focus { border-color: var(--grape); }
     return h;
   }
   function bankOpen() {
-    return `<div class="card mt"><h3 style="margin-top:0">Open a round</h3><p class="small soft">Players get a lobby to join, then the 30-minute match starts. You can also start early.</p><div class="chips" id="lobby-len">${[1, 2, 5].map(n => `<button type="button" class="chip" data-act="lobby-len" data-v="${n}" aria-pressed="${n === 2}">${n} min lobby</button>`).join('')}</div><button type="button" class="btn btn-grape btn-block mt" data-act="open-round">Open a new round</button></div>`;
+    return `<div class="card mt"><h3 style="margin-top:0">Open a round</h3><p class="small soft">Players get a lobby to join, then the 15-minute match starts. You can also start early.</p><div class="chips" id="lobby-len">${[1, 2, 5].map(n => `<button type="button" class="chip" data-act="lobby-len" data-v="${n}" aria-pressed="${n === lobbyLen}">${n} min lobby</button>`).join('')}</div><button type="button" class="btn btn-grape btn-block mt" data-act="open-round">Open a new round</button></div>`;
   }
   function howTo() {
     return `<div class="card mt"><h3 style="margin-top:0">How to play</h3>
-      <p class="small">Build farms to grow Jelly. Sell Jelly at the market for coins, or trade with friends.</p>
-      <p class="small mt" style="margin-top:6px">Spend coins on more farms, mills, walls and towers, and upgrade your Town Hall through ${AGES.join(', ')}.</p>
-      <p class="small" style="margin-top:6px">Send your scobbs to raid other farms. A big enough win takes one of their farms.</p>
-      <p class="small" style="margin-top:6px"><b>Win early</b> by owning half of all the farms, with at least ${G.MONO_MIN} of them and twice as many as anyone else. Otherwise, whoever owns the most farms after 30 minutes wins.</p></div>`;
+      <p class="small">Train villagers at your Town Hall and put them to work. Farmers grow Jelly and miners dig gold. More workers means more money, but the farm or mine runs out faster.</p>
+      <p class="small" style="margin-top:6px">Tap your Barracks to train spear, axe and gun scobbs. Build a Stable in the Town age for riders, and a Machine workshop in the Castle age for rams, cannons and mechs.</p>
+      <p class="small" style="margin-top:6px">Each age unlocks new upgrades and troops. When you attack, you pick your troops, who goes in front, and what to hit.</p>
+      <p class="small" style="margin-top:6px"><b>Win early</b> by owning half of all the farms, with at least ${G.MONO_MIN} of them and twice as many as anyone else. Otherwise, whoever owns the most farms after 15 minutes wins.</p></div>`;
   }
   function lobbyView() {
     const r = round();
@@ -597,113 +875,234 @@ input[type="text"]:focus { border-color: var(--grape); }
     return h + standingsHTML();
   }
   function standingsHTML() {
-    return `<h2>Standings</h2><div class="podium">${S.standings.map((p, i) => `<div class="pcard"><span class="place">${i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}${p.uid === uid ? ' (you)' : ''}</div><div class="s">${plural(p.farm, 'farm', 'farms')}, ${AGES[p.age - 1]}, ${plural(p.home + p.away, 'scobb', 'scobbs')}</div></div></div>`).join('')}</div>`;
+    return `<h2>Standings</h2><div class="podium">${S.standings.map((p, i) => `<div class="pcard"><span class="place">${i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}${p.uid === uid ? ' (you)' : ''}</div><div class="s">${plural(farmsOf(p), 'farm', 'farms')}, ${AGES[p.age - 1]}, ${plural(sumObj(p.army) + p.awayN, 'troop', 'troops')}</div></div></div>`).join('')}</div>`;
   }
   function overView() {
     const w = S.winner;
     let h = `<h2>${w ? `${esc(nameOf(w))} wins!` : 'Round over'}</h2>`;
     h += w ? `<p class="small soft">${S.reason === 'monopoly' ? 'They took over half of all the farms. Scobb monopoly!' : 'They owned the most farms when time ran out.'}</p>` : '';
-    h += `<div class="podium">${S.standings.slice(0, 10).map((p, i) => `<div class="pcard"><span class="place">${['🥇', '🥈', '🥉'][i] || i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}</div><div class="s">${plural(p.farm, 'farm', 'farms')}${i < PRIZES.length ? `. Prize: ${PRIZES[i]}${LIVE ? '' : ' pretend'} ScobbBucks` : ''}</div></div></div>`).join('')}</div>`;
+    h += `<div class="podium">${S.standings.slice(0, 10).map((p, i) => `<div class="pcard"><span class="place">${['🥇', '🥈', '🥉'][i] || i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}</div><div class="s">${plural(farmsOf(p), 'farm', 'farms')}${i < PRIZES.length ? `. Prize: ${PRIZES[i]}${LIVE ? '' : ' pretend'} ScobbBucks` : ''}</div></div></div>`).join('')}</div>`;
     h += LIVE ? `<p class="small soft mt">The winner gets ${PRIZES[0]} real ScobbBucks from the bank’s vault. ${isBank() ? 'They go out automatically the next time you open ScobbBucks.' : 'They show up in the winner’s wallet once the bank opens the app.'}</p>` : `<p class="small soft mt">In preview, prizes are pretend. Once Scobb Farm goes live, the winner gets ${PRIZES[0]} real ScobbBucks from the bank.</p>`;
     h += isBank() ? bankOpen() : `<p class="soft mt">Waiting for the bank to open the next round.</p>`;
     return h;
   }
 
+  /* ---- troop pictures ---- */
+  const scobbBody = col => `<ellipse cx="0" cy="13" rx="8" ry="2.4" fill="#000" opacity=".15"/><rect x="-6" y="0" width="12" height="12" rx="6" fill="${col}"/><circle cx="0" cy="-3" r="7" fill="${col}"/><circle cx="-2.5" cy="-4" r="1.2" fill="#1E1B24"/><circle cx="2.5" cy="-4" r="1.2" fill="#1E1B24"/><ellipse cx="-2" cy="-7.5" rx="2.4" ry="1.3" fill="#fff" opacity=".5"/>`;
+  const smallRider = col => `<g transform="translate(-2 -9) scale(.68)">${scobbBody(col)}</g>`;
+  function unitArt(u, col) {
+    switch (u) {
+      case 'vil': return scobbBody(col) + `<path d="M-9 -8h18l-4 -4h-10z" fill="#E8C468"/>`;
+      case 'spear': return scobbBody(col) + `<path d="M8 12L11 -14" stroke="#8B5A2B" stroke-width="1.8"/><path d="M9.6 -11.5L11.6 -17L12.8 -11Z" fill="#C9D2DC"/>`;
+      case 'axe': return scobbBody(col) + `<path d="M8 12L10 -8" stroke="#8B5A2B" stroke-width="1.8"/><path d="M9 -10q7 -2 7 5q-4 -2 -6 0z" fill="#9AA5B1"/>`;
+      case 'gun': return scobbBody(col) + `<rect x="1" y="1" width="15" height="3.4" rx="1.2" fill="#3B3F45"/><rect x="-1" y="2.5" width="6" height="4.5" rx="1.4" fill="#8B5A2B"/>`;
+      case 'guard': return scobbBody(col) + `<path d="M-7.5 -5a7.5 7.5 0 0 1 15 0z" fill="#E3B341"/><path d="M0 -12.5q3 -4 6 -2" stroke="#E5484D" stroke-width="2" fill="none"/><path d="M5 1h9v6q-4.5 5 -9 0z" fill="#3E6BD6" stroke="#E3B341" stroke-width="1"/>`;
+      case 'pig': return `<ellipse cx="0" cy="15" rx="12" ry="2.4" fill="#000" opacity=".15"/><path d="M-8 13v3M-3 13v3M3 13v3M8 13v3" stroke="#E07FA3" stroke-width="2.2"/><ellipse cx="0" cy="8" rx="12" ry="6" fill="#F7A8C4"/><circle cx="11" cy="5" r="4" fill="#F7A8C4"/><ellipse cx="14" cy="6" rx="1.8" ry="1.4" fill="#E07FA3"/><circle cx="11" cy="3" r=".9" fill="#1E1B24"/>` + smallRider(col);
+      case 'lancer': return `<ellipse cx="0" cy="15" rx="10" ry="2.4" fill="#000" opacity=".15"/><path d="M-3 10v6M3 10v6" stroke="#E8A23A" stroke-width="2"/><ellipse cx="0" cy="8" rx="10" ry="5" fill="#5B4A3A"/><path d="M8 6Q12 -6 14 -10" stroke="#C9A27A" stroke-width="2.6" fill="none"/><circle cx="14" cy="-11" r="2.6" fill="#C9A27A"/><path d="M16 -11h3" stroke="#E8A23A" stroke-width="1.6"/>` + smallRider(col) + `<path d="M-6 -2L18 -14" stroke="#8B5A2B" stroke-width="1.6"/>`;
+      case 'dragon': return `<ellipse cx="0" cy="15" rx="12" ry="2.4" fill="#000" opacity=".15"/><path d="M-3 4L-17 -10L-12 6Z" fill="#2F8F5B"/><path d="M3 4L17 -10L12 6Z" fill="#2F8F5B"/><ellipse cx="0" cy="8" rx="11" ry="6" fill="#3EAF6F"/><path d="M9 5Q14 -1 13 -5" stroke="#3EAF6F" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="13" cy="-6" r="1" fill="#1E1B24"/><path d="M15 -6q3 1 5 -1" stroke="#FF7A1A" stroke-width="1.6" fill="none"/>` + smallRider(col);
+      case 'ram': return `<ellipse cx="0" cy="15" rx="14" ry="2.4" fill="#000" opacity=".15"/><path d="M-12 4L0 -8L12 4" stroke="#5B3A1C" stroke-width="2.4" fill="none"/><rect x="-15" y="3" width="28" height="7" rx="3.5" fill="#8B5A2B"/><path d="M13 3.5h4v6h-4z" fill="#9AA5B1"/><circle cx="-8" cy="12" r="3.4" fill="#3B2312"/><circle cx="7" cy="12" r="3.4" fill="#3B2312"/>`;
+      case 'cannon': return `<ellipse cx="0" cy="15" rx="12" ry="2.4" fill="#000" opacity=".15"/><g transform="rotate(-22 0 4)"><rect x="-8" y="0" width="22" height="8" rx="4" fill="#2E2838"/><circle cx="15" cy="4" r="3.4" fill="#FF5DA2"/></g><circle cx="-2" cy="11" r="4.4" fill="#8B5A2B"/><circle cx="-2" cy="11" r="1.4" fill="#3B2312"/>`;
+      case 'catapult': return `<ellipse cx="0" cy="15" rx="13" ry="2.4" fill="#000" opacity=".15"/><path d="M-12 10H12M-8 10L0 -1L8 10" stroke="#8B5A2B" stroke-width="2.6" fill="none"/><path d="M0 -1L12 -13" stroke="#8B5A2B" stroke-width="2.2"/><circle cx="12" cy="-14" r="3.2" fill="#9AA3AD"/><circle cx="-9" cy="12" r="3" fill="#3B2312"/><circle cx="9" cy="12" r="3" fill="#3B2312"/>`;
+      case 'mech': return `<ellipse cx="0" cy="15" rx="12" ry="2.4" fill="#000" opacity=".15"/><rect x="-8" y="6" width="5" height="9" fill="#7F8B98"/><rect x="3" y="6" width="5" height="9" fill="#7F8B98"/><rect x="-11" y="-13" width="22" height="21" rx="4" fill="#9AA5B1"/><rect x="-7" y="-10" width="14" height="10" rx="3" fill="${col}"/><circle cx="-2.5" cy="-5" r="1.2" fill="#1E1B24"/><circle cx="2.5" cy="-5" r="1.2" fill="#1E1B24"/><path d="M0 -13V-18" stroke="#5C6570" stroke-width="1.2"/><circle class="fsk-pulse" cx="0" cy="-19" r="1.8" fill="#FF4F8B"/><rect x="-15" y="-6" width="4" height="10" rx="2" fill="#7F8B98"/><rect x="11" y="-6" width="4" height="10" rx="2" fill="#7F8B98"/>`;
+      default: return scobbBody(col);
+    }
+  }
+  const unitSVG = (u, col) => `<svg class="usvg" viewBox="-19 -21 38 38" aria-hidden="true">${unitArt(u, col)}</svg>`;
+  const unitG = (u, x, y, col, s) => `<g transform="translate(${x} ${y}) scale(${s})">${unitArt(u, col)}</g>`;
+
   /* ---- the farm picture ---- */
-  const FARM_SLOTS = [[40, 34], [92, 34], [222, 34], [274, 34], [40, 74], [274, 74], [40, 114], [274, 114], [40, 154], [274, 154], [40, 194], [274, 194], [40, 234], [92, 234], [222, 234], [274, 234]];
-  const MILL_SLOTS = [[160, 34], [200, 34], [160, 236], [200, 236]];
+  const FARM_SLOTS = [[40, 34], [92, 34], [222, 34], [274, 34], [40, 74], [274, 74], [40, 114], [274, 114], [40, 154], [274, 154], [40, 194], [274, 194], [40, 234], [274, 234]];
+  const MINE_SLOTS = [[94, 238], [228, 238], [124, 266], [200, 266]];
+  const MILL_SLOTS = [[160, 34], [200, 34]];
   const TOWER_SLOTS = [[24, 24], [336, 24], [24, 276], [336, 276], [24, 150], [336, 150], [120, 18], [240, 18]];
-  const JELLY = ['#FF5DA2', '#FFC233', '#5BE38A', '#3EC1FF', '#B98BFF'];
-  const DECOR = [[56, 52], [112, 90], [302, 60], [248, 96], [62, 182], [112, 204], [300, 204], [252, 254], [70, 262], [292, 266], [150, 112], [212, 204]].map(([x, y], i) => i % 3 === 0
+  const DECOR = [[56, 52], [302, 60], [248, 96], [62, 182], [300, 204], [70, 262], [292, 266], [150, 112]].map(([x, y], i) => i % 3 === 0
     ? `<g opacity=".9"><circle cx="${x}" cy="${y}" r="7" fill="#5FAE3E"/><circle cx="${x + 7}" cy="${y + 2}" r="6" fill="#6CBF47"/><circle cx="${x - 6}" cy="${y + 3}" r="5" fill="#4E9A33"/></g>`
     : `<g>${[0, 1, 2].map(k => `<circle cx="${x + k * 6 - 6}" cy="${y + (k % 2) * 4}" r="2.4" fill="${['#FF7FA0', '#FFE066', '#FFFFFF'][(i + k) % 3]}"/>`).join('')}<path d="M${x - 8} ${y + 7}q3 -5 5 0M${x} ${y + 8}q3 -6 5 0" stroke="#4E9A33" stroke-width="1.6" fill="none"/></g>`).join('');
-  function hallSVG(age, col) {
-    if (age === 1) return `<rect x="160" y="140" width="40" height="34" rx="3" fill="#C8955C"/><path d="M154 143L180 118L206 143Z" fill="#E8C468"/><rect x="174" y="156" width="12" height="18" rx="6" fill="#7A4E2A"/><path d="M180 118V104" stroke="#5B4426" stroke-width="2"/><path d="M180 104L192 108L180 112Z" fill="${col}"/>`;
-    if (age === 2) return `<rect x="150" y="136" width="60" height="42" rx="3" fill="#E6D7BC"/><rect x="150" y="166" width="60" height="12" fill="#B3A68E"/><path d="M144 139L180 108L216 139Z" fill="#D9534F"/><rect x="172" y="152" width="16" height="26" rx="8" fill="#6B4226"/><rect x="156" y="146" width="10" height="10" rx="2" fill="#7CC4F2"/><rect x="194" y="146" width="10" height="10" rx="2" fill="#7CC4F2"/><path d="M180 108V90" stroke="#5B4426" stroke-width="2"/><path d="M180 90L195 95L180 100Z" fill="${col}"/>`;
-    const bat = (x, y, w, n) => Array.from({ length: n }, (_, i) => `<rect x="${x + i * (w / n)}" y="${y - 6}" width="${(w / n) * 0.55}" height="6" fill="#9AA3AD"/>`).join('');
-    if (age === 3) return `<rect x="146" y="126" width="68" height="54" fill="#B8C0C8"/>${bat(146, 126, 68, 6)}<rect x="134" y="118" width="18" height="62" fill="#A3ACB6"/>${bat(134, 118, 18, 2)}<rect x="208" y="118" width="18" height="62" fill="#A3ACB6"/>${bat(208, 118, 18, 2)}<path d="M168 180V158Q180 146 192 158V180Z" fill="#5B3A1C"/><rect x="158" y="136" width="8" height="12" rx="4" fill="#2E3440"/><rect x="194" y="136" width="8" height="12" rx="4" fill="#2E3440"/><path d="M143 110V96" stroke="#5B4426" stroke-width="2"/><path d="M143 96L157 101L143 106Z" fill="${col}"/><path d="M217 110V96" stroke="#5B4426" stroke-width="2"/><path d="M217 96L231 101L217 106Z" fill="${col}"/>`;
-    return `<rect x="132" y="138" width="96" height="44" fill="#F3EBDD"/><rect x="132" y="138" width="96" height="6" fill="#E3B341"/>${[140, 160, 196, 216].map(x => `<rect x="${x}" y="150" width="6" height="32" fill="#E9DFCC"/>`).join('')}<path d="M150 138Q180 92 210 138Z" fill="#E3B341"/><path d="M160 138Q180 106 200 138Z" fill="#FFE07A" opacity=".7"/><circle cx="180" cy="96" r="4" fill="#E3B341"/><path d="M168 182V160Q180 150 192 160V182Z" fill="#7A4E2A"/><path d="M180 92V74" stroke="#5B4426" stroke-width="2"/><path d="M180 74L196 79L180 84Z" fill="${col}"/>`;
+  const label = (x, y, text, size) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="${size || 10}" fill="#1F2A14">${text}</text>`;
+  function mineArt(s) {
+    const r = s.max ? s.left / s.max : 0;
+    const nug = r <= 0 ? '' : [[10, 18], [28, 14], [18, 9], [32, 21], [6, 22]].slice(0, Math.max(1, Math.ceil(r * 5))).map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="#F2C14E" stroke="#B8860B" stroke-width=".6"/>`).join('');
+    return `<path d="M1 27Q3 6 20 3Q37 6 39 27Z" fill="${r > 0 ? '#8E8A86' : '#6E6A66'}"/><path d="M6 20Q10 12 16 12" stroke="#A7A39F" stroke-width="2" fill="none"/>${nug}<path d="M14 27V18Q20 12 26 18V27Z" fill="#2E2838"/><path d="M13 27V17M27 27V17M12.5 17H27.5" stroke="#8B5A2B" stroke-width="2"/>${r <= 0 ? label(20, 25, 'empty', 8) : ''}`;
   }
+  const stableArt = () => `<rect x="5" y="18" width="46" height="26" fill="#B5523B"/><path d="M1 20L28 3L55 20Z" fill="#7A2E22"/><rect x="20" y="26" width="16" height="18" fill="#F4EFE4"/><path d="M20 26L36 44M36 26L20 44" stroke="#B5523B" stroke-width="2"/><rect x="40" y="36" width="13" height="8" rx="2" fill="#E8C468"/><path d="M42 38h9M42 41h9" stroke="#C9A24A" stroke-width=".8"/><path d="M24 12a4 4 0 1 1 8 0" stroke="#C9D2DC" stroke-width="2.2" fill="none"/><ellipse cx="12" cy="40" rx="5" ry="3.4" fill="#F7A8C4"/><circle cx="16" cy="38" r="2.4" fill="#F7A8C4"/>`;
+  const workshopArt = () => `<rect x="5" y="16" width="46" height="28" rx="2" fill="#8E98A3"/><rect x="3" y="12" width="50" height="6" rx="2" fill="#5C6570"/><rect x="40" y="2" width="7" height="12" fill="#5C6570"/><g class="fsk-float"><circle cx="44" cy="-1" r="3" fill="#B8C0C8" opacity=".8"/><circle cx="48" cy="-5" r="2.2" fill="#D5DCE3" opacity=".6"/></g><rect x="22" y="28" width="14" height="16" rx="2" fill="#3B3F45"/><g transform="translate(14 26)"><circle r="6" fill="#E3B341"/>${[0, 45, 90, 135, 180, 225, 270, 315].map(a => `<rect x="-1.4" y="-8.4" width="2.8" height="3.2" fill="#E3B341" transform="rotate(${a})"/>`).join('')}<circle r="2.2" fill="#8E98A3"/></g><g transform="translate(44 30)"><circle r="4.4" fill="#C9D2DC"/>${[0, 60, 120, 180, 240, 300].map(a => `<rect x="-1" y="-6" width="2" height="2.4" fill="#C9D2DC" transform="rotate(${a})"/>`).join('')}<circle r="1.6" fill="#8E98A3"/></g>`;
+  const plotSpot = (x, y, w, h, text) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="#C9A46B" fill-opacity=".55" stroke="#8B5E3C" stroke-width="1.6" stroke-dasharray="4 3"/>${text ? label(x + w / 2, y + h / 2 + 3, text, 8) : ''}`;
   const equipOf = u => { const eq = (players[u] && players[u].farmEquip) || {}, out = {}; for (const k in eq) { const it = FSK && FSK.farmItem(eq[k]); if (it && it.b === k) out[k] = eq[k]; } return out; };
   let VN = 0;
-  function villageSVG(p, col, t, eq) {
+  function villageParts(p, col, t, eq, hit) {
     eq = eq || {};
     const ctx = FSK.newCtx('v' + (++VN));
     const at = (x, y, inner, sc) => `<g transform="translate(${x} ${y})${sc ? ` scale(${sc})` : ''}">${inner}</g>`;
+    const H = (attrs, inner) => (hit ? `<g class="hit" ${attrs}>${inner}</g>` : inner);
     let s = `<rect width="360" height="300" rx="22" fill="url(#vg)"/><path d="M180 300V190M0 150H136M224 150H360" stroke="#E3CD97" stroke-width="14" stroke-linecap="round" opacity=".85"/>` + DECOR;
-    const nf = Math.min(p.farm, FARM_SLOTS.length);
     const plot = FSK.building('farm', eq.farm, ctx);
-    for (let i = 0; i < nf; i++) { const [x, y] = FARM_SLOTS[i]; s += at(x, y, plot); }
-    if (p.farm > FARM_SLOTS.length) s += `<text x="180" y="292" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="12" fill="#1F2A14">+${p.farm - FARM_SLOTS.length} more farms</text>`;
-    if (p.build && p.build.b === 'farm' && nf < FARM_SLOTS.length) { const [x, y] = FARM_SLOTS[nf]; s += `<rect x="${x}" y="${y}" width="46" height="30" rx="6" fill="#C9A46B" stroke="#8B5E3C" stroke-width="2" stroke-dasharray="4 3"/><text x="${x + 23}" y="${y + 19}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="10" fill="#5B3A1C">building</text>`; }
+    const farms = p.sites.filter(x => x.k === 'farm'), mines = p.sites.filter(x => x.k === 'mine');
+    farms.slice(0, FARM_SLOTS.length).forEach((f, i) => {
+      const [x, y] = FARM_SLOTS[i];
+      let inner = plot;
+      if (f.rp) inner += `<rect width="46" height="30" rx="6" fill="#7A5232" opacity=".85"/>${label(23, 19, 'replanting', 8)}`;
+      else if (f.left <= 0) inner += `<rect width="46" height="30" rx="6" fill="#7A5232" opacity=".9"/>${label(23, 19, 'empty', 9)}`;
+      for (let k = 0; k < Math.min(f.w, 3); k++) inner += unitG('vil', 9 + k * 11, 24, col, 0.4);
+      if (f.w > 3) inner += label(41, 28, '+' + (f.w - 3), 8);
+      s += H(`data-act="open" data-k="site" data-s="${f.id}"`, at(x, y, inner));
+    });
+    if (farms.length > FARM_SLOTS.length) s += label(180, 292, `+${farms.length - FARM_SLOTS.length} more farms`, 11);
+    if (p.build && p.build.b === 'farm' && farms.length < FARM_SLOTS.length) { const [x, y] = FARM_SLOTS[farms.length]; s += plotSpot(x, y, 46, 30, 'building'); }
+    mines.slice(0, MINE_SLOTS.length).forEach((m, i) => {
+      const [x, y] = MINE_SLOTS[i];
+      let inner = mineArt(m);
+      for (let k = 0; k < Math.min(m.w, 3); k++) inner += unitG('vil', 6 + k * 13, 30, col, 0.4);
+      s += H(`data-act="open" data-k="site" data-s="${m.id}"`, at(x, y - 4, inner));
+    });
+    if (p.build && p.build.b === 'mine' && mines.length < MINE_SLOTS.length) { const [x, y] = MINE_SLOTS[mines.length]; s += plotSpot(x, y - 4, 40, 28, 'digging'); }
     const mill = FSK.building('mill', eq.mill, ctx);
-    for (let i = 0; i < Math.min(p.mill, MILL_SLOTS.length); i++) { const [x, y] = MILL_SLOTS[i]; s += at(x - 20, y - 6, mill); }
-    if (p.barracks) s += at(92, 104, FSK.building('barracks', eq.barracks, ctx));
-    else if (p.build && p.build.b === 'barracks') s += `<rect x="96" y="122" width="48" height="30" rx="3" fill="#C9A46B" stroke="#8B5E3C" stroke-width="2" stroke-dasharray="4 3"/>`;
-    s += at(212, 106, FSK.building('market', eq.market, ctx));
-    s += at(130, 72, FSK.building('hall', eq.hall, ctx, { age: p.age }));
-    if (p.aging) s += `<text x="180" y="200" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="11" fill="#1F2A14">upgrading…</text>`;
-    const shown = Math.min(p.home, 12);
-    for (let i = 0; i < shown; i++) s += scobb(118 + (i % 6) * 12 + (i >= 6 ? 6 : 0), 206 + (i >= 6 ? 14 : 0), col, 0.8, 'bob');
-    if (p.home > 12) s += `<text x="244" y="226" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="12" fill="#1F2A14">×${p.home}</text>`;
-    if (p.wall > 0) s += FSK.wallRing(eq.wall, p.wall, ctx) + at(160, 274, FSK.building('gate', eq.gate, ctx));
+    for (let i = 0; i < Math.min(p.mill, MILL_SLOTS.length); i++) { const [x, y] = MILL_SLOTS[i]; s += H('data-act="open" data-k="build"', at(x - 20, y - 6, mill)); }
+    s += H('data-act="open" data-k="hall"', p.age >= 3 ? at(137.5, 88.5, FSK.building('hall', eq.hall, ctx, { age: p.age }), 0.85) : at(130, 72, FSK.building('hall', eq.hall, ctx, { age: p.age })));
+    s += H('data-act="open" data-k="barracks"', p.barracks ? at(92, 104, FSK.building('barracks', eq.barracks, ctx)) : plotSpot(98, 118, 44, 30, 'barracks'));
+    if (p.stable) s += H('data-act="open" data-k="stable"', at(88, 152, stableArt()));
+    else if (p.age >= 2 || (p.build && p.build.b === 'stable')) s += H('data-act="open" data-k="stable"', plotSpot(94, 168, 44, 28, p.build && p.build.b === 'stable' ? 'building' : '+ stable'));
+    if (p.workshop) s += H('data-act="open" data-k="workshop"', at(216, 152, workshopArt()));
+    else if (p.age >= 3 || (p.build && p.build.b === 'workshop')) s += H('data-act="open" data-k="workshop"', plotSpot(222, 168, 44, 28, p.build && p.build.b === 'workshop' ? 'building' : '+ workshop'));
+    s += H('data-act="tab" data-tab="market"', at(212, 106, FSK.building('market', eq.market, ctx)));
+    if (p.aging) s += label(180, 190, 'upgrading…', 11);
+    const troops = [];
+    for (const u of UNIT_ORDER) for (let i = 0; i < (p.army[u] || 0) && troops.length < 15; i++) troops.push(u);
+    troops.forEach((u, i) => { s += unitG(u, 152 + (i % 5) * 13, 200 + Math.floor(i / 5) * 18, col, UNITS[u].tag === 'siege' || UNITS[u].tag === 'def' ? 0.5 : 0.55); });
+    const tot = sumObj(p.army);
+    if (tot > 15) s += label(180, 262, `×${tot} troops`, 10);
+    if (p.idle > 0) for (let i = 0; i < Math.min(p.idle, 4); i++) s += unitG('vil', 130 + i * 10, 186, col, 0.4);
+    if (p.wall > 0) s += H('data-act="open" data-k="build"', FSK.wallRing(eq.wall, p.wall, ctx) + at(160, 274, FSK.building('gate', eq.gate, ctx)));
     const tw = FSK.building('tower', eq.tower, ctx);
-    for (let i = 0; i < Math.min(p.tower, TOWER_SLOTS.length); i++) { const [x, y] = TOWER_SLOTS[i]; s += at(x - 12, y - 22, tw); }
+    for (let i = 0; i < Math.min(p.tower, TOWER_SLOTS.length); i++) { const [x, y] = TOWER_SLOTS[i]; s += H('data-act="open" data-k="build"', at(x - 12, y - 22, tw)); }
     if (p.shield > t) s += `<ellipse cx="180" cy="150" rx="176" ry="146" fill="#7CC4F2" fill-opacity=".18" stroke="#7CC4F2" stroke-width="3" stroke-dasharray="6 6"/>`;
-    return `<svg class="village" viewBox="0 0 360 300" role="img" aria-label="Farm with ${p.farm} farms">${FSK.defsOf(ctx).replace('<defs>', '<defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9E07E"/><stop offset="1" stop-color="#7DC455"/></linearGradient>')}${s}</svg>`;
+    return { defs: FSK.defsOf(ctx).replace(/^<defs>|<\/defs>$/g, ''), body: s };
+  }
+  const VG = '<linearGradient id="vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9E07E"/><stop offset="1" stop-color="#7DC455"/></linearGradient>';
+  function villageSVG(p, col, t, eq, hit) {
+    const v = villageParts(p, col, t, eq, hit);
+    return `<svg class="village" viewBox="0 0 360 300" role="img" aria-label="Base with ${farmsOf(p)} farms"><defs>${VG}${v.defs}</defs>${v.body}</svg>`;
   }
 
-  /* ---- farm tab ---- */
-  function canAfford(p, j, c) { return p.j >= j && p.c >= c; }
-  function costText(j, c) { return [c ? `${fmt(c)} coins` : '', j ? `${fmt(j)} Jelly` : ''].filter(Boolean).join(' + '); }
-  function farmView() {
-    const p = me(), t = now();
-    let h = villageSVG(p, colorOf(lookOf(uid)), t, equipOf(uid));
-    h += `<p class="small soft" style="margin-top:8px">Your farms make <b>${jellyRate(p).toFixed(1)}</b> Jelly a second, and your Town Hall adds <b>${(G.HALL_COINS * p.age).toFixed(1)}</b> coins a second.</p>`;
-    if (p.build) h += `<div class="prog"><div class="t"><span>Building a ${BUILDS[p.build.b].name}</span><span data-cd="${p.build.at}">${secs(p.build.at - t)}</span></div><div class="bar"><i data-prog="${p.build.from}:${p.build.at}"></i></div></div>`;
-    if (p.aging) h += `<div class="prog"><div class="t"><span>Upgrading to ${AGES[p.age]}</span><span data-cd="${p.aging.at}">${secs(p.aging.at - t)}</span></div><div class="bar"><i data-prog="${p.aging.from}:${p.aging.at}"></i></div></div>`;
-    if (p.trainQ > 0) h += `<div class="prog"><div class="t"><span>Training ${plural(p.trainQ, 'scobb', 'scobbs')}</span><span data-cd="${p.trainAt + (p.trainQ - 1) * G.TRAIN_MS}">${secs(p.trainAt + (p.trainQ - 1) * G.TRAIN_MS - t)}</span></div><div class="bar"><i data-prog="${p.trainFrom}:${p.trainAt}"></i></div></div>`;
-    h += `<h2>Build</h2><div class="card blist">`;
-    for (const k of BUILD_ORDER) {
-      const B = BUILDS[k], max = B.max(p.age), have = p[k];
-      const full = have >= max, busy = !!p.build, afford = canAfford(p, B.j, B.c);
-      const why = full ? (p.age < 4 ? 'Upgrade your Town Hall for more' : 'Maxed out') : busy ? 'Busy building' : !afford ? 'Not enough yet' : '';
-      h += `<div class="brow"><div class="main"><div class="t">${B.name} <span class="soft small">${have}/${max}</span></div><div class="s">${B.what}. ${secs(B.ms)}</div><div class="cost">${costText(B.j, B.c)}</div></div><button type="button" class="btn btn-grape btn-sm" data-act="build" data-b="${k}"${why ? ` disabled title="${why}"` : ''}>Build</button></div>`;
+  /* ---- base tab ---- */
+  function progRow(text, from, at) { return `<div class="prog"><div class="t"><span>${text}</span><span data-cd="${at}">${secs(at - now())}</span></div><div class="bar"><i data-prog="${from}:${at}"></i></div></div>`; }
+  function queueRows(p) {
+    let h = '';
+    if (p.build) h += progRow(`Building a ${BUILDS[p.build.b].name.toLowerCase()}`, p.build.from, p.build.at);
+    if (p.aging) h += progRow(`Upgrading to the ${AGES[p.age]} age`, p.aging.from, p.aging.at);
+    for (const b of ['hall', ...MIL]) {
+      const c = p.cur[b];
+      if (!c) continue;
+      const left = p.q[b].length;
+      h += progRow(`${b === 'hall' ? 'Training a villager' : `Training a ${UNITS[c.u].name.toLowerCase()}`}${left ? `, ${left} more waiting` : ''}`, c.from, c.at);
     }
-    if (p.age < 4) {
-      const A = AGE_UP[p.age], ok = !p.aging && canAfford(p, A.j, A.c);
-      h += `<div class="brow"><div class="main"><div class="t">Town Hall: ${AGES[p.age]}</div><div class="s">More buildings, stronger scobbs and more coins. ${secs(A.ms)}</div><div class="cost">${costText(A.j, A.c)}</div></div><button type="button" class="btn btn-lime btn-sm" data-act="age"${ok ? '' : ' disabled'}>Upgrade</button></div>`;
-    }
-    h += `</div><h2>Train scobbs</h2><div class="card">`;
-    if (!p.barracks) h += `<p class="small soft">Build a Barracks to train more scobbs.</p>`;
-    else {
-      const maxN = Math.max(0, Math.min(50, Math.floor(Math.min(p.j / G.SCOBB_J, p.c / G.SCOBB_C))));
-      h += `<p class="small soft">Each scobb costs ${G.SCOBB_J} Jelly + ${G.SCOBB_C} coins and takes ${G.TRAIN_MS / 1000}s. Attack power ${atkOf(p.age).toFixed(1)} each at ${AGES[p.age - 1]}.</p>
-        <div class="step"><button type="button" class="sb" data-act="tstep" data-d="-1" aria-label="One fewer">−</button><input class="sv" id="t-n" type="text" inputmode="numeric" value="${Math.min(5, maxN) || 1}" aria-label="Scobbs to train"><button type="button" class="sb" data-act="tstep" data-d="1" aria-label="One more">+</button><button type="button" class="btn btn-grape btn-sm" style="margin:0 0 0 auto" data-act="train"${maxN ? '' : ' disabled'}>Train</button></div><p class="small soft" style="margin-top:6px">You can afford ${maxN} right now.</p>`;
-    }
+    return h;
+  }
+  const siteName = (p, s) => { const list = p.sites.filter(x => x.k === s.k); return `${s.k === 'farm' ? 'Farm' : 'Gold mine'} ${list.indexOf(s) + 1}`; };
+  function workerCtl(key, n, max, idle) {
+    return `<div class="ctl"><button type="button" class="mini" data-act="w" data-s="${key}" data-n="${n - 1}"${n <= 0 ? ' disabled' : ''} aria-label="One fewer worker">−</button><b style="min-width:34px;text-align:center">${n}/${max}</b><button type="button" class="mini" data-act="w" data-s="${key}" data-n="${n + 1}"${n >= max || idle <= 0 ? ' disabled' : ''} aria-label="One more worker">+</button></div>`;
+  }
+  function siteRow(p, s) {
+    const rate = s.k === 'farm' ? farmRate(p) : mineRate(p);
+    const status = s.rp ? 'Replanting' : s.left <= 0 ? (s.k === 'farm' ? 'Empty, replant it' : 'Empty, close it') : `${fmt(s.left)} ${s.k === 'farm' ? 'Jelly' : 'gold'} left${s.w ? `, ${(rate * s.w).toFixed(1)}/s` : ''}`;
+    return `<div class="brow"><div class="main"><div class="t"><button type="button" class="link" data-act="open" data-k="site" data-s="${s.id}">${siteName(p, s)}</button></div><div class="s">${status}</div><div class="bar" style="margin-top:4px"><i style="width:${Math.max(0, Math.min(100, (s.left / s.max) * 100))}%;background:${s.k === 'farm' ? 'var(--lime)' : 'var(--gold)'}"></i></div></div>${workerCtl(s.id, s.w, G.MAX_W, p.idle)}</div>`;
+  }
+  function baseView() {
+    const p = me();
+    let h = villageSVG(p, colorOf(lookOf(uid)), now(), equipOf(uid), true);
+    h += `<div class="mapbar"><span class="small soft">Tap a building to use it.</span><button type="button" class="btn btn-ghost btn-sm" style="margin:0 0 0 auto" data-act="tab" data-tab="map">🗺️ World map</button></div>`;
+    h += `<p class="small soft" style="margin-top:6px">You make <b>${jellyRate(p).toFixed(1)}</b> Jelly and <b>${goldRate(p).toFixed(1)}</b> gold a second.</p>`;
+    h += queueRows(p);
+    h += `<div class="row3 mt"><button type="button" class="btn btn-grape btn-sm" data-act="open" data-k="build">Build</button><button type="button" class="btn btn-lime btn-sm" data-act="open" data-k="hall">Town Hall</button><button type="button" class="btn btn-ghost btn-sm" data-act="tab" data-tab="army">Army</button></div>`;
+    h += `<h2>Villagers</h2><div class="card jobs"><p class="small"><b>${p.idle}</b> idle of ${p.idle + workersOf(p)} villagers. Population ${popOf(p)}/${capOf(p)}. <button type="button" class="link" data-act="open" data-k="hall">Train more</button></p>`;
+    h += p.sites.map(s => siteRow(p, s)).join('');
+    for (const b of MIL) if (p[b]) h += `<div class="brow"><div class="main"><div class="t"><button type="button" class="link" data-act="open" data-k="${b}">${BUILDS[b].name}</button></div><div class="s">Each worker trains troops 25% faster</div></div>${workerCtl(b, p.milW[b], G.MIL_W, p.idle)}</div>`;
     h += `</div>`;
     return h;
   }
 
-  /* ---- battle tab ---- */
-  function reportText(r) {
-    const mine = r.a === uid;
-    const other = mine ? r.d : r.a;
-    if (r.shield) return mine ? `Your ${r.n} scobbs bounced off ${esc(nameOf(other))}’s shield.` : `${esc(nameOf(other))}’s attack bounced off your shield.`;
-    if (mine) return r.win ? `<span class="win">You raided ${esc(nameOf(other))}!</span> Took ${fmt(r.lj)} Jelly and ${fmt(r.lc)} coins${r.cap ? ', plus one of their farms' : ''}. You lost ${r.aLoss} scobbs.` : `<span class="lose">Your attack on ${esc(nameOf(other))} failed.</span> Your ${r.A} attack couldn’t beat their ${r.D} defense. You lost ${r.aLoss} scobbs.`;
-    return r.win ? `<span class="lose">${esc(nameOf(other))} raided you.</span> They took ${fmt(r.lj)} Jelly and ${fmt(r.lc)} coins${r.cap ? ' and one of your farms' : ''}. You lost ${r.dLoss} scobbs.` : `<span class="win">You held off ${esc(nameOf(other))}!</span> Their ${r.A} attack lost to your ${r.D} defense.`;
+  /* ---- world map ---- */
+  function worldLayout() {
+    const ids = S.order.filter(u => S.players[u]);
+    const cols = Math.max(1, Math.ceil(Math.sqrt(ids.length))), rows = Math.max(1, Math.ceil(ids.length / cols));
+    const pos = {};
+    ids.forEach((u, i) => { const c = i % cols, r = Math.floor(i / cols); pos[u] = { x: 40 + c * 440 + (r % 2 ? 60 : 0), y: 60 + r * 400 }; });
+    return { ids, pos, W: cols * 440 + 120, H: rows * 400 + 60 };
   }
-  function battleView() {
-    const p = me(), t = now();
-    let h = `<div class="card mt"><b>Your army</b><p class="small soft">${plural(p.home, 'scobb', 'scobbs')} home, ${fmt(p.away)} out, ${fmt(p.trainQ)} training. Your defense is <b>${Math.round(defenseOf(p))}</b>.</p></div>`;
+  function mapView() {
+    const L = worldLayout(), z = ui.zoom || 0.6;
+    let defs = VG, s = `<rect width="${L.W}" height="${L.H}" fill="#7CBF55"/>`;
+    for (let i = 0; i < 40; i++) { const x = (i * 997) % L.W, y = (i * 577) % L.H; s += `<g opacity=".75"><circle cx="${x}" cy="${y}" r="9" fill="#4E9A33"/><circle cx="${x + 9}" cy="${y + 3}" r="7" fill="#5FAE3E"/></g>`; }
+    const c = u => ({ x: L.pos[u].x + 180, y: L.pos[u].y + 150 });
+    for (let i = 1; i < L.ids.length; i++) { const a = c(L.ids[i - 1]), b = c(L.ids[i]); s += `<path d="M${a.x} ${a.y}L${b.x} ${b.y}" stroke="#E3CD97" stroke-width="16" stroke-linecap="round" opacity=".7"/>`; }
+    for (const u of L.ids) {
+      const o = S.players[u], { x, y } = L.pos[u];
+      const v = villageParts(o, colorOf(lookOf(u)), now(), equipOf(u), false);
+      defs += v.defs;
+      const mine = u === uid;
+      s += `<g transform="translate(${x} ${y})">${mine ? '<rect x="-8" y="-8" width="376" height="316" rx="28" fill="none" stroke="#6C2BD9" stroke-width="6"/>' : ''}${v.body}<g transform="translate(180 -22)"><rect x="-80" y="-16" width="160" height="28" rx="14" fill="${mine ? '#6C2BD9' : '#FFFFFF'}" stroke="#1F2A14" stroke-opacity=".15"/><text y="4" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="16" fill="${mine ? '#FFFFFF' : '#1F2A14'}">${esc(nameOf(u))}${mine ? ' (you)' : ''} · ${farmsOf(o)} farms</text></g><rect class="base-hit" data-act="visit" data-u="${esc(u)}" x="0" y="0" width="360" height="300" rx="22" fill="transparent"/></g>`;
+    }
+    for (const x of S.marches) {
+      const A = c(x.a), D = c(x.to), main = Object.keys(x.army).sort((a, b) => x.army[b] - x.army[a])[0] || 'spear';
+      let t0, t1, x1, y1, x2, y2;
+      if (x.state === 'out') { t0 = x.sent; t1 = x.at; x1 = A.x; y1 = A.y; x2 = D.x; y2 = D.y; }
+      else { const f = x.recalled ? Math.min(1, (x.from - x.sent) / x.ms) : 1; t0 = x.from; t1 = x.at; x1 = A.x + (D.x - A.x) * f; y1 = A.y + (D.y - A.y) * f; x2 = A.x; y2 = A.y; }
+      const col = colorOf(lookOf(x.a)), enemy = x.to === uid && x.state === 'out';
+      s += `<path d="M${A.x} ${A.y}L${D.x} ${D.y}" stroke="${enemy ? '#E9453C' : '#6C2BD9'}" stroke-width="3" stroke-dasharray="8 8" opacity=".55"/><g class="march" data-mv="${t0}:${t1}:${x1}:${y1}:${x2}:${y2}" transform="translate(${x1} ${y1})">${unitG(main, 0, 0, col, 1.4)}<g transform="translate(16 -22)"><rect x="-14" y="-11" width="28" height="18" rx="9" fill="${enemy ? '#E9453C' : '#1F2A14'}"/><text y="3" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="12" fill="#fff">${fmt(sumObj(x.army))}</text></g></g>`;
+    }
+    return `<div class="mapbar"><span class="small soft">Drag to look around. Tap a base to visit it.</span><span style="margin-left:auto;display:flex;gap:6px"><button type="button" class="mini" data-act="zoom" data-d="-1" aria-label="Zoom out">−</button><button type="button" class="mini" data-act="zoom" data-d="1" aria-label="Zoom in">+</button><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="home-map">My base</button></span></div><div class="world" id="world" style="height:min(62vh, ${Math.round(L.H * z) + 4}px)"><svg width="${Math.round(L.W * z)}" height="${Math.round(L.H * z)}" viewBox="0 0 ${L.W} ${L.H}" role="img" aria-label="World map"><defs>${defs}</defs>${s}</svg></div>`;
+  }
+  function visitView(u) {
+    const o = S.players[u], p = me(), t = now();
+    const sh = o.shield > t;
+    let h = `<div class="mapbar"><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="back-map">← Map</button><b style="margin-left:6px">${esc(nameOf(u))}’s base</b></div>`;
+    h += villageSVG(o, colorOf(lookOf(u)), t, equipOf(u), false);
+    h += `<div class="card mt"><p class="small">${plural(farmsOf(o), 'farm', 'farms')}, ${plural(minesOf(o), 'gold mine', 'gold mines')}, wall level ${o.wall}, ${plural(o.tower, 'tower', 'towers')}, ${AGES[o.age - 1]} age.${sh ? ` Shielded for <span data-cd="${o.shield}">${secs(o.shield - t)}</span>.` : ''}</p><h3>Troops at home</h3>${armyChips(o.army, colorOf(lookOf(u)))}</div>`;
+    h += `<button type="button" class="btn btn-danger btn-block mt" data-act="attack" data-u="${esc(u)}"${sh || !UNIT_ORDER.some(k => !UNITS[k].home && (p.army[k] || 0) > 0) ? ' disabled' : ''}>Attack ${esc(nameOf(u))}</button>`;
+    return h;
+  }
+
+  /* ---- army tab ---- */
+  function reportText(r) {
+    const mine = r.a === uid, other = mine ? r.d : r.a;
+    if (r.shield) return mine ? `Your troops bounced off ${esc(nameOf(other))}’s shield.` : `${esc(nameOf(other))}’s attack bounced off your shield.`;
+    const lostA = sumObj(r.aLoss), lostD = sumObj(r.dLoss);
+    const gains = [];
+    if (r.farms) gains.push(plural(r.farms, 'farm', 'farms'));
+    if (r.mines) gains.push(plural(r.mines, 'gold mine', 'gold mines'));
+    if (r.lj || r.lc) gains.push(`${fmt(r.lj)} Jelly and ${fmt(r.lc)} gold`);
+    if (r.towers) gains.push(plural(r.towers, 'tower', 'towers'));
+    if (r.walls) gains.push(`${r.walls} wall levels`);
+    if (r.mil) gains.push(`their ${BUILDS[r.mil].name.toLowerCase()}`);
+    const g = gains.join(', ');
+    if (mine) return r.win ? `<span class="win">You beat ${esc(nameOf(other))}!</span> Took ${g}. Lost ${plural(lostA, 'troop', 'troops')}, killed ${fmt(lostD)}.` : `<span class="lose">Your attack on ${esc(nameOf(other))} failed.</span> ${r.broke ? 'You broke in but ran out of time. ' : ''}Lost ${plural(lostA, 'troop', 'troops')}, killed ${fmt(lostD)}.`;
+    return r.win ? `<span class="lose">${esc(nameOf(other))} beat you.</span> They took ${g}. You lost ${plural(lostD, 'troop', 'troops')}.` : `<span class="win">You held off ${esc(nameOf(other))}!</span> They lost ${plural(lostA, 'troop', 'troops')}.`;
+  }
+  function armyView() {
+    const p = me(), t = now(), col = colorOf(lookOf(uid));
+    let h = `<div class="card mt"><b>Troops at home</b>${armyChips(p.army, col)}<p class="small soft" style="margin-top:6px">${fmt(p.awayN)} out on attacks. Defense power about ${fmt(defenseOf(p))}.</p></div>`;
+    h += `<h2>Train troops</h2><div class="card blist">`;
+    for (const b of MIL) {
+      const B = BUILDS[b], c = p.cur[b];
+      const st = p[b] ? (c ? `Training, ${p.q[b].length + 1} in line` : 'Ready') : p.age < B.age ? `Unlocks in the ${AGES[B.age - 1]} age` : 'Not built yet';
+      h += `<div class="brow"><div class="main"><div class="t">${B.name}</div><div class="s">${st}</div></div><button type="button" class="btn ${p[b] ? 'btn-grape' : 'btn-ghost'} btn-sm" data-act="open" data-k="${b}"${!p[b] && p.age < B.age ? ' disabled' : ''}>${p[b] ? 'Open' : 'Build'}</button></div>`;
+    }
+    h += `</div>`;
     const out = S.marches.filter(x => x.a === uid);
-    if (out.length) h += `<h3>Marching</h3>${out.map(x => `<div class="prog"><div class="t"><span>${x.n} scobbs to ${esc(nameOf(x.to))}</span><span data-cd="${x.t}">${secs(x.t - t)}</span></div><div class="bar"><i data-prog="${x.sent}:${x.t}"></i></div></div>`).join('')}`;
+    if (out.length) {
+      h += `<h2>Your attacks</h2>`;
+      for (const x of out) {
+        const go = x.state === 'out';
+        h += `<div class="prog"><div class="t"><span>${go ? `Marching on ${esc(nameOf(x.to))}` : `Coming home from ${esc(nameOf(x.to))}`}</span><span data-cd="${x.at}">${secs(x.at - t)}</span></div><div class="bar"><i data-prog="${go ? x.sent : x.from}:${x.at}"></i></div>${armyChips(x.army, col)}`;
+        if (go) h += `<p class="small soft" style="margin-top:8px">Target</p><div class="seg">${Object.keys(TARGETS).map(k => `<button type="button" class="chip" data-act="retarget" data-id="${esc(x.id)}" data-v="${k}" aria-pressed="${x.tgt === k}">${TARGETS[k]}</button>`).join('')}</div><button type="button" class="btn btn-ghost btn-sm mt" style="margin-bottom:0" data-act="recall" data-id="${esc(x.id)}">Call them back</button>`;
+        h += `</div>`;
+      }
+    }
     h += `<h2>Players</h2><div class="card plist">`;
     const others = S.standings.filter(o => o.uid !== uid);
     if (!others.length) h += `<p class="small soft">Nobody else is in this round yet.</p>`;
     for (const o of others) {
       const sh = o.shield > t;
-      h += `<div class="pcard">${hb(o.uid, 40)}<div class="main"><div class="t">${esc(nameOf(o.uid))}</div><div class="s">${plural(o.farm, 'farm', 'farms')}, ${AGES[o.age - 1]}, defense ${Math.round(defenseOf(o))}${sh ? `, shielded <span data-cd="${o.shield}">${secs(o.shield - t)}</span>` : ''}</div></div><div style="display:grid;gap:6px"><button type="button" class="btn btn-danger btn-sm" data-act="attack" data-u="${esc(o.uid)}"${sh || !p.home ? ' disabled' : ''}>Attack</button><button type="button" class="link" data-act="peek" data-u="${esc(o.uid)}">View farm</button></div></div>`;
+      h += `<div class="pcard">${hb(o.uid, 40)}<div class="main"><div class="t">${esc(nameOf(o.uid))}</div><div class="s">${plural(farmsOf(o), 'farm', 'farms')}, ${AGES[o.age - 1]}, defense about ${fmt(defenseOf(o))}${sh ? `, shielded <span data-cd="${o.shield}">${secs(o.shield - t)}</span>` : ''}</div></div><div style="display:grid;gap:6px"><button type="button" class="btn btn-danger btn-sm" data-act="attack" data-u="${esc(o.uid)}"${sh ? ' disabled' : ''}>Attack</button><button type="button" class="link" data-act="visit" data-u="${esc(o.uid)}">Visit</button></div></div>`;
     }
     h += `</div>`;
     const reps = S.reports.filter(r => r.a === uid || r.d === uid).slice(-12).reverse();
@@ -713,23 +1112,22 @@ input[type="text"]:focus { border-color: var(--grape); }
 
   /* ---- market tab ---- */
   function marketView() {
-    const p = me(), mk = S.market;
-    const price = mk.c / mk.j;
-    let h = `<div class="card mt"><p class="small soft">Market price</p><p class="price">1 Jelly = ${price.toFixed(2)} coins</p><p class="small soft">The price drops when people sell Jelly and rises when they buy it. There’s a 2% fee.</p></div>`;
+    const p = me();
+    let h = `<div class="card mt"><p class="small soft">Market prices never change</p><p class="price">Sell 1 Jelly → ${G.SELL} gold</p><p class="price" style="font-size:22px">Buy 1 Jelly for ${G.BUY} gold</p></div>`;
     h += `<div class="card mt"><h3 style="margin-top:0">Sell Jelly</h3><div class="field"><input id="m-sell" type="text" inputmode="numeric" placeholder="How much Jelly" aria-label="Jelly to sell"></div><div class="chips">${[25, 50, 100].map(v => `<button type="button" class="chip" data-act="pct" data-f="m-sell" data-v="${v}">${v === 100 ? 'All' : v + '%'}</button>`).join('')}</div><p class="quote" id="q-sell"></p><button type="button" class="btn btn-grape btn-block" data-act="sell">Sell</button></div>`;
-    h += `<div class="card mt"><h3 style="margin-top:0">Buy Jelly</h3><div class="field"><input id="m-buy" type="text" inputmode="numeric" placeholder="How many coins to spend" aria-label="Coins to spend"></div><div class="chips">${[25, 50, 100].map(v => `<button type="button" class="chip" data-act="pct" data-f="m-buy" data-v="${v}">${v === 100 ? 'All' : v + '%'}</button>`).join('')}</div><p class="quote" id="q-buy"></p><button type="button" class="btn btn-ghost btn-block" data-act="buy">Buy</button></div>`;
+    h += `<div class="card mt"><h3 style="margin-top:0">Buy Jelly</h3><div class="field"><input id="m-buy" type="text" inputmode="numeric" placeholder="How much gold to spend" aria-label="Gold to spend"></div><div class="chips">${[25, 50, 100].map(v => `<button type="button" class="chip" data-act="pct" data-f="m-buy" data-v="${v}">${v === 100 ? 'All' : v + '%'}</button>`).join('')}</div><p class="quote" id="q-buy"></p><button type="button" class="btn btn-ghost btn-block" data-act="buy">Buy</button></div>`;
     const offers = Object.values(S.offers).filter(o => o.open).sort((a, b) => b.t - a.t);
     h += `<h2>Player deals</h2><div class="card plist">`;
     if (!offers.length) h += `<p class="small soft">No deals posted. Beat the market price and someone might bite.</p>`;
     for (const o of offers) {
       const mine = o.a === uid;
-      const what = o.gj ? `Selling ${fmt(o.gj)} Jelly for ${fmt(o.wc)} coins` : `Buying ${fmt(o.wj)} Jelly for ${fmt(o.gc)} coins`;
+      const what = o.gj ? `Selling ${fmt(o.gj)} Jelly for ${fmt(o.wc)} gold` : `Buying ${fmt(o.wj)} Jelly for ${fmt(o.gc)} gold`;
       const each = o.gj ? o.wc / o.gj : o.gc / o.wj;
       const can = mine || (o.gj ? p.c >= o.wc : p.j >= o.wj);
       h += `<div class="pcard">${hb(o.a, 36)}<div class="main"><div class="t">${esc(nameOf(o.a))}</div><div class="s">${what} (${each.toFixed(2)} each)</div></div>${mine ? `<button type="button" class="btn btn-ghost btn-sm" data-act="cancel" data-o="${esc(o.id)}">Cancel</button>` : `<button type="button" class="btn btn-lime btn-sm" data-act="take" data-o="${esc(o.id)}"${can ? '' : ' disabled'}>Take</button>`}</div>`;
     }
-    h += `</div><div class="card mt"><h3 style="margin-top:0">Post a deal</h3><div class="chips" id="d-side"><button type="button" class="chip" data-act="dside" data-v="sell" aria-pressed="true">Sell Jelly</button><button type="button" class="chip" data-act="dside" data-v="buy" aria-pressed="false">Buy Jelly</button></div>
-      <div class="row2"><div class="field" style="margin:0"><label for="d-j">Jelly</label><input id="d-j" type="text" inputmode="numeric" placeholder="0"></div><div class="field" style="margin:0"><label for="d-c">For coins</label><input id="d-c" type="text" inputmode="numeric" placeholder="0"></div></div>
+    h += `</div><div class="card mt"><h3 style="margin-top:0">Post a deal</h3><div class="chips" id="d-side"><button type="button" class="chip" data-act="dside" data-v="sell" aria-pressed="${dealSide === 'sell'}">Sell Jelly</button><button type="button" class="chip" data-act="dside" data-v="buy" aria-pressed="${dealSide === 'buy'}">Buy Jelly</button></div>
+      <div class="row2"><div class="field" style="margin:0"><label for="d-j">Jelly</label><input id="d-j" type="text" inputmode="numeric" placeholder="0"></div><div class="field" style="margin:0"><label for="d-c">For gold</label><input id="d-c" type="text" inputmode="numeric" placeholder="0"></div></div>
       <p class="small soft" style="margin-top:6px">What you offer is held until someone takes the deal or you cancel it.</p><button type="button" class="btn btn-grape btn-block mt" data-act="post">Post deal</button></div>`;
     return h;
   }
@@ -748,79 +1146,165 @@ input[type="text"]:focus { border-color: var(--grape); }
     if (ui.tab === 'chat') { chatSeen = chatCount(); updateBadges(); window.scrollTo(0, document.body.scrollHeight); }
   }
   function updateBadges() {
-    const bc = $('#bd-chat'), bb = $('#bd-battle');
+    const bc = $('#bd-chat'), bb = $('#bd-army');
     const unread = ui.tab === 'chat' ? 0 : Math.max(0, chatCount() - chatSeen);
     bc.hidden = !unread; bc.textContent = unread > 9 ? '9+' : String(unread);
-    const inc = S && S.phase === 'live' ? S.marches.filter(x => x.to === uid).length : 0;
+    const inc = S && S.phase === 'live' ? S.marches.filter(x => x.to === uid && x.state === 'out').length : 0;
     bb.hidden = !inc; bb.textContent = String(inc);
   }
 
   /* ---- sheets ---- */
-  function openSheet(html, wire) {
-    $('#sheet-body').innerHTML = html;
+  function openSheet(draw) {
+    ui.sheet = draw;
     $('#sheet-root').hidden = false;
     document.body.style.overflow = 'hidden';
-    if (wire) wire();
+    drawSheet();
     setTimeout(() => $('#sheet').focus({ preventScroll: true }), 40);
   }
-  function closeSheet() { $('#sheet-root').hidden = true; $('#sheet-body').innerHTML = ''; document.body.style.overflow = ''; }
-  const sheetHead = t => `<div class="sheet-head"><h2 id="sheet-title">${t}</h2><button type="button" class="x" data-act="close" aria-label="Close">✕</button></div>`;
-  function openAttack(u) {
-    const p = me(), o = S.players[u];
-    if (!p || !o) return;
-    const html = sheetHead(`Attack ${esc(nameOf(u))}`)
-      + `<p class="small soft">Your scobbs march for ${G.MARCH_MS / 1000}s. If your attack beats their defense, you take 30% of their Jelly and coins. Beat it by 1.5× and you also take one of their farms.</p>`
-      + `<div class="step"><button type="button" class="sb" data-act="astep" data-d="-1" aria-label="One fewer">−</button><input class="sv" id="a-n" type="text" inputmode="numeric" value="${p.home}" aria-label="Scobbs to send"><button type="button" class="sb" data-act="astep" data-d="1" aria-label="One more">+</button><span class="small soft">of ${p.home} home</span></div>`
-      + `<p class="quote" id="a-q"></p><p class="err" id="a-err" hidden></p><button type="button" class="btn btn-danger btn-block mt" id="a-go">Send scobbs</button>`;
-    openSheet(html, () => {
-      const upd = () => {
-        const pp = me(), oo = S.players[u];
-        const n = Math.max(0, Math.min(pp.home, parseInt($('#a-n').value, 10) || 0));
-        const A = n * atkOf(pp.age), D = defenseOf(oo);
-        $('#a-q').innerHTML = `Your attack <b>${Math.round(A)}</b> vs their defense <b>${Math.round(D)}</b>. ${A >= 1.5 * D ? '<span class="win">Big win, you’d take a farm.</span>' : A > D ? '<span class="win">You’d win the raid.</span>' : '<span class="lose">You’d probably lose.</span>'} Defense can change while you march.`;
-      };
-      $('#a-n').addEventListener('input', upd);
-      upd();
-      ui.sheetUpd = upd;
-      $('#a-go').addEventListener('click', () => {
-        const pp = me(), n = parseInt($('#a-n').value, 10) || 0;
-        const err = $('#a-err');
-        if (n < 1 || n > pp.home) { err.textContent = `Send between 1 and ${pp.home} scobbs.`; err.hidden = false; return; }
-        if (S.players[u].shield > now()) { err.textContent = 'They’re shielded right now.'; err.hidden = false; return; }
-        move('attack', { to: u, n });
-        closeSheet();
-        ui.sheetUpd = null;
-        toast(`${n} scobbs are marching on ${nameOf(u)}`);
-      });
-    });
+  function drawSheet() {
+    if (!ui.sheet) return;
+    const html = ui.sheet();
+    if (html == null) { closeSheet(); return; }
+    const st = $('#sheet').scrollTop;
+    $('#sheet-body').innerHTML = html;
+    $('#sheet').scrollTop = st;
+    liveTick();
   }
-  function openPeek(u) {
-    const o = S.players[u];
-    if (!o) return;
-    openSheet(sheetHead(`${esc(nameOf(u))}’s farm`) + villageSVG(o, colorOf(lookOf(u)), now(), equipOf(u)) + `<p class="small soft" style="margin-top:8px">${plural(o.farm, 'farm', 'farms')}, ${plural(o.mill, 'mill', 'mills')}, wall level ${o.wall}, ${plural(o.tower, 'tower', 'towers')}, ${plural(o.home, 'scobb', 'scobbs')} home. Defense ${Math.round(defenseOf(o))}.</p>`);
+  function closeSheet() { ui.sheet = null; $('#sheet-root').hidden = true; $('#sheet-body').innerHTML = ''; document.body.style.overflow = ''; }
+  const sheetHead = (t, sub) => `<div class="sheet-head"><div><h2 id="sheet-title">${t}</h2>${sub ? `<p class="small soft">${sub}</p>` : ''}</div><button type="button" class="x" data-act="close" aria-label="Close">✕</button></div>`;
+  const stv = (k, d) => (ui.st[k] != null ? ui.st[k] : d);
+  const stepper = (k, v, lo, hi, labelText) => `<div class="step"><button type="button" class="sb" data-act="st" data-k="${k}" data-d="-1" data-lo="${lo}" data-hi="${hi}" aria-label="One fewer">−</button><b class="sv" style="display:grid;place-items:center">${v}</b><button type="button" class="sb" data-act="st" data-k="${k}" data-d="1" data-lo="${lo}" data-hi="${hi}" aria-label="One more">+</button>${labelText ? `<span class="small soft">${labelText}</span>` : ''}</div>`;
+  function unlocksAt(age) {
+    const out = [];
+    for (const b of BUILD_ORDER) if (BUILDS[b].age === age) out.push(BUILDS[b].name);
+    for (const u of UNIT_ORDER) if (UNITS[u].age === age) out.push(UNITS[u].name);
+    for (const k in TECHS) if (TECHS[k].age === age) out.push(TECHS[k].name);
+    return out;
+  }
+  function hallSheet() {
+    const p = me();
+    if (!p) return null;
+    const room = Math.max(0, capOf(p) - popOf(p)), maxN = Math.max(0, Math.min(20, room, Math.floor(p.j / G.VIL_J)));
+    const n = Math.max(1, Math.min(stv('vn', 3), Math.max(1, maxN)));
+    let h = sheetHead('Town Hall', `${AGES[p.age - 1]} age. Population ${popOf(p)}/${capOf(p)}.`);
+    h += `<h3>Train villagers</h3><p class="small soft">${G.VIL_J} Jelly each, ${G.VIL_MS / 1000}s each. New villagers show up idle, so put them to work on the base.</p>${stepper('vn', n, 1, 20)}<button type="button" class="btn btn-grape btn-block mt" data-act="vtrain" data-n="${n}"${maxN ? '' : ' disabled'}>Train ${plural(n, 'villager', 'villagers')} for ${fmt(n * G.VIL_J)} Jelly</button>${maxN ? '' : `<p class="small err">${room ? 'Not enough Jelly.' : 'You’re at your population limit. The next age raises it.'}</p>`}`;
+    if (p.age < 4) {
+      const A = AGE_UP[p.age];
+      h += `<h3>Next age: ${AGES[p.age]}</h3><p class="small soft">Unlocks ${unlocksAt(p.age + 1).join(', ')}. Population limit goes to ${POP[p.age]}.</p><button type="button" class="btn btn-lime btn-block mt" data-act="age"${p.aging || !canAfford(p, A.j, A.c) ? ' disabled' : ''}>${p.aging ? 'Upgrading…' : `Upgrade for ${costText(A.j, A.c)}`}</button>`;
+    }
+    h += `<h3>Upgrades</h3><div class="blist">`;
+    for (const k in TECHS) {
+      const T = TECHS[k], have = !!p.tech[k], locked = p.age < T.age;
+      h += `<div class="brow"><div class="main"><div class="t">${T.name} <span class="small soft">${AGES[T.age - 1]}</span></div><div class="s">${T.what}</div><div class="cost">${have ? 'Done' : locked ? `Unlocks in the ${AGES[T.age - 1]} age` : costText(T.j, T.c)}</div></div>${have ? '<span class="win">✓</span>' : `<button type="button" class="btn btn-grape btn-sm" data-act="tech" data-t="${k}"${locked || !canAfford(p, T.j, T.c) ? ' disabled' : ''}>Buy</button>`}</div>`;
+    }
+    return h + `</div>`;
+  }
+  function siteSheet(id) {
+    const p = me(), s = p && p.sites.find(x => x.id === id);
+    if (!s) return null;
+    const rate = s.k === 'farm' ? farmRate(p) : mineRate(p), what = s.k === 'farm' ? 'Jelly' : 'gold';
+    const left = s.w && s.left > 0 && !s.rp ? s.left / (rate * s.w) * 1000 : 0;
+    let h = sheetHead(siteName(p, s), `${fmt(s.left)} of ${fmt(s.max)} ${what} left`);
+    h += `<div class="bar"><i style="width:${Math.max(0, Math.min(100, (s.left / s.max) * 100))}%;background:${s.k === 'farm' ? 'var(--lime)' : 'var(--gold)'}"></i></div>`;
+    h += `<h3>Workers</h3><div class="jobs"><div class="brow"><div class="main"><div class="s">${s.w ? `${(rate * s.w).toFixed(1)} ${what} a second${left ? `, runs out in about ${secs(left)}` : ''}` : 'Nobody is working here'}. ${p.idle} idle villagers.</div></div>${workerCtl(s.id, s.w, G.MAX_W, p.idle)}</div></div>`;
+    h += `<p class="small soft">More workers make ${what} faster, but the ${s.k === 'farm' ? 'farm' : 'mine'} runs out sooner.</p>`;
+    if (s.k === 'farm') h += s.rp ? progRow('Replanting', s.rp - G.REPLANT_MS, s.rp) : `<button type="button" class="btn btn-lime btn-block mt" data-act="replant" data-s="${s.id}"${s.left > s.max * 0.5 || p.c < G.REPLANT_C ? ' disabled' : ''}>Replant for ${G.REPLANT_C} gold</button><p class="small soft">You can replant once a farm is half empty. It refills in ${G.REPLANT_MS / 1000}s.</p>`;
+    else h += `<button type="button" class="btn btn-ghost btn-block mt" data-act="close-mine" data-s="${s.id}">Close this mine</button><p class="small soft">Closing it sends the miners back to idle. Build a new mine for fresh gold.</p>`;
+    return h;
+  }
+  function buildSheet() {
+    const p = me();
+    if (!p) return null;
+    let h = sheetHead('Build', p.build ? `Building a ${BUILDS[p.build.b].name.toLowerCase()} right now` : 'One building at a time');
+    if (p.build) h += progRow(`Building a ${BUILDS[p.build.b].name.toLowerCase()}`, p.build.from, p.build.at);
+    h += `<div class="blist">`;
+    for (const k of BUILD_ORDER) {
+      const B = BUILDS[k], max = B.max[p.age - 1], have = countOf(p, k);
+      const why = p.age < B.age ? `Unlocks in the ${AGES[B.age - 1]} age` : have >= max ? (p.age < 4 ? 'Upgrade your Town Hall for more' : 'Maxed out') : p.build ? 'Busy building' : !canAfford(p, B.j, B.c) ? 'Not enough yet' : '';
+      h += `<div class="brow"><div class="main"><div class="t">${B.name} <span class="soft small">${have}/${max}</span></div><div class="s">${B.what}. ${secs(B.ms)}</div><div class="cost">${costText(B.j, B.c)}${why ? ` <span class="soft">· ${why}</span>` : ''}</div></div><button type="button" class="btn btn-grape btn-sm" data-act="build" data-b="${k}"${why ? ' disabled' : ''}>Build</button></div>`;
+    }
+    return h + `</div>`;
+  }
+  function milSheet(b) {
+    const p = me();
+    if (!p) return null;
+    const B = BUILDS[b], col = colorOf(lookOf(uid));
+    if (!p[b]) {
+      const why = p.age < B.age ? `Unlocks in the ${AGES[B.age - 1]} age` : p.build ? 'You’re busy building something else' : !canAfford(p, B.j, B.c) ? 'Not enough yet' : '';
+      return sheetHead(B.name, B.what) + `<p class="small soft">Costs ${costText(B.j, B.c)} and takes ${secs(B.ms)}.</p><button type="button" class="btn btn-grape btn-block mt" data-act="build" data-b="${b}"${why ? ' disabled' : ''}>Build it</button>${why ? `<p class="small soft">${why}.</p>` : ''}`;
+    }
+    let h = sheetHead(B.name, `Population ${popOf(p)}/${capOf(p)}`);
+    const c = p.cur[b];
+    if (c) h += progRow(`Training a ${UNITS[c.u].name.toLowerCase()}${p.q[b].length ? `, ${p.q[b].length} more waiting` : ''}`, c.from, c.at);
+    h += `<div class="jobs"><div class="brow"><div class="main"><div class="t">Workers</div><div class="s">Each one trains troops 25% faster. ${p.idle} idle.</div></div>${workerCtl(b, p.milW[b], G.MIL_W, p.idle)}</div></div>`;
+    for (const u of UNIT_ORDER.filter(k => UNITS[k].b === b)) {
+      const U = UNITS[u], locked = p.age < U.age;
+      const room = Math.max(0, capOf(p) - popOf(p)), maxN = Math.max(0, Math.min(20, room, U.j ? Math.floor(p.j / U.j) : 20, U.c ? Math.floor(p.c / U.c) : 20));
+      const n = Math.max(1, Math.min(stv('t_' + u, 1), Math.max(1, maxN)));
+      const vs = Object.keys(U.vs || {}).map(k => ({ inf: 'foot soldiers', rng: 'gunners', ride: 'riders', siege: 'machines' })[k]).filter(Boolean);
+      h += `<div class="ucard"><span class="ui">${unitSVG(u, col)}</span><div class="main"><div class="t">${U.name} ${p.army[u] ? `<span class="small soft">×${p.army[u]} home</span>` : ''}</div><div class="stats">Attack ${U.atk} · Health ${U.hp}${U.home ? ' · Stays home' : U.spd < 1 ? ' · Fast' : U.spd > 1 ? ' · Slow' : ''}${U.sx ? ` · ${U.sx}× vs buildings` : ''}${vs.length ? ` · Strong vs ${vs.join(' and ')}` : ''}</div><div class="small soft">${U.tip}</div><div class="cost">${costText(U.j, U.c)} · ${secs(trainMs(p, b, u))}</div>${locked ? `<div class="lock">Unlocks in the ${AGES[U.age - 1]} age</div>` : `${stepper('t_' + u, n, 1, 20)}<button type="button" class="btn btn-grape btn-sm mt" style="margin-bottom:0" data-act="train" data-b="${b}" data-u="${u}" data-n="${n}"${maxN ? '' : ' disabled'}>Train ${n}</button>`}</div></div>`;
+    }
+    return h;
+  }
+  function attackSheet() {
+    const p = me(), A = ui.atk, o = A && S.players[A.to];
+    if (!p || !o) return null;
+    const col = colorOf(lookOf(uid));
+    const avail = UNIT_ORDER.filter(u => !UNITS[u].home && (p.army[u] || 0) > 0);
+    for (const u of Object.keys(A.army)) if (!(p.army[u] > 0)) delete A.army[u]; else A.army[u] = Math.min(A.army[u], p.army[u]);
+    let h = sheetHead(`Attack ${esc(nameOf(A.to))}`, `They have ${plural(farmsOf(o), 'farm', 'farms')}, wall level ${o.wall}, ${plural(o.tower, 'tower', 'towers')} and ${plural(sumObj(o.army), 'troop', 'troops')} at home.`);
+    if (!avail.length) return h + `<p class="small soft">You don’t have any troops that can attack. Train some first.</p>`;
+    h += `<h3>Who goes</h3><p class="small soft">Damage hits your front line first. Put tough troops in front and fragile ones in the back.</p>`;
+    for (const u of avail) {
+      const n = A.army[u] || 0, ln = A.lines[u] != null ? A.lines[u] : UNITS[u].line;
+      h += `<div class="ucard"><span class="ui">${unitSVG(u, col)}</span><div class="main"><div class="t">${UNITS[u].name} <span class="small soft">${p.army[u]} home</span></div><div class="step" style="margin-top:4px"><button type="button" class="sb" data-act="atk-n" data-u="${u}" data-d="-1" aria-label="One fewer">−</button><b class="sv" style="display:grid;place-items:center">${n}</b><button type="button" class="sb" data-act="atk-n" data-u="${u}" data-d="1" aria-label="One more">+</button><button type="button" class="chip" data-act="atk-n" data-u="${u}" data-d="all">All</button></div><div class="seg" style="margin-top:6px">${LINES.map((l, i) => `<button type="button" class="chip" data-act="atk-line" data-u="${u}" data-v="${i}" aria-pressed="${ln === i}">${l}</button>`).join('')}</div></div></div>`;
+    }
+    h += `<h3>What to hit</h3><div class="seg">${Object.keys(TARGETS).map(k => `<button type="button" class="chip" data-act="atk-tgt" data-v="${k}" aria-pressed="${A.tgt === k}">${TARGETS[k]}</button>`).join('')}</div>`;
+    const army = {};
+    for (const u in A.army) if (A.army[u] > 0) army[u] = A.army[u];
+    const lines = {};
+    for (const u in army) lines[u] = A.lines[u] != null ? A.lines[u] : UNITS[u].line;
+    if (sumObj(army)) {
+      const R = battle(p, o, army, lines, A.tgt);
+      const gain = R.farms ? plural(R.farms, 'farm', 'farms') : R.mines ? plural(R.mines, 'gold mine', 'gold mines') : R.pct ? `${Math.round(R.pct * 100)}% of their Jelly and gold` : R.towers || R.walls ? `${R.towers ? plural(R.towers, 'tower', 'towers') : ''}${R.towers && R.walls ? ' and ' : ''}${R.walls ? `${R.walls} wall levels` : ''}` : R.mil ? `their ${BUILDS[R.mil].name.toLowerCase()}` : '';
+      h += `<div class="preview"><b>Battle preview:</b> ${R.win ? `<span class="win">You’d win and take ${gain}.</span>` : `<span class="lose">You’d probably lose.</span>${R.broke ? ' You’d break in but run out of time.' : ''}`} You’d lose about ${plural(sumObj(R.aLoss), 'troop', 'troops')} and they’d lose ${fmt(sumObj(R.dLoss))}. March time ${secs(marchMs(army))}. Their defense can change while you march.</div>`;
+    }
+    h += `<button type="button" class="btn btn-danger btn-block mt" data-act="atk-send"${sumObj(army) && o.shield <= now() ? '' : ' disabled'}>${o.shield > now() ? 'They’re shielded' : `Send ${plural(sumObj(army), 'troop', 'troops')}`}</button>`;
+    return h;
+  }
+  function openAttack(u) {
+    const p = me();
+    if (!p || !S.players[u]) return;
+    const army = {};
+    for (const k of UNIT_ORDER) if (!UNITS[k].home && p.army[k] > 0) army[k] = p.army[k];
+    ui.atk = { to: u, army, lines: {}, tgt: 'farm' };
+    openSheet(attackSheet);
   }
 
   /* ---- live updates ---- */
   function signature() {
     if (!S) return 'none';
+    const parts = [S.phase, S.order.length, S.reports.length, Object.values(S.offers).filter(o => o.open).length, S.marches.map(x => x.id + x.state + x.tgt).join(','), S.winner || ''];
+    for (const u of S.order) { const q = S.players[u]; parts.push(farmsOf(q), minesOf(q), q.age, q.wall, q.tower, sumObj(q.army), q.shield > now() ? 1 : 0, MIL.map(b => q[b]).join('')); }
     const p = S.players[uid];
-    const parts = [S.phase, S.order.length, S.reports.length, Object.values(S.offers).filter(o => o.open).length, S.marches.length, S.winner || ''];
-    for (const u of S.order) { const q = S.players[u]; parts.push(q.farm, q.age, q.shield > now() ? 1 : 0); }
-    if (p) parts.push(p.mill, p.barracks, p.wall, p.tower, p.home, p.away, p.trainQ, p.build ? p.build.b : '', p.aging ? 1 : 0, Math.floor(p.j / 25), Math.floor(p.c / 25));
+    if (p) {
+      parts.push(p.idle, p.mill, p.awayN, JSON.stringify(p.army), p.build ? p.build.b : '', p.aging ? 1 : 0, Object.keys(p.tech).join(','), MIL.map(b => p.milW[b] + ':' + p.q[b].length + ':' + (p.cur[b] ? p.cur[b].tok : '')).join(','), p.q.hall.length, p.cur.hall ? p.cur.hall.tok : '', Math.floor(p.j / 20), Math.floor(p.c / 20));
+      for (const s of p.sites) parts.push(s.id, s.w, Math.floor(s.left / 60), s.rp ? 1 : 0);
+    }
     return parts.join('|');
   }
   function liveTick() {
     const t = now();
     $$('[data-cd]').forEach(el => { el.textContent = secs(Number(el.dataset.cd) - t); });
     $$('[data-prog]').forEach(el => { const [a, b] = el.dataset.prog.split(':').map(Number); el.style.width = Math.max(0, Math.min(100, ((t - a) / Math.max(1, b - a)) * 100)) + '%'; });
+    $$('[data-mv]').forEach(el => { const [t0, t1, x1, y1, x2, y2] = el.dataset.mv.split(':').map(Number); const f = Math.max(0, Math.min(1, (t - t0) / Math.max(1, t1 - t0))); el.setAttribute('transform', `translate(${x1 + (x2 - x1) * f} ${y1 + (y2 - y1) * f})`); });
     const tm = $('[data-live="timer"]');
     if (tm && S) tm.textContent = S.phase === 'over' ? '' : clock((S.phase === 'lobby' ? S.startAt : S.endAt) - t);
     const p = me();
-    if (p) { const j = $('[data-res="j"]'), c = $('[data-res="c"]'), h = $('[data-res="home"]'); if (j) j.textContent = fmt(p.j); if (c) c.textContent = fmt(p.c); if (h) h.textContent = fmt(p.home); }
-    if (ui.sheetUpd) ui.sheetUpd();
+    if (p) { const j = $('[data-res="j"]'), c = $('[data-res="c"]'); if (j) j.textContent = fmt(p.j); if (c) c.textContent = fmt(p.c); }
     updateQuotes();
   }
-  function editing() { const a = document.activeElement; return !!(a && a.tagName === 'INPUT' && app.contains(a)); }
+  function editing() { const a = document.activeElement; return !!(a && a.tagName === 'INPUT' && (app.contains(a) || $('#sheet').contains(a))); }
   const wroteResult = new Set();
   function writeResult() {
     const r = round();
@@ -834,13 +1318,15 @@ input[type="text"]:focus { border-color: var(--grape); }
     writeResult();
     reportBad();
     const s = signature();
-    if ((force || s !== sig) && !editing() && $('#sheet-root').hidden) { sig = s; renderGame(); }
-    else liveTick();
+    if ((force || s !== sig) && !editing()) {
+      sig = s;
+      if (ui.sheet) drawSheet(); else renderGame();
+    } else liveTick();
     updateBadges();
   }
   function reportBad() {
     if (!S) return;
-    const WHY = { funds: 'You didn’t have enough by the time that went through.', busy: 'You’re already building something.', max: 'You’ve hit the limit for your age.', lobby: 'The round hasn’t started yet.', late: 'It’s too late to join this round.', shield: 'They were shielded, so the attack didn’t go out.', scobbs: 'You didn’t have that many scobbs at home.', closed: 'That deal was already gone.', 'no barracks': 'Build a Barracks first.', age: 'You’re already at Empire.' };
+    const WHY = { funds: 'You didn’t have enough by the time that went through.', busy: 'You’re already doing that.', max: 'You’ve hit the limit for your age.', lobby: 'The round hasn’t started yet.', late: 'It’s too late to join this round.', shield: 'They were shielded, so the attack didn’t go out.', troops: 'You didn’t have those troops at home.', closed: 'That deal was already gone.', locked: 'That unlocks in a later age.', pop: 'You’re at your population limit.', idle: 'You don’t have enough idle villagers.', full: 'That’s full.', queue: 'That line is full.', gone: 'That’s already gone.', age: 'You’re already at Empire.', nobuilding: 'Build it first.' };
     for (const k in S.bad) {
       if (!k.startsWith(uid + '_') || seenBad.has(k)) continue;
       seenBad.add(k);
@@ -851,8 +1337,15 @@ input[type="text"]:focus { border-color: var(--grape); }
     const p = me();
     if (!p || !S) return;
     const qs = $('#q-sell'), qb = $('#q-buy');
-    if (qs) { const v = parseInt(($('#m-sell') || {}).value, 10) || 0; qs.textContent = v > 0 ? (v > p.j ? `You only have ${fmt(p.j)} Jelly.` : `You’d get about ${fmt(quote(S.market, 'j', v))} coins.`) : ''; }
-    if (qb) { const v = parseInt(($('#m-buy') || {}).value, 10) || 0; qb.textContent = v > 0 ? (v > p.c ? `You only have ${fmt(p.c)} coins.` : `You’d get about ${fmt(quote(S.market, 'c', v))} Jelly.`) : ''; }
+    if (qs) { const v = parseInt(($('#m-sell') || {}).value, 10) || 0; qs.textContent = v > 0 ? (v > p.j ? `You only have ${fmt(p.j)} Jelly.` : `You’d get ${fmt(v * G.SELL)} gold.`) : ''; }
+    if (qb) { const v = parseInt(($('#m-buy') || {}).value, 10) || 0; qb.textContent = v > 0 ? (v > p.c ? `You only have ${fmt(p.c)} gold.` : `You’d get ${fmt(v / G.BUY)} Jelly.`) : ''; }
+  }
+  function centerMap(u) {
+    const w = $('#world');
+    if (!w || !S || !S.players[u]) return;
+    const L = worldLayout(), z = ui.zoom || 0.6, pos = L.pos[u];
+    w.scrollLeft = (pos.x + 180) * z - w.clientWidth / 2;
+    w.scrollTop = (pos.y + 150) * z - w.clientHeight / 2;
   }
   function wireView() {
     const s = $('#m-sell'), b = $('#m-buy');
@@ -860,6 +1353,17 @@ input[type="text"]:focus { border-color: var(--grape); }
     if (b) b.addEventListener('input', updateQuotes);
     const ct = $('#c-text');
     if (ct) ct.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ACT['chat-send'](); } });
+    const w = $('#world');
+    if (w) {
+      if (ui.mapScroll && !ui.mapCenter) { w.scrollLeft = ui.mapScroll[0]; w.scrollTop = ui.mapScroll[1]; }
+      else { centerMap(ui.mapCenter || uid); ui.mapCenter = null; }
+      let drag = null;
+      w.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; drag = { x: e.clientX, y: e.clientY, l: w.scrollLeft, t: w.scrollTop, moved: false }; w.classList.add('drag'); });
+      w.addEventListener('pointermove', e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true; w.scrollLeft = drag.l - dx; w.scrollTop = drag.t - dy; });
+      const end = () => { if (drag && drag.moved) ui.dragMoved = Date.now(); drag = null; w.classList.remove('drag'); };
+      w.addEventListener('pointerup', end);
+      w.addEventListener('pointerleave', end);
+    }
     liveTick();
   }
 
@@ -868,29 +1372,58 @@ input[type="text"]:focus { border-color: var(--grape); }
 
   /* ================= actions ================= */
   let lobbyLen = 2, dealSide = 'sell';
+  const SHEETS = { hall: () => hallSheet, build: () => buildSheet, barracks: () => () => milSheet('barracks'), stable: () => () => milSheet('stable'), workshop: () => () => milSheet('workshop') };
   const ACT = {
-    tab: b => { ui.tab = b.dataset.tab; closeSheet(); ui.sheetUpd = null; renderGame(); window.scrollTo(0, 0); },
-    close: () => { closeSheet(); ui.sheetUpd = null; refresh(true); },
+    tab: b => { ui.tab = b.dataset.tab; if (ui.tab !== 'map') ui.visit = null; closeSheet(); renderGame(); window.scrollTo(0, 0); },
+    close: () => { closeSheet(); refresh(true); },
     'lobby-len': b => { lobbyLen = Number(b.dataset.v); $$('[data-act="lobby-len"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); },
     'open-round': b => { b.disabled = true; openRound(lobbyLen); },
     join: () => move('join'),
     start: () => move('start'),
-    build: b => { const p = me(), B = BUILDS[b.dataset.b]; if (!p || p.build) return; if (!canAfford(p, B.j, B.c)) return toast('Not enough yet.'); move('build', { b: b.dataset.b }); toast(`Building a ${B.name}`); },
-    age: () => { const p = me(); if (!p || p.aging || p.age >= 4) return; move('age'); toast(`Upgrading to ${AGES[p.age]}`); },
-    tstep: b => { const el = $('#t-n'); el.value = String(Math.max(1, Math.min(50, (parseInt(el.value, 10) || 0) + Number(b.dataset.d)))); },
-    train: () => { const p = me(); const n = Math.max(1, Math.min(50, parseInt($('#t-n').value, 10) || 0)); if (!canAfford(p, n * G.SCOBB_J, n * G.SCOBB_C)) return toast('Not enough for that many.'); move('train', { n }); toast(`Training ${plural(n, 'scobb', 'scobbs')}`); },
+    open: b => {
+      const k = b.dataset.k;
+      if (k === 'site') { const id = b.dataset.s; return openSheet(() => siteSheet(id)); }
+      if (k === 'market') { ui.tab = 'market'; return renderGame(); }
+      if (SHEETS[k]) openSheet(SHEETS[k]());
+    },
+    st: b => { const k = b.dataset.k, lo = Number(b.dataset.lo), hi = Number(b.dataset.hi); const cur = Number(b.parentElement.querySelector('.sv').textContent) || lo; ui.st[k] = Math.max(lo, Math.min(hi, cur + Number(b.dataset.d))); drawSheet(); },
+    vtrain: b => { const n = Number(b.dataset.n); move('vtrain', { n }); toast(`Training ${plural(n, 'villager', 'villagers')}`); },
+    age: () => { const p = me(); if (!p || p.aging || p.age >= 4) return; move('age'); toast(`Upgrading to the ${AGES[p.age]} age`); },
+    tech: b => { const T = TECHS[b.dataset.t]; move('tech', { tk: b.dataset.t }); toast(`Got ${T.name}`); },
+    w: b => move('assign', { s: b.dataset.s, n: Number(b.dataset.n) }),
+    replant: b => { move('replant', { s: b.dataset.s }); toast('Replanting'); },
+    'close-mine': b => { move('close', { s: b.dataset.s }); closeSheet(); toast('Mine closed. The miners are idle now.'); refresh(true); },
+    build: b => { const p = me(), B = BUILDS[b.dataset.b]; if (!p || p.build) return; if (!canAfford(p, B.j, B.c)) return toast('Not enough yet.'); move('build', { b: b.dataset.b }); toast(`Building a ${B.name.toLowerCase()}`); },
+    train: b => { const n = Number(b.dataset.n), U = UNITS[b.dataset.u]; move('train', { b: b.dataset.b, u: b.dataset.u, n }); toast(`Training ${n} ${U.name.toLowerCase()}${n === 1 ? '' : 's'}`); },
+    visit: b => { if (ui.dragMoved && Date.now() - ui.dragMoved < 400) return; const u = b.dataset.u; if (u === uid) { ui.tab = 'base'; ui.visit = null; } else { ui.tab = 'map'; ui.visit = u; } closeSheet(); renderGame(); window.scrollTo(0, 0); },
+    'back-map': () => { ui.mapCenter = ui.visit; ui.visit = null; renderGame(); },
+    'home-map': () => { ui.mapCenter = uid; renderGame(); },
+    zoom: b => { const zs = [0.35, 0.5, 0.6, 0.8, 1]; const i = zs.indexOf(ui.zoom || 0.6); ui.zoom = zs[Math.max(0, Math.min(zs.length - 1, i + Number(b.dataset.d)))]; ui.mapCenter = uid; renderGame(); },
     attack: b => openAttack(b.dataset.u),
-    peek: b => openPeek(b.dataset.u),
-    astep: b => { const el = $('#a-n'); const p = me(); el.value = String(Math.max(1, Math.min(p.home, (parseInt(el.value, 10) || 0) + Number(b.dataset.d)))); if (ui.sheetUpd) ui.sheetUpd(); },
+    'atk-n': b => { const p = me(), u = b.dataset.u, A = ui.atk; const cur = A.army[u] || 0; A.army[u] = b.dataset.d === 'all' ? p.army[u] : Math.max(0, Math.min(p.army[u] || 0, cur + Number(b.dataset.d))); drawSheet(); },
+    'atk-line': b => { ui.atk.lines[b.dataset.u] = Number(b.dataset.v); drawSheet(); },
+    'atk-tgt': b => { ui.atk.tgt = b.dataset.v; drawSheet(); },
+    'atk-send': () => {
+      const A = ui.atk, army = {}, lines = {};
+      for (const u in A.army) if (A.army[u] > 0) { army[u] = A.army[u]; lines[u] = A.lines[u] != null ? A.lines[u] : UNITS[u].line; }
+      if (!sumObj(army)) return;
+      move('attack', { to: A.to, army, lines, tgt: A.tgt });
+      closeSheet();
+      toast(`${plural(sumObj(army), 'troop', 'troops')} marching on ${nameOf(A.to)}`);
+      ui.tab = 'map'; ui.visit = null; ui.mapCenter = uid;
+      refresh(true);
+    },
+    recall: b => { move('recall', { id: b.dataset.id }); toast('Calling your troops back'); },
+    retarget: b => { move('retarget', { id: b.dataset.id, tgt: b.dataset.v }); toast(`New target: ${TARGETS[b.dataset.v].toLowerCase()}`); },
     pct: b => { const p = me(); const el = $('#' + b.dataset.f); const base = b.dataset.f === 'm-sell' ? p.j : p.c; el.value = String(Math.floor(base * Number(b.dataset.v) / 100)); updateQuotes(); },
-    sell: () => { const p = me(); const v = parseInt($('#m-sell').value, 10) || 0; if (v < 1) return toast('Enter how much Jelly to sell.'); if (v > p.j) return toast(`You only have ${fmt(p.j)} Jelly.`); move('sell', { j: v }); $('#m-sell').value = ''; toast(`Sold ${fmt(v)} Jelly`); },
-    buy: () => { const p = me(); const v = parseInt($('#m-buy').value, 10) || 0; if (v < 1) return toast('Enter how many coins to spend.'); if (v > p.c) return toast(`You only have ${fmt(p.c)} coins.`); move('buy', { c: v }); $('#m-buy').value = ''; toast(`Bought Jelly for ${fmt(v)} coins`); },
+    sell: () => { const p = me(); const v = parseInt($('#m-sell').value, 10) || 0; if (v < 1) return toast('Enter how much Jelly to sell.'); if (v > p.j) return toast(`You only have ${fmt(p.j)} Jelly.`); move('sell', { j: v }); $('#m-sell').value = ''; toast(`Sold ${fmt(v)} Jelly for ${fmt(v * G.SELL)} gold`); },
+    buy: () => { const p = me(); const v = parseInt($('#m-buy').value, 10) || 0; if (v < 1) return toast('Enter how much gold to spend.'); if (v > p.c) return toast(`You only have ${fmt(p.c)} gold.`); move('buy', { c: v }); $('#m-buy').value = ''; toast(`Bought ${fmt(v / G.BUY)} Jelly`); },
     dside: b => { dealSide = b.dataset.v; $$('[data-act="dside"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); },
     post: () => {
       const p = me(); const j = parseInt($('#d-j').value, 10) || 0, c = parseInt($('#d-c').value, 10) || 0;
-      if (j < 1 || c < 1) return toast('Enter the Jelly and the coins.');
+      if (j < 1 || c < 1) return toast('Enter the Jelly and the gold.');
       if (dealSide === 'sell') { if (j > p.j) return toast(`You only have ${fmt(p.j)} Jelly.`); move('offer', { gj: j, wc: c }); }
-      else { if (c > p.c) return toast(`You only have ${fmt(p.c)} coins.`); move('offer', { gc: c, wj: j }); }
+      else { if (c > p.c) return toast(`You only have ${fmt(p.c)} gold.`); move('offer', { gc: c, wj: j }); }
       toast('Deal posted');
     },
     take: b => { move('take', { o: b.dataset.o }); toast('Deal taken'); },
@@ -903,7 +1436,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     const fn = ACT[b.dataset.act];
     if (fn) { e.preventDefault(); fn(b, e); }
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet-root').hidden) { closeSheet(); ui.sheetUpd = null; } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet-root').hidden) closeSheet(); });
   document.addEventListener('focusout', () => setTimeout(() => { if (!editing()) refresh(); }, 50));
 
   /* ================= data ================= */
