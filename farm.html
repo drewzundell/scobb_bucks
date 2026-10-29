@@ -451,9 +451,29 @@ input[type="text"]:focus { border-color: var(--grape); }
         S.order.push(m.a);
         return;
       }
+      if (m.k === 'end') {
+        if (m.a !== round.by) return bad('shape');
+        endAt = t; S.cancelled = true;
+        return;
+      }
       const p = P[m.a];
       if (!p) return bad('not in');
       if (t < startAt) return bad('lobby');
+      if (m.k === 'cancelq') {
+        if (!p.q[m.b]) return bad('shape');
+        const list = p.q[m.b].slice();
+        if (p.cur[m.b]) list.push(p.cur[m.b].u);
+        if (!list.length) return bad('gone');
+        for (const u of list) { if (u === 'vil') p.j += G.VIL_J; else { p.j += UNITS[u].j; p.c += UNITS[u].c; } }
+        p.q[m.b] = []; p.cur[m.b] = null;
+        return;
+      }
+      if (m.k === 'cancelbuild') {
+        if (!p.build) return bad('gone');
+        const B = BUILDS[p.build.b];
+        p.j += B.j; p.c += B.c; p.build = null;
+        return;
+      }
       if (m.k === 'build') {
         const B = BUILDS[m.b];
         if (!B) return bad('shape');
@@ -462,8 +482,9 @@ input[type="text"]:focus { border-color: var(--grape); }
         if (countOf(p, m.b) >= B.max[p.age - 1]) return bad('max');
         if (p.j < B.j || p.c < B.c) return bad('funds');
         p.j -= B.j; p.c -= B.c;
-        p.build = { b: m.b, from: t, at: t + B.ms };
-        return pushEv({ t: t + B.ms, k: 'built', a: p.uid, b: m.b });
+        tok += 1;
+        p.build = { b: m.b, from: t, at: t + B.ms, tok };
+        return pushEv({ t: t + B.ms, k: 'built', a: p.uid, b: m.b, tok });
       }
       if (m.k === 'age') {
         if (p.age >= 4) return bad('age');
@@ -621,6 +642,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     function onEv(e, t) {
       if (e.k === 'built') {
         const p = P[e.a];
+        if (!p.build || p.build.tok !== e.tok) return;
         p.build = null;
         if (e.b === 'farm' || e.b === 'mine') addSite(p, e.b, 0); else p[e.b] += 1;
         if (e.b === 'farm') checkWin(t);
@@ -700,7 +722,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     S.endAt = endAt;
     S.phase = S.winner || now >= endAt ? 'over' : now < startAt ? 'lobby' : 'live';
     S.standings = Object.values(P).sort((a, b) => (farmsOf(b) - farmsOf(a)) || ((b.j + b.c) - (a.j + a.c)));
-    if (S.phase === 'over' && !S.winner && S.standings.length) { S.winner = S.standings[0].uid; S.reason = 'time'; }
+    if (S.phase === 'over' && !S.winner && !S.cancelled && S.standings.length) { S.winner = S.standings[0].uid; S.reason = 'time'; }
     S.marches = S.phase === 'live' ? Object.values(S.marchMap).filter(x => x.state === 'out' || x.state === 'back') : [];
     return S;
   }
@@ -811,6 +833,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     if (!r || !S) return h;
     const label = S.phase === 'lobby' ? 'Starts in' : S.phase === 'live' ? 'Time left' : 'Round over';
     h += `<div class="status mt"><span>Round ${r.n}</span><span>${label} <b data-live="timer">${S.phase === 'over' ? '' : clock((S.phase === 'lobby' ? S.startAt : S.endAt) - now())}</b></span></div>`;
+    if (isBank() && r.by === uid && S.phase !== 'over') h += `<p class="small" style="margin-top:6px;text-align:right"><button type="button" class="link" data-act="end-ask">End this round</button></p>`;
     const p = me();
     if (p && S.phase === 'live') {
       h += `<div class="res"><div><span>Jelly</span><b data-res="j">${fmt(p.j)}</b></div><div><span>Gold</span><b data-res="c">${fmt(p.c)}</b></div><div><span>Idle villagers</span><b>${p.idle}</b></div><div><span>Army</span><b>${fmt(sumObj(p.army))}</b></div><div><span>Farms</span><b>${farmsOf(p)}</b></div><div><span>Age</span><b style="font-size:14px">${AGES[p.age - 1]}</b></div></div>`;
@@ -879,6 +902,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   }
   function overView() {
     const w = S.winner;
+    if (S.cancelled) return `<h2>Round ended</h2><p class="small soft">The bank ended this round early, so nobody wins and there’s no prize.</p>` + (isBank() ? bankOpen() : `<p class="soft mt">Waiting for the bank to open the next round.</p>`);
     let h = `<h2>${w ? `${esc(nameOf(w))} wins!` : 'Round over'}</h2>`;
     h += w ? `<p class="small soft">${S.reason === 'monopoly' ? 'They took over half of all the farms. Scobb monopoly!' : 'They owned the most farms when time ran out.'}</p>` : '';
     h += `<div class="podium">${S.standings.slice(0, 10).map((p, i) => `<div class="pcard"><span class="place">${['🥇', '🥈', '🥉'][i] || i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}</div><div class="s">${plural(farmsOf(p), 'farm', 'farms')}${i < PRIZES.length ? `. Prize: ${PRIZES[i]}${LIVE ? '' : ' pretend'} ScobbBucks` : ''}</div></div></div>`).join('')}</div>`;
@@ -984,16 +1008,16 @@ input[type="text"]:focus { border-color: var(--grape); }
   }
 
   /* ---- base tab ---- */
-  function progRow(text, from, at) { return `<div class="prog"><div class="t"><span>${text}</span><span data-cd="${at}">${secs(at - now())}</span></div><div class="bar"><i data-prog="${from}:${at}"></i></div></div>`; }
+  function progRow(text, from, at, cancel, b) { return `<div class="prog"><div class="t"><span>${text}</span><span data-cd="${at}">${secs(at - now())}</span></div><div class="bar"><i data-prog="${from}:${at}"></i></div>${cancel ? `<button type="button" class="link small" style="margin-top:6px" data-act="${cancel}"${b ? ` data-b="${b}"` : ''}>${cancel === 'cancelbuild' ? 'Cancel and get your money back' : 'Cancel training and get your money back'}</button>` : ''}</div>`; }
   function queueRows(p) {
     let h = '';
-    if (p.build) h += progRow(`Building a ${BUILDS[p.build.b].name.toLowerCase()}`, p.build.from, p.build.at);
+    if (p.build) h += progRow(`Building a ${BUILDS[p.build.b].name.toLowerCase()}`, p.build.from, p.build.at, 'cancelbuild');
     if (p.aging) h += progRow(`Upgrading to the ${AGES[p.age]} age`, p.aging.from, p.aging.at);
     for (const b of ['hall', ...MIL]) {
       const c = p.cur[b];
       if (!c) continue;
       const left = p.q[b].length;
-      h += progRow(`${b === 'hall' ? 'Training a villager' : `Training a ${UNITS[c.u].name.toLowerCase()}`}${left ? `, ${left} more waiting` : ''}`, c.from, c.at);
+      h += progRow(`${b === 'hall' ? 'Training a villager' : `Training a ${UNITS[c.u].name.toLowerCase()}`}${left ? `, ${left} more waiting` : ''}`, c.from, c.at, 'cancelq', b);
     }
     return h;
   }
@@ -1187,6 +1211,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     const room = Math.max(0, capOf(p) - popOf(p)), maxN = Math.max(0, Math.min(20, room, Math.floor(p.j / G.VIL_J)));
     const n = Math.max(1, Math.min(stv('vn', 3), Math.max(1, maxN)));
     let h = sheetHead('Town Hall', `${AGES[p.age - 1]} age. Population ${popOf(p)}/${capOf(p)}.`);
+    if (p.cur.hall) h += progRow(`Training a villager${p.q.hall.length ? `, ${p.q.hall.length} more waiting` : ''}`, p.cur.hall.from, p.cur.hall.at, 'cancelq', 'hall');
     h += `<h3>Train villagers</h3><p class="small soft">${G.VIL_J} Jelly each, ${G.VIL_MS / 1000}s each. New villagers show up idle, so put them to work on the base.</p>${stepper('vn', n, 1, 20)}<button type="button" class="btn btn-grape btn-block mt" data-act="vtrain" data-n="${n}"${maxN ? '' : ' disabled'}>Train ${plural(n, 'villager', 'villagers')} for ${fmt(n * G.VIL_J)} Jelly</button>${maxN ? '' : `<p class="small err">${room ? 'Not enough Jelly.' : 'You’re at your population limit. The next age raises it.'}</p>`}`;
     if (p.age < 4) {
       const A = AGE_UP[p.age];
@@ -1216,7 +1241,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     const p = me();
     if (!p) return null;
     let h = sheetHead('Build', p.build ? `Building a ${BUILDS[p.build.b].name.toLowerCase()} right now` : 'One building at a time');
-    if (p.build) h += progRow(`Building a ${BUILDS[p.build.b].name.toLowerCase()}`, p.build.from, p.build.at);
+    if (p.build) h += progRow(`Building a ${BUILDS[p.build.b].name.toLowerCase()}`, p.build.from, p.build.at, 'cancelbuild');
     h += `<div class="blist">`;
     for (const k of BUILD_ORDER) {
       const B = BUILDS[k], max = B.max[p.age - 1], have = countOf(p, k);
@@ -1235,7 +1260,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     }
     let h = sheetHead(B.name, `Population ${popOf(p)}/${capOf(p)}`);
     const c = p.cur[b];
-    if (c) h += progRow(`Training a ${UNITS[c.u].name.toLowerCase()}${p.q[b].length ? `, ${p.q[b].length} more waiting` : ''}`, c.from, c.at);
+    if (c) h += progRow(`Training a ${UNITS[c.u].name.toLowerCase()}${p.q[b].length ? `, ${p.q[b].length} more waiting` : ''}`, c.from, c.at, 'cancelq', b);
     h += `<div class="jobs"><div class="brow"><div class="main"><div class="t">Workers</div><div class="s">Each one trains troops 25% faster. ${p.idle} idle.</div></div>${workerCtl(b, p.milW[b], G.MIL_W, p.idle)}</div></div>`;
     for (const u of UNIT_ORDER.filter(k => UNITS[k].b === b)) {
       const U = UNITS[u], locked = p.age < U.age;
@@ -1308,7 +1333,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   const wroteResult = new Set();
   function writeResult() {
     const r = round();
-    if (!LIVE || !S || S.phase !== 'over' || !isBank() || !r || r.by !== uid || wroteResult.has(curId)) return;
+    if (!LIVE || !S || S.phase !== 'over' || S.cancelled || !S.winner || !isBank() || !r || r.by !== uid || wroteResult.has(curId)) return;
     wroteResult.add(curId);
     FB.setDoc(FB.doc(fs, 'farmResults/' + curId), { by: uid, rd: curId, n: r.n, reason: S.reason || '', places: S.standings.slice(0, 3).map(p => p.uid), st: FB.serverTimestamp() }).catch(() => {});
   }
@@ -1379,6 +1404,10 @@ input[type="text"]:focus { border-color: var(--grape); }
     'lobby-len': b => { lobbyLen = Number(b.dataset.v); $$('[data-act="lobby-len"]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); },
     'open-round': b => { b.disabled = true; openRound(lobbyLen); },
     join: () => move('join'),
+    'end-ask': () => openSheet(() => sheetHead(`End round ${round() ? round().n : ''}?`) + `<p class="small soft">The round stops for everyone right now. Nobody wins and there’s no prize. You can open a new round after.</p><button type="button" class="btn btn-danger btn-block mt" data-act="end-round">End the round</button><button type="button" class="btn btn-ghost btn-block mt" data-act="close">Keep playing</button>`),
+    'end-round': () => { move('end'); closeSheet(); toast('Round ended'); refresh(true); },
+    cancelq: b => { move('cancelq', { b: b.dataset.b }); toast('Training cancelled. You got your money back.'); },
+    cancelbuild: () => { move('cancelbuild'); toast('Building cancelled. You got your money back.'); },
     start: () => move('start'),
     open: b => {
       const k = b.dataset.k;
