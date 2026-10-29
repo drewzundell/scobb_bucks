@@ -1,3 +1,5 @@
+// ScobbBucks settings. README.md shows where to find each value.
+
 export const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBJ41ACCqTiwsMrbCaULkwwdIPnNqJfhRw",
   authDomain: "scobbbucks.firebaseapp.com",
@@ -7,6 +9,8 @@ export const FIREBASE_CONFIG = {
   appId: "1:324314172165:web:1b16c4da078eeab0a9456c"
 };
 
+// The bank's username. It matches bankUsername() in your Firestore rules.
 export const BANK_USERNAME = "drewzundell";
 
-export const FARM_TESTERS = ["therealscobb123"];
+// Scobb Farm preview: usernames (besides the bank) who can try the farm game, like ["mike", "sam"].
+export const FARM_TESTERS = [];
