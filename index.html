@@ -593,10 +593,192 @@ input:focus { border-color: var(--grape); }
     { id: 'emote_splat', slot: 'emote', name: 'Splat', r: 4, n: 1, emote: 'splat' },
     { id: 'emote_dance', slot: 'emote', name: 'Jelly dance', r: 5, n: 1, emote: 'dance' }
   ];
-  const CAT = {};
-  ITEMS.forEach(it => { CAT[it.id] = it; });
+  const CAT_BASE = {};
+  ITEMS.forEach(it => { CAT_BASE[it.id] = it; });
+  const CAT = new Proxy(CAT_BASE, { get: (t, k) => (typeof k !== 'string' ? t[k] : (k in t ? t[k] : (k.startsWith('g:') ? genItem(k) : undefined))) });
   const priceOf = it => { const c = z(); if (!it.free) c[it.r] = it.n; return c; };
   const sameC = (a, b) => a.length === 6 && a.every((n, r) => n === b[r]);
+
+  /* ================= generated cosmetics ================= */
+  const PALS = [
+    ['Cherry', 0, '#E5484D', '#FFD5D6'], ['Tangerine', 0, '#F78C3B', '#FFE1C7'], ['Lemon', 0, '#F5CF4A', '#7A5B00'],
+    ['Lime', 0, '#8BCB3E', '#24410B'], ['Forest', 0, '#2F8F5B', '#CFF2DC'], ['Sky', 0, '#4BA3F2', '#E3F1FF'],
+    ['Navy', 0, '#24366B', '#F2C14E'], ['Grape', 0, '#7B4FE0', '#F1E8FF'], ['Bubblegum', 0, '#F27BB0', '#FFF0F6'],
+    ['Charcoal', 0, '#33333B', '#F45B69'], ['Snow', 0, '#EDEDF0', '#3A3A44'], ['Sand', 0, '#D9C29A', '#5B4426'],
+    ['Teal', 1, '#1FB5A8', '#E0FFFB'], ['Coral', 1, '#FF7A66', '#2D1B4E'], ['Lavender', 1, '#B9A3F5', '#3B2A6B'],
+    ['Mint', 1, '#8EE3C0', '#1C4D3A'], ['Maroon', 1, '#7A2233', '#F5D08A'],
+    ['Neon Pink', 2, '#FF2E93', '#1A0A12'], ['Electric Blue', 2, '#2D6BFF', '#FFF06B'], ['Toxic Green', 2, '#5CFF3B', '#14240F'],
+    ['Chrome', 3, '#C9D2DC', '#2B3440', ['#F7FAFC', '#AEB8C4', '#EEF2F6', '#7F8B98']],
+    ['Rose Gold', 3, '#E8A79A', '#5A2E28', ['#FFE3DA', '#E59A8B', '#F8CFC4', '#B9706A']],
+    ['Gold', 4, '#E3B341', '#5A3E0B', ['#FFF1A8', '#E3B341', '#FFE07A', '#A87A14']],
+    ['Holo', 5, '#9B5CFF', '#FFFFFF', ['#FF4F8B', '#FFB347', '#5BE38A', '#3EC1FF', '#9B5CFF']]
+  ];
+  const PATS = [['', 0], ['Striped', 0], ['Pinstripe', 0], ['Polka Dot', 1], ['Checkered', 1], ['Camo', 2], ['Starry', 2], ['Flame', 3]];
+  const PRICE_RANGE = [[3, 7], [2, 4], [2, 3], [1, 2], [1, 2], [1, 1]];
+  function palColors(P, slot, pal) {
+    return { m: pal[4] ? `url(#${P.p}-${slot}-pal)` : pal[2], d: mix(pal[2], '#000000', 0.28), l: mix(pal[2], '#ffffff', 0.45), a: pal[3] };
+  }
+  function palDefs(P, slot, pal) {
+    const g = pal[4];
+    return g ? `<linearGradient id="${P.p}-${slot}-pal" x1="0" y1="0" x2="1" y2="1">${g.map((c, i) => `<stop offset="${(i / (g.length - 1)).toFixed(2)}" stop-color="${c}"/>`).join('')}</linearGradient>` : '';
+  }
+  function patDef(id, k, C) {
+    const a = C.a, o = `<pattern id="${id}" patternUnits="userSpaceOnUse"`;
+    switch (k) {
+      case 1: return `${o} width="12" height="12"><rect width="12" height="5" fill="${a}" fill-opacity=".85"/></pattern>`;
+      case 2: return `${o} width="8" height="8"><rect x="3" width="1.6" height="8" fill="${a}" fill-opacity=".75"/></pattern>`;
+      case 3: return `${o} width="14" height="14"><circle cx="4" cy="4" r="2.6" fill="${a}"/><circle cx="11" cy="11" r="2.6" fill="${a}"/></pattern>`;
+      case 4: return `${o} width="14" height="14"><rect width="7" height="7" fill="${a}" fill-opacity=".8"/><rect x="7" y="7" width="7" height="7" fill="${a}" fill-opacity=".8"/></pattern>`;
+      case 5: return `${o} width="40" height="40"><path d="M2 8c6-6 14-2 12 6s-10 6-12 0z" fill="${C.d}"/><path d="M22 4c8-2 14 6 10 12s-12 2-10-12z" fill="${a}" fill-opacity=".55"/><path d="M8 26c6-4 14 0 12 8s-12 6-12-8z" fill="${a}" fill-opacity=".55"/><path d="M26 24c8 0 12 8 6 12s-12-4-6-12z" fill="${C.d}"/></pattern>`;
+      case 6: return `${o} width="22" height="22"><path d="M6 2l1.4 3.4 3.6.3-2.8 2.3.9 3.5L6 9.6 2.9 11.5l.9-3.5L1 5.7l3.6-.3z" fill="${a}"/><circle cx="17" cy="16" r="1.4" fill="${a}"/></pattern>`;
+      case 7: return `${o} width="24" height="30"><path d="M4 30C2 22 8 18 6 10c6 4 8 10 6 14 2-4 6-6 6-12 4 6 4 12 2 18z" fill="#FF7A1A" fill-opacity=".9"/><path d="M8 30c0-5 3-7 2-11 3 3 4 6 3 8 1-2 3-3 3-6 2 4 2 6 1 9z" fill="#FFD23F"/></pattern>`;
+      default: return '';
+    }
+  }
+  const PR = (pat, x, y, w, h, rx) => (pat ? `<rect x="${x}" y="${y}" width="${w}" height="${h}"${rx ? ` rx="${rx}"` : ''} fill="${pat}"/>` : '');
+  const P_LOWER = (C, pat) => `<rect x="40" y="166" width="120" height="40" fill="${C.m}"/>${PR(pat, 40, 166, 120, 40)}<rect x="40" y="166" width="120" height="5" fill="#000" fill-opacity=".16"/>`;
+  const P_LEGS = (C, pat, short) => { const h = short ? 24 : 46; return `<rect x="67" y="176" width="29" height="${h}" rx="11" fill="${C.m}"/><rect x="104" y="176" width="29" height="${h}" rx="11" fill="${C.m}"/>${PR(pat, 67, 176, 29, h, 11)}${PR(pat, 104, 176, 29, h, 11)}`; };
+  const GBASES = {
+    hat: [
+      ['Beanie', 0, { head: (P, C) => `<path d="M56 50C56 24 76 12 100 12C124 12 144 24 144 50Z" fill="${C.m}"/><rect x="52" y="42" width="96" height="15" rx="7.5" fill="${C.d}"/>${[62, 72, 82, 92, 102, 112, 122, 132].map(x => `<line x1="${x}" y1="45" x2="${x}" y2="54" stroke="#000" stroke-opacity=".18" stroke-width="2"/>`).join('')}<circle cx="100" cy="10" r="10" fill="${C.a}"/>` }],
+      ['Cap', 0, { head: (P, C) => `<g transform="translate(0 -3)"><path d="M58 48C58 22 78 12 100 12C122 12 142 22 142 48Z" fill="${C.m}"/><path d="M100 12V48" stroke="${C.d}" stroke-width="2"/><circle cx="100" cy="13" r="4" fill="${C.a}"/><path d="M50 49C70 39 130 39 150 49C152 57 140 61 100 59C60 61 48 57 50 49Z" fill="${C.d}"/></g>` }],
+      ['Bucket Hat', 0, { head: (P, C) => `<path d="M62 44C62 22 80 13 100 13C120 13 138 22 138 44Z" fill="${C.m}"/><path d="M50 42H150L160 58C138 50 62 50 40 58Z" fill="${C.d}"/><path d="M64 41H136" stroke="${C.a}" stroke-opacity=".7" stroke-width="1.5" stroke-dasharray="3 3"/>` }],
+      ['Party Hat', 1, { head: (P, C) => `<g transform="rotate(12 100 30)"><path d="M100 -22L77 34H123Z" fill="${C.m}"/><circle cx="96" cy="0" r="3" fill="${C.a}"/><circle cx="103" cy="-10" r="2.4" fill="${C.a}"/><circle cx="106" cy="14" r="3" fill="${C.a}"/><circle cx="90" cy="22" r="3" fill="${C.a}"/><circle cx="112" cy="28" r="3" fill="${C.a}"/><ellipse cx="100" cy="34" rx="25" ry="5" fill="${C.d}"/><circle cx="100" cy="-22" r="7" fill="${C.a}"/></g>` }],
+      ['Cowboy Hat', 1, { head: (P, C) => `<g transform="translate(0 -8)"><path d="M68 48C66 20 78 4 90 8C96 12 104 12 110 8C122 4 134 20 132 48Z" fill="${C.m}"/><rect x="67" y="36" width="66" height="8" fill="${C.a}"/><path d="M28 42C40 54 70 56 100 54C130 56 160 54 172 42C170 60 140 66 100 64C60 66 30 60 28 42Z" fill="${C.d}"/></g>` }],
+      ['Top Hat', 2, { head: (P, C) => `<rect x="70" y="-20" width="60" height="62" rx="5" fill="${C.m}"/><rect x="76" y="-14" width="6" height="44" rx="3" fill="#fff" fill-opacity=".14"/><rect x="70" y="27" width="60" height="9" fill="${C.a}"/><ellipse cx="100" cy="42" rx="46" ry="8" fill="${C.d}"/>` }],
+      ['Viking Helmet', 3, { head: (P, C) => `<path d="M60 34C42 28 32 10 38 -10C46 6 56 14 70 20Z" fill="#F4E7C7" stroke="#CDB98C" stroke-width="2"/><path d="M140 34C158 28 168 10 162 -10C154 6 144 14 130 20Z" fill="#F4E7C7" stroke="#CDB98C" stroke-width="2"/><path d="M56 50C56 22 76 10 100 10C124 10 144 22 144 50Z" fill="${C.m}"/><rect x="96" y="10" width="8" height="36" fill="${C.d}"/><rect x="53" y="42" width="94" height="12" rx="4" fill="${C.d}"/>${[62, 78, 94, 106, 122, 138].map(x => `<circle cx="${x}" cy="48" r="2.2" fill="${C.a}"/>`).join('')}` }],
+      ['Crown', 3, { head: (P, C) => `<path d="M62 46L66 14L83 30L100 4L117 30L134 14L138 46Z" fill="${C.m}" stroke="${C.d}" stroke-width="2.5" stroke-linejoin="round"/><rect x="60" y="40" width="80" height="11" rx="4" fill="${C.d}"/><circle cx="100" cy="24" r="4.5" fill="${C.a}"/><circle cx="78" cy="33" r="3.2" fill="${C.a}"/><circle cx="122" cy="33" r="3.2" fill="${C.a}"/>` }]
+    ],
+    hair: [
+      ['Buzz Cut', 0, { head: (P, C) => `<path d="M56 62C54 34 74 18 100 18C126 18 146 34 144 62C134 46 118 40 100 40C82 40 66 46 56 62Z" fill="${C.m}" fill-opacity=".95"/>` }],
+      ['Spiky Hair', 0, { head: (P, C) => `<path d="M56 58L58 30L70 38L74 14L86 30L94 6L104 28L114 8L120 30L132 16L136 38L146 32L144 58C134 44 118 38 100 38C82 38 66 44 56 58Z" fill="${C.m}"/>` }],
+      ['Curly Hair', 0, { head: (P, C) => curls(C.m) }],
+      ['Long Hair', 1, { hairBack: (P, C) => LONG_BACK(C.m), head: (P, C) => BANGS(C.m) }],
+      ['Afro', 1, { hairBack: (P, C) => afroBack(C.m), head: (P, C) => `<path d="M56 58C54 32 74 16 100 16C126 16 146 32 144 58C134 44 118 38 100 38C82 38 66 44 56 58Z" fill="${C.m}"/>` }],
+      ['Mohawk', 1, { head: (P, C) => `<path d="M86 44L80 -2L92 14L100 -18L108 14L120 -2L114 44Z" fill="${C.m}"/><path d="M88 44C90 30 110 30 112 44Z" fill="${C.d}"/>` }]
+    ],
+    eyes: [
+      ['Round Glasses', 0, { head: (P, C) => `<g fill="none" stroke="${C.m}" stroke-width="3.4"><circle cx="85" cy="64" r="12" fill="#fff" fill-opacity=".18"/><circle cx="115" cy="64" r="12" fill="#fff" fill-opacity=".18"/><path d="M97 63Q100 60 103 63"/><path d="M73 62L57 57M127 62L143 57" stroke-linecap="round"/></g>` }],
+      ['Shades', 0, { head: (P, C) => `<path d="M70 61L57 57M130 61L143 57" stroke="${C.d}" stroke-width="3.5" stroke-linecap="round"/><rect x="70" y="55" width="28" height="18" rx="7" fill="${C.m}"/><rect x="102" y="55" width="28" height="18" rx="7" fill="${C.m}"/><rect x="70" y="55" width="28" height="18" rx="7" fill="#000" fill-opacity=".35"/><rect x="102" y="55" width="28" height="18" rx="7" fill="#000" fill-opacity=".35"/><rect x="96" y="59" width="8" height="3.5" rx="1.5" fill="${C.d}"/><path d="M75 60L82 60M107 60L114 60" stroke="#fff" stroke-opacity=".55" stroke-width="2.5" stroke-linecap="round"/>` }],
+      ['Heart Glasses', 1, { head: (P, C) => { const h = x => `<path d="M${x} 76C${x - 16} 66 ${x - 15} 52 ${x - 6} 53C${x - 3} 53 ${x} 56 ${x} 59C${x} 56 ${x + 3} 53 ${x + 6} 53C${x + 15} 52 ${x + 16} 66 ${x} 76Z" fill="${C.m}" stroke="${C.d}" stroke-width="2"/>`; return `${h(85)}${h(115)}<path d="M93 61Q100 57 107 61" stroke="${C.d}" stroke-width="2.5" fill="none"/>`; } }],
+      ['Ski Goggles', 2, { head: (P, C) => `<rect x="54" y="57" width="92" height="12" rx="4" fill="${C.d}"/><rect x="64" y="50" width="72" height="28" rx="14" fill="${C.m}" stroke="#1E1B26" stroke-width="3"/><path d="M74 58C84 54 96 54 104 56" stroke="#fff" stroke-opacity=".6" stroke-width="3" stroke-linecap="round" fill="none"/>` }],
+      ['Laser Visor', 3, { defs: P => `<clipPath id="${P.p}-gvz"><rect x="58" y="55" width="84" height="18" rx="9"/></clipPath>`, head: (P, C) => `<rect x="58" y="55" width="84" height="18" rx="9" fill="${C.m}" filter="url(#glow)"/><rect x="58" y="55" width="84" height="18" rx="9" fill="${C.l}" fill-opacity=".55"/><g clip-path="url(#${P.p}-gvz)"><rect class="fx-scan" x="62" y="57" width="16" height="14" rx="7" fill="#fff" fill-opacity=".7"/></g>` }]
+    ],
+    top: [
+      ['Tee', 0, { sleeve: 'short', hem: 92, torso: (P, C, pat) => `<rect x="40" y="90" width="120" height="92" fill="${C.m}"/>${PR(pat, 40, 90, 120, 92)}<rect x="40" y="178" width="120" height="5" fill="#000" fill-opacity=".1"/>` }],
+      ['Tank Top', 0, { sleeve: 'none', hem: 94, torso: (P, C, pat) => `<rect x="40" y="90" width="120" height="94" fill="${C.m}"/>${PR(pat, 40, 90, 120, 94)}<rect x="40" y="90" width="14" height="94" fill="${C.d}"/><rect x="146" y="90" width="14" height="94" fill="${C.d}"/>`, collar: (P, C) => `<path d="M76 106Q100 126 124 106" stroke="${C.d}" stroke-width="5" fill="none" stroke-linecap="round"/>` }],
+      ['Hoodie', 1, { sleeve: 'long', cuff: 'dark', hem: 100, torso: (P, C, pat) => `<rect x="40" y="90" width="120" height="100" fill="${C.m}"/>${PR(pat, 40, 90, 120, 100)}<rect x="40" y="181" width="120" height="9" fill="${C.d}"/><rect x="72" y="148" width="56" height="26" rx="10" fill="${C.d}" fill-opacity=".85"/><path d="M92 114L90 136M108 114L110 136" stroke="${C.a}" stroke-width="2.4" stroke-linecap="round"/><circle cx="90" cy="137" r="2.6" fill="${C.a}"/><circle cx="110" cy="137" r="2.6" fill="${C.a}"/>`, collar: (P, C) => `<ellipse cx="100" cy="112" rx="38" ry="11" fill="${C.d}"/>` }],
+      ['Jersey', 1, { sleeve: 'none', hem: 94, torso: (P, C, pat, x) => `<rect x="40" y="90" width="120" height="94" fill="${C.m}"/>${PR(pat, 40, 90, 120, 94)}<rect x="40" y="90" width="16" height="94" fill="${C.a}"/><rect x="144" y="90" width="16" height="94" fill="${C.a}"/><text x="100" y="170" text-anchor="middle" font-family="'Baloo 2', system-ui, sans-serif" font-weight="800" font-size="34" fill="${C.a}" stroke="${C.d}" stroke-width="2" paint-order="stroke">${String(x.h % 100).padStart(2, '0')}</text>`, collar: (P, C) => `<path d="M74 106Q100 128 126 106" stroke="${C.a}" stroke-width="5" fill="none" stroke-linecap="round"/>` }],
+      ['Bomber Jacket', 2, { sleeve: 'long', cuff: 'dark', hem: 100, torso: (P, C, pat) => `<rect x="40" y="90" width="120" height="100" fill="${C.m}"/>${PR(pat, 40, 90, 120, 100)}<rect x="40" y="177" width="120" height="11" fill="${C.d}"/><path d="M40 180H160M40 184H160" stroke="#000" stroke-opacity=".15" stroke-width="1"/><line x1="100" y1="112" x2="100" y2="186" stroke="${C.a}" stroke-width="2.4"/><rect x="97" y="114" width="6" height="9" rx="2" fill="${C.a}"/>`, collar: (P, C) => `<path d="M72 108Q100 128 128 108" stroke="${C.d}" stroke-width="7" fill="none" stroke-linecap="round"/>` }],
+      ['Tuxedo', 3, { sleeve: 'long', cuff: 'white', hem: 100, torso: (P, C, pat) => `<rect x="40" y="90" width="120" height="100" fill="${C.m}"/>${PR(pat, 40, 90, 120, 100)}<path d="M84 104H116L100 172Z" fill="#FFFFFF"/><path d="M84 104L100 172L74 150Z" fill="${C.d}"/><path d="M116 104L100 172L126 150Z" fill="${C.d}"/><circle cx="100" cy="180" r="2.6" fill="${C.d}"/><circle cx="100" cy="140" r="1.8" fill="#1C1B22"/><circle cx="100" cy="152" r="1.8" fill="#1C1B22"/>`, collar: (P, C) => `<path d="M100 117L87 109V125Z" fill="${C.a}"/><path d="M100 117L113 109V125Z" fill="${C.a}"/><circle cx="100" cy="117" r="3.6" fill="${C.a}"/>` }]
+    ],
+    pants: [
+      ['Shorts', 0, { lower: (P, C, pat) => P_LOWER(C, pat), legs: (P, C, pat) => P_LEGS(C, pat, true) + `<path d="M70 182V196M130 182V196" stroke="${C.a}" stroke-width="2.4" stroke-linecap="round"/>` }],
+      ['Joggers', 0, { lower: (P, C, pat) => P_LOWER(C, pat), legs: (P, C, pat) => P_LEGS(C, pat) + `<rect x="68" y="210" width="27" height="10" rx="5" fill="${C.d}"/><rect x="105" y="210" width="27" height="10" rx="5" fill="${C.d}"/>` }],
+      ['Jeans', 1, { lower: (P, C, pat) => P_LOWER(C, pat) + '<circle cx="100" cy="177" r="2.4" fill="#C9A227"/>', legs: (P, C, pat) => P_LEGS(C, pat) + `<rect x="67" y="213" width="29" height="7" rx="3" fill="${C.l}"/><rect x="104" y="213" width="29" height="7" rx="3" fill="${C.l}"/><path d="M81 180V211M119 180V211" stroke="${C.d}" stroke-width="1.5" stroke-dasharray="3 3"/>` }],
+      ['Cargo Pants', 1, { lower: (P, C, pat) => P_LOWER(C, pat), legs: (P, C, pat) => P_LEGS(C, pat) + `<rect x="62" y="190" width="12" height="15" rx="3" fill="${C.d}" stroke="#000" stroke-opacity=".2" stroke-width="1.2"/><rect x="126" y="190" width="12" height="15" rx="3" fill="${C.d}" stroke="#000" stroke-opacity=".2" stroke-width="1.2"/>` }],
+      ['Track Pants', 2, { lower: (P, C, pat) => P_LOWER(C, pat), legs: (P, C, pat) => P_LEGS(C, pat) + `<path d="M70 178V219M74 178V219M126 178V219M130 178V219" stroke="${C.a}" stroke-width="2" stroke-linecap="round"/>` }]
+    ],
+    back: [
+      ['Backpack', 0, { back: (P, C) => `<rect x="47" y="102" width="106" height="86" rx="32" fill="${C.m}"/><rect x="47" y="150" width="106" height="20" fill="${C.d}"/><rect x="88" y="156" width="24" height="5" rx="2.5" fill="${C.a}"/>`, straps: (P, C) => STRAPS(C.d) }],
+      ['Teddy Backpack', 1, { back: (P, C) => `<rect x="49" y="104" width="102" height="82" rx="30" fill="${C.d}"/><circle cx="137" cy="84" r="7" fill="${C.m}"/><circle cx="163" cy="84" r="7" fill="${C.m}"/><circle cx="150" cy="98" r="18" fill="${C.m}"/><ellipse cx="150" cy="104" rx="8" ry="6" fill="${C.l}"/><circle cx="144" cy="94" r="2.2" fill="#2B1B12"/><circle cx="156" cy="94" r="2.2" fill="#2B1B12"/><ellipse cx="150" cy="101.5" rx="2.6" ry="2" fill="#2B1B12"/>`, straps: (P, C) => STRAPS(C.d) }],
+      ['Turtle Shell', 1, { back: (P, C) => `<ellipse cx="100" cy="146" rx="60" ry="58" fill="${C.m}" stroke="${C.d}" stroke-width="5"/>${[[44, 120], [42, 150], [46, 178], [156, 120], [158, 150], [154, 178], [70, 96], [130, 96], [100, 146], [76, 140], [124, 140]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="${C.l}" stroke="${C.d}" stroke-width="2.5"/>`).join('')}`, straps: (P, C) => STRAPS(C.d) }],
+      ['Jetpack', 3, { defs: P => `<linearGradient id="${P.p}-gjf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE66D"/><stop offset=".5" stop-color="#FF9F1C"/><stop offset="1" stop-color="#FF3D2E" stop-opacity="0"/></linearGradient>`, back: (P, C) => `<path class="fx-jet" d="M40 176Q49 216 58 176Z" fill="url(#${P.p}-gjf)"/><path class="fx-jet" d="M142 176Q151 216 160 176Z" fill="url(#${P.p}-gjf)"/><rect x="35" y="104" width="28" height="70" rx="13" fill="${C.m}"/><rect x="137" y="104" width="28" height="70" rx="13" fill="${C.m}"/><rect x="40" y="110" width="5" height="56" rx="2.5" fill="#fff" fill-opacity=".35"/><rect x="142" y="110" width="5" height="56" rx="2.5" fill="#fff" fill-opacity=".35"/><rect x="40" y="168" width="18" height="10" rx="3" fill="#5C6570"/><rect x="142" y="168" width="18" height="10" rx="3" fill="#5C6570"/><rect x="58" y="118" width="84" height="40" rx="12" fill="${C.d}"/>`, straps: (P, C) => STRAPS(C.d) }],
+      ['Wings', 4, { back: (P, C) => `<g class="fx-wing-l"><path d="M64 124C26 92 0 110 4 146C12 140 20 144 24 154C30 146 40 146 46 156C50 144 58 138 66 136Z" fill="${C.m}" stroke="${C.d}" stroke-width="2.5"/><path d="M58 128C40 116 24 118 16 128M56 134C44 128 34 130 28 140" stroke="${C.d}" stroke-width="2" fill="none" stroke-linecap="round"/></g><g class="fx-wing-r"><path d="M136 124C174 92 200 110 196 146C188 140 180 144 176 154C170 146 160 146 154 156C150 144 142 138 134 136Z" fill="${C.m}" stroke="${C.d}" stroke-width="2.5"/><path d="M142 128C160 116 176 118 184 128M144 134C156 128 166 130 172 140" stroke="${C.d}" stroke-width="2" fill="none" stroke-linecap="round"/></g>` }]
+    ],
+    watch: [
+      ['Plastic Watch', 0, { wrist: (P, C) => WR(`<rect x="-14" y="-5.5" width="28" height="11" rx="4" fill="${C.m}"/><circle r="6.8" fill="#fff" stroke="#333" stroke-width="1.3"/><path d="M0 0V-4M0 0H3" stroke="#333" stroke-width="1.2" stroke-linecap="round"/>`) }],
+      ['Sports Watch', 1, { wrist: (P, C) => WR(`<rect x="-14" y="-5.5" width="28" height="11" rx="4" fill="${C.m}"/><rect x="-8" y="-6.5" width="16" height="13" rx="3.5" fill="#101418" stroke="${C.d}" stroke-width="1.2"/><path d="M-4.5 0H4.5" stroke="${C.a}" stroke-width="2.2" stroke-linecap="round"/>`) }],
+      ['Smartwatch', 2, { wrist: (P, C) => WR(`<rect x="-14" y="-5.5" width="28" height="11" rx="4" fill="${C.m}"/><rect x="-9" y="-9" width="18" height="18" rx="5.5" fill="#0B0B12" stroke="${C.d}" stroke-width="1.2"/><rect class="fx-pulse" x="-6" y="-6" width="12" height="12" rx="3.5" fill="${C.l}"/>`) }],
+      ['Luxe Watch', 3, { wrist: (P, C) => WR(`<rect x="-15" y="-5.5" width="30" height="11" rx="3" fill="${C.m}"/><path d="M-11 -5.5V5.5M-7 -5.5V5.5M7 -5.5V5.5M11 -5.5V5.5" stroke="${C.d}" stroke-width="1"/><circle r="7.6" fill="${C.l}" stroke="${C.d}" stroke-width="2.4"/><path d="M0 0V-4.5M0 0H3.2" stroke="#2B2B2B" stroke-width="1.2" stroke-linecap="round"/>`) }]
+    ]
+  };
+  const GSLOTS = Object.keys(GBASES);
+  const HAS_PAT = { top: true, pants: true };
+  function hash32(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  const GEN = new Map();
+  function genItem(id) {
+    if (GEN.has(id)) return GEN.get(id);
+    let it;
+    const m = /^g:([a-z]+):(\d{1,2}):(\d{1,2}):(\d{1,2})$/.exec(id);
+    if (m && GBASES[m[1]]) {
+      const slot = m[1], bi = +m[2], pi = +m[3], qi = +m[4];
+      const base = GBASES[slot][bi], pal = PALS[pi], pat = HAS_PAT[slot] ? PATS[qi] : (qi === 0 ? PATS[0] : null);
+      if (base && pal && pat && id === `g:${slot}:${bi}:${pi}:${qi}`) {
+        const def = base[2], tiers = [base[1], pal[1], pat[1]];
+        let r = Math.max(...tiers);
+        if (tiers.filter(t => t >= 2).length > 1) r += 1;
+        r = Math.min(5, r);
+        const h = hash32(id), [lo, hi] = PRICE_RANGE[r];
+        const x = { bi, pi, qi, h };
+        const C = P => palColors(P, slot, pal);
+        const pf = P => (qi ? `url(#${P.p}-${slot}-pat)` : '');
+        it = { id, slot, name: `${pal[0]} ${pat[0] ? pat[0] + ' ' : ''}${base[0]}`, r, n: lo + (h % (hi - lo + 1)), gen: true };
+        it.defs = P => palDefs(P, slot, pal) + (qi ? patDef(`${P.p}-${slot}-pat`, qi, C(P)) : '') + (def.defs ? def.defs(P, C(P)) : '');
+        for (const k of ['head', 'hairBack', 'collar', 'back', 'straps', 'wrist']) if (def[k]) it[k] = P => def[k](P, C(P), x);
+        if (def.torso) {
+          it.torso = P => def.torso(P, C(P), pf(P), x);
+          it.sleeve = def.sleeve;
+          it.hem = def.hem;
+          it.colorFill = P => C(P).m;
+          it.sleeveFill = P => C(P).m;
+          it.sleevePat = pf;
+          if (def.cuff) it.cuffFill = P => (def.cuff === 'white' ? '#FFFFFF' : C(P).d);
+        }
+        if (def.lower) { it.lower = P => def.lower(P, C(P), pf(P)); it.legs = P => def.legs(P, C(P), pf(P)); }
+      }
+    }
+    GEN.set(id, it);
+    return it;
+  }
+
+  /* ================= weekly shop ================= */
+  const WEEK_MS = 7 * 86400000;
+  const WEEK0 = Date.UTC(2026, 9, 26, 5, 0, 0);
+  const LEGACY_UNTIL = Date.UTC(2026, 10, 2, 5, 0, 0);
+  const SHOP_SIZE = 10;
+  const weekOf = t => Math.floor((t - WEEK0) / WEEK_MS);
+  let POOLS = null, TOTAL_ITEMS = 0;
+  function pools() {
+    if (POOLS) return POOLS;
+    POOLS = {};
+    for (const s of SLOTS) POOLS[s] = [[], [], [], [], [], []];
+    for (const it of ITEMS) if (!it.free) POOLS[it.slot][it.r].push(it.id);
+    for (const s of GSLOTS) GBASES[s].forEach((b, bi) => PALS.forEach((p, pi) => (HAS_PAT[s] ? PATS : [PATS[0]]).forEach((q, qi) => { const it = genItem(`g:${s}:${bi}:${pi}:${qi}`); if (it) POOLS[s][it.r].push(it.id); })));
+    TOTAL_ITEMS = Object.values(POOLS).reduce((a, arr) => a + arr.reduce((b, l) => b + l.length, 0), 0);
+    return POOLS;
+  }
+  function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function wpick(rnd, w) { const tot = w.reduce((a, b) => a + b, 0); let v = rnd() * tot; for (let i = 0; i < w.length; i++) { if (v < w[i]) return i; v -= w[i]; } return w.length - 1; }
+  const SHOP_CACHE = new Map();
+  function shopFor(w, salt) {
+    const key = salt + ':' + w;
+    if (SHOP_CACHE.has(key)) return SHOP_CACHE.get(key);
+    const P = pools(), rnd = rng(hash32('shop:' + key));
+    const pick = (slot, weights) => {
+      let r = wpick(rnd, weights);
+      for (let k = 0; k < 6; k++) { const pool = P[slot][r]; if (pool.length) return pool[Math.floor(rnd() * pool.length)]; r = r > 0 ? r - 1 : 1; }
+      return null;
+    };
+    const out = [];
+    for (const s of SLOTS) { const id = pick(s, [46, 27, 15, 8, 3.5, 0.5]); if (id && !out.includes(id)) out.push(id); }
+    for (let g = 0; out.length < SHOP_SIZE && g < 60; g++) { const s = GSLOTS[Math.floor(rnd() * GSLOTS.length)]; const id = pick(s, [10, 22, 28, 22, 13, 5]); if (id && !out.includes(id)) out.push(id); }
+    SHOP_CACHE.set(key, out);
+    return out;
+  }
+  function inShopAt(id, t, salt) {
+    const it = CAT[id];
+    if (!it || it.free) return false;
+    if (!it.gen && t < LEGACY_UNTIL) return true;
+    return shopFor(weekOf(t), salt).includes(id) || shopFor(weekOf(t - 600000), salt).includes(id);
+  }
+  function timeLeft(ms) {
+    const m = Math.max(1, Math.round(ms / 60000));
+    if (m < 60) return plural(m, 'minute', 'minutes');
+    const hr = Math.round(m / 60);
+    if (hr < 48) return plural(hr, 'hour', 'hours');
+    return plural(Math.round(hr / 24), 'day', 'days');
+  }
 
   /* ================= avatar ================= */
   let AVN = 0;
@@ -629,12 +811,16 @@ input:focus { border-color: var(--grape); }
     const tr = left ? 'translate(62 128) rotate(17.6)' : 'translate(138 128) rotate(-17.6)';
     let s = `<rect x="-11" y="-11" width="22" height="68" rx="11" fill="${skin}"/>`;
     if (top && top.sleeve && top.sleeve !== 'none') {
-      const c = top.sleeveColor || top.color;
+      const c = top.sleeveFill ? top.sleeveFill(P) : (top.sleeveColor || top.color);
+      const pat = top.sleevePat ? top.sleevePat(P) : '';
+      const cuff = top.cuffFill ? top.cuffFill(P) : top.cuff;
       if (top.sleeve === 'long') {
         s += `<rect x="-12.8" y="-12.8" width="25.6" height="57.6" rx="12.8" fill="${c}"/>`;
-        if (top.cuff) s += `<rect x="-12.8" y="28" width="25.6" height="16.8" rx="8" fill="${top.cuff}"/>`;
+        if (pat) s += `<rect x="-12.8" y="-12.8" width="25.6" height="57.6" rx="12.8" fill="${pat}"/>`;
+        if (cuff) s += `<rect x="-12.8" y="28" width="25.6" height="16.8" rx="8" fill="${cuff}"/>`;
       } else {
         s += `<rect x="-13.5" y="-13" width="27" height="40" rx="13" fill="${c}"/>`;
+        if (pat) s += `<rect x="-13.5" y="-13" width="27" height="40" rx="13" fill="${pat}"/>`;
       }
     }
     s += `<circle cx="0" cy="50" r="12.5" fill="${skin}"/>`;
@@ -656,7 +842,7 @@ input:focus { border-color: var(--grape); }
     const clip = s => (s ? `<g clip-path="url(#${p}-tc)">${s}</g>` : '');
     const defs = `<defs><radialGradient id="${p}-sk" cx="36%" cy="28%" r="80%"><stop offset="0" stop-color="${mix(col, '#ffffff', 0.42)}"/><stop offset=".55" stop-color="${col}"/><stop offset="1" stop-color="${mix(col, '#000000', 0.2)}"/></radialGradient><clipPath id="${p}-tc"><path d="${TORSO}"/></clipPath>${worn.map(it => call(it, 'defs')).join('')}</defs>`;
     const legs = `<g class="av-legs"><rect x="70" y="176" width="24" height="50" rx="12" fill="${skin}"/><rect x="106" y="176" width="24" height="50" rx="12" fill="${skin}"/>${call(pnt, 'legs')}<ellipse cx="80" cy="226" rx="15" ry="9" fill="${skin}"/><ellipse cx="120" cy="226" rx="15" ry="9" fill="${skin}"/></g>`;
-    const topBack = top ? `<rect x="40" y="90" width="120" height="${top.hem || 92}" fill="${top.color}"/>` : '';
+    const topBack = top ? `<rect x="40" y="90" width="120" height="${top.hem || 92}" fill="${top.colorFill ? top.colorFill(P) : top.color}"/>` : '';
     const torso = `<g class="av-torso"><path d="${TORSO}" fill="${skin}"/><ellipse cx="76" cy="134" rx="9" ry="17" fill="#fff" fill-opacity=".2" transform="rotate(18 76 134)"/>${clip(call(pnt, 'lower') + (o.back ? topBack : call(top, 'torso') + call(bk, 'straps')))}</g>`;
     const head = `<g class="av-head"><circle cx="100" cy="66" r="45" fill="${skin}"/><ellipse cx="80" cy="41" rx="14" ry="8" fill="#fff" fill-opacity=".38" transform="rotate(-24 80 41)"/>${o.back ? call(hair, 'hairBack') : faceSVG(look)}${call(hair, 'head')}${o.back ? '' : call(eyes, 'head')}${call(hat, 'head')}</g>`;
     const arms = armSVG('l', skin, top, watch, P) + armSVG('r', skin, top, null, P);
@@ -683,7 +869,7 @@ input:focus { border-color: var(--grape); }
   }
 
   /* ================= ledger replay ================= */
-  const okCoins = c => Array.isArray(c) && c.length === 6 && c.every(n => Number.isInteger(n) && n >= 0 && n <= SUPPLY);
+  const okCoins = c => Array.isArray(c) && c.length === 6 && c.every(n => Number.isInteger(n) && n >= 0 && n <= 1000000);
   const okItems = a => Array.isArray(a) && a.length <= 24 && a.every(s => typeof s === 'string' && s.length < 160) && new Set(a).size === a.length;
   const str = n => (typeof n === 'string' ? n.slice(0, 120) : '');
 
@@ -692,6 +878,7 @@ input:focus { border-color: var(--grape); }
     const bal = Object.create(null);
     const get = u => bal[u] || (bal[u] = z());
     bal[issuer] = cfg.caps.slice();
+    const total = cfg.caps.slice();
     const items = Object.create(null);
     const offers = Object.create(null);
     const events = [];
@@ -720,9 +907,16 @@ input:focus { border-color: var(--grape); }
         if (!has(a, e.c)) { bad[key] = 'funds'; continue; }
         move(a, e.to, e.c);
         events.push({ k: 'send', key, a, to: e.to, c: e.c.slice(), n: str(e.n), t: e.t, drop: a === issuer });
+      } else if (e.k === 'mint') {
+        if (a !== issuer) { bad[key] = 'who'; continue; }
+        if (!okCoins(e.c) || sumC(e.c) < 1 || sumC(e.c) > 5000) { bad[key] = 'shape'; continue; }
+        const b = get(issuer);
+        e.c.forEach((n, r) => { b[r] += n; total[r] += n; });
+        events.push({ k: 'mint', key, a, c: e.c.slice(), t: e.t });
       } else if (e.k === 'buy') {
         const it = CAT[e.it];
         if (!it || it.free) { bad[key] = 'item'; continue; }
+        if (!inShopAt(e.it, e.t, cfg.salt)) { bad[key] = 'gone'; continue; }
         const price = priceOf(it);
         if (!okCoins(e.c) || !sameC(e.c, price)) { bad[key] = 'price'; continue; }
         if (!has(a, price)) { bad[key] = 'funds'; continue; }
@@ -759,7 +953,7 @@ input:focus { border-color: var(--grape); }
         bad[key] = 'kind';
       }
     }
-    return { bal, items, offers, events, bad, maxT, issuer };
+    return { bal, items, offers, events, bad, maxT, issuer, total };
   }
 
   /* ================= state ================= */
@@ -1175,15 +1369,16 @@ input:focus { border-color: var(--grape); }
   function walletTab() {
     const bal = balOf(uid), res = reservedOf(uid).c;
     const owner = uid === L.issuer;
-    const out = SUPPLY - sumC(balOf(L.issuer));
+    const supply = sumC(L.total);
+    const out = supply - sumC(balOf(L.issuer));
     const un = unopened();
     const inc = incomingOpen();
     let h = `<header class="top"><button type="button" class="me-chip" data-act="tab" data-tab="closet" aria-label="Open your closet">${headBubble(uid, 40)}<span>@${esc(meDoc.username)}</span></button><button type="button" class="icon-btn" data-act="settings" aria-label="Settings">${icon('gear')}</button></header>`;
     h += `<section class="card bal"><div class="bal-label">${owner ? 'In your vault' : 'Your ScobbBucks'}</div><div class="bal-num">${coinSVG(5, 44)}${fmtInt(sumC(bal))}</div>
       <div class="rgrid">${RN.map((n, r) => `<div class="rcell">${coinSVG(r, 24)}<div class="rval">${fmtInt(bal[r])}</div><div class="rn rc${r}">${n}</div></div>`).join('')}</div>
       ${sumC(res) ? `<p class="small soft">${plural(sumC(res), 'coin is', 'coins are')} held for your open trade offers.</p>` : ''}
-      ${owner ? `<p class="small soft">You’re the bank. ${fmtInt(out)} of ${fmtInt(SUPPLY)} are out with friends.</p>` : (sumC(bal) === 0 ? `<p class="small soft">Ask ${esc(nameOf(L.issuer))}, the bank, to send you some ScobbBucks.</p>` : '')}
-      <div class="row2"><button type="button" class="btn btn-grape" data-act="send">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade">Trade</button></div></section>`;
+      ${owner ? `<p class="small soft">You’re the bank. ${fmtInt(out)} of ${fmtInt(supply)} are out with friends.</p>` : (sumC(bal) === 0 ? `<p class="small soft">Ask ${esc(nameOf(L.issuer))}, the bank, to send you some ScobbBucks.</p>` : '')}
+      <div class="row2"><button type="button" class="btn btn-grape" data-act="send">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade">Trade</button></div>${owner ? '<button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="mint-more">Mint more ScobbBucks</button>' : ''}</section>`;
     if (un.count) {
       const from = [...new Set(un.list.map(ev => ev.a))].map(nameOf);
       h += `<button type="button" class="banner gift wiggle-in" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
@@ -1203,6 +1398,7 @@ input:focus { border-color: var(--grape); }
       if (ev.k === 'send' && (ev.a === uid || ev.to === uid)) rows.push(ev);
       else if (ev.k === 'buy' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'trade' && (ev.a === uid || ev.to === uid)) rows.push(ev);
+      else if (ev.k === 'mint' && ev.a === uid) rows.push(ev);
     }
     for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy')) rows.push({ k: 'bad', e, t: e.t }); }
     rows.sort((a, b) => b.t - a.t);
@@ -1217,10 +1413,14 @@ input:focus { border-color: var(--grape); }
         const mineGet = ev.a === uid ? { c: ev.wc, i: ev.wi } : { c: ev.gc, i: ev.gi };
         t = `You traded with <b>${esc(nameOf(other))}</b>`;
         more = `<p class="s">You gave</p><div class="chips">${coinChips(mineGive.c)}${itemTags(mineGive.i, other)}</div><p class="s" style="margin-top:4px">You got</p><div class="chips">${coinChips(mineGet.c)}${itemTags(mineGet.i, uid)}</div>`;
+      } else if (ev.k === 'mint') {
+        other = uid;
+        t = `You minted ${bucks(sumC(ev.c))}`;
+        more = evCoins(ev.c);
       } else if (ev.k === 'bad') {
         other = ev.e.to || uid;
         t = ev.e.k === 'send' ? `Your send to <b>${esc(nameOf(ev.e.to))}</b> didn’t go through` : `Your ${esc((CAT[ev.e.it] || { name: 'item' }).name)} purchase didn’t go through`;
-        more = '<p class="s">You didn’t have enough coins when it reached everyone, so nothing moved.</p>';
+        more = `<p class="s">${L.bad[uid + ':' + ev.e.i] === 'gone' ? 'That item had already left the shop, so nothing moved.' : 'You didn’t have enough coins when it reached everyone, so nothing moved.'}</p>`;
       }
       const note = ev.n ? `<p class="note">“${esc(ev.n)}”</p>` : '';
       return `<div class="ev">${headBubble(other, 40)}<div class="main"><div class="t">${t}</div>${note}${more}</div><span class="when">${ago(ev.t)}</span></div>`;
@@ -1230,10 +1430,12 @@ input:focus { border-color: var(--grape); }
   /* ---- shop ---- */
   function shopTab() {
     const av = availOf(uid);
+    const now = Date.now(), w = weekOf(now);
+    const ids = shopFor(w, config.salt);
     let h = `<header class="top"><h1>Shop</h1><div class="mini-bal">${coinChipsCompact(av) || '<span class="small soft">No coins yet</span>'}</div></header>`;
-    h += `<div class="hscroll cats" role="tablist" aria-label="Shop categories">${SLOTS.map(s => `<button type="button" class="cat${ui.shopCat === s ? ' on' : ''}" role="tab" aria-selected="${ui.shopCat === s}" data-act="cat" data-cat="${s}">${SLOT_NAME[s]}</button>`).join('')}</div>`;
-    h += `<p class="small soft" style="margin:6px 0 4px">Each price is a number of coins of one rarity.</p>`;
-    h += `<div class="grid">${ITEMS.filter(it => it.slot === ui.shopCat && !it.free).map(shopCard).join('')}</div>`;
+    h += `<p class="small soft" style="margin:-6px 0 10px">This week’s shop. New items in ${timeLeft(WEEK0 + (w + 1) * WEEK_MS - now)}.</p>`;
+    h += `<div class="grid">${ids.map(id => shopCard(CAT[id])).join('')}</div>`;
+    h += `<p class="small soft" style="margin-top:16px">There are ${fmtInt(TOTAL_ITEMS)} cosmetics in ScobbBucks, and the shop only carries ${ids.length} of them each week. Missed something? Trade a friend for it.</p>`;
     return h;
   }
   function shopCard(it) {
@@ -1336,6 +1538,10 @@ input:focus { border-color: var(--grape); }
         hot = CAT[ev.it].r >= 4;
       } else if (ev.k === 'trade') {
         t = `<b>${esc(nameOf(ev.a))}</b> and <b>${esc(nameOf(ev.to))}</b> made a trade`;
+      } else if (ev.k === 'mint') {
+        t = `<b>${esc(nameOf(ev.a))}</b> minted ${bucks(sumC(ev.c))}`;
+        more = `<div class="chips">${coinChips(ev.c)}</div>`;
+        hot = !!(ev.c[4] || ev.c[5]);
       }
       return `<div class="ev${hot ? ' hot' : ''}">${headBubble(face, 40)}<div class="main"><div class="t">${t}</div>${ev.n ? `<p class="note">“${esc(ev.n)}”</p>` : ''}${more}</div><span class="when">${ago(ev.t)}</span></div>`;
     }).join('')}</div>`;
@@ -1525,7 +1731,7 @@ input:focus { border-color: var(--grape); }
           : `<button type="button" class="btn btn-lime btn-block mt" data-act="item-wear" data-id="${id}">${wearing ? 'Take it off' : 'Wear it'}</button>`;
       }
       actions += `<button type="button" class="btn ${owned ? 'btn-ghost' : 'btn-grape'} btn-block mt" data-act="buy" data-id="${id}"${need > 0 || readOnly ? ' disabled' : ''}>${owned ? 'Buy another' : 'Buy'} for ${it.n} ${RN[it.r]}</button>`;
-      $('#sheet-body').innerHTML = sheetHead(esc(it.name), `<span class="rc${it.r}">${RN[it.r]}</span> ${SLOT_NAME[it.slot].replace(/s$/, '').toLowerCase()}`)
+      $('#sheet-body').innerHTML = sheetHead(esc(it.name), `<span class="rc${it.r}">${RN[it.r]}</span> ${{ hat: 'hat', hair: 'hair', eyes: 'eyewear', top: 'top', pants: 'pants', back: 'backpack', watch: 'watch', emote: 'emote' }[it.slot]}`)
         + `<div class="preview-av"><button type="button" class="stage-btn" id="item-av" data-act="item-emote" data-e="${it.emote || ''}" aria-label="${it.slot === 'emote' ? 'Play emote' : 'Avatar preview'}">${avatarSVG(meDoc.avatar, eq, { back, cls: 'big', label: 'Preview' })}</button></div>`
         + `${it.slot !== 'emote' ? `<div class="stage-tools"><span class="small soft">Trying it on</span><button type="button" class="link" data-act="item-turn">${back ? 'Face front' : 'Turn around'}</button></div>` : '<p class="small soft" style="text-align:center">Tap to play it.</p>'}`
         + `<div class="price-row">${coinSVG(it.r, 30)}${it.n} ${RN[it.r]}</div>`
@@ -1540,6 +1746,7 @@ input:focus { border-color: var(--grape); }
   function doBuy(id) {
     const it = CAT[id];
     if (!it || it.free || !guardWrite()) return;
+    if (!inShopAt(id, Date.now(), config.salt)) { toast('That item has left the shop.'); return; }
     const av = availOf(uid);
     if (av[it.r] < it.n) { toast(`You need ${it.n - av[it.r]} more ${RN[it.r]}.`); return; }
     const e = newEntry('buy', { it: id, c: priceOf(it) });
@@ -1587,8 +1794,8 @@ input:focus { border-color: var(--grape); }
       + `<button type="button" class="btn btn-ghost btn-block mt" data-act="edit-look">Edit your look</button>`
       + `<div class="side-card"><h3>Change password</h3><div class="field"><label for="pw-old">Current password</label><input id="pw-old" type="password" autocomplete="current-password"></div><div class="field"><label for="pw-new">New password</label><input id="pw-new" type="password" autocomplete="new-password"><p class="hint">At least 8 characters.</p></div><p class="err" id="pw-err" hidden></p><button type="button" class="btn btn-ghost btn-block mt" id="pw-go">Change password</button></div>`
       + `<div class="side-card"><h3>${owner ? 'You’re the bank' : 'How ScobbBucks work'}</h3>`
-      + `<p class="small soft">${owner ? `${fmtInt(SUPPLY - sumC(vault))} of ${fmtInt(SUPPLY)} are out with friends. Coins spent in the shop come back to your vault.` : `${esc(nameOf(L.issuer))} holds the vault and sends coins out. Every coin from the vault lands on a random rarity. Spend coins in the shop, or trade with friends for better ones.`}</p>`
-      + `<div class="tbl">${CAPS.map((n, r) => `<div>${coinSVG(r, 24)}<span class="rc${r}">${RN[r]}</span><b>${fmtInt(n)}</b>${owner ? `<b class="soft">${fmtInt(vault[r])} left</b>` : ''}</div>`).join('')}</div>`
+      + `<p class="small soft">${owner ? `${fmtInt(sumC(L.total) - sumC(vault))} of ${fmtInt(sumC(L.total))} are out with friends. Coins spent in the shop come back to your vault.` : `${esc(nameOf(L.issuer))} holds the vault and sends coins out. Every coin from the vault lands on a random rarity. Spend coins in the shop, or trade with friends for better ones.`}</p>`
+      + `<div class="tbl">${L.total.map((n, r) => `<div>${coinSVG(r, 24)}<span class="rc${r}">${RN[r]}</span><b>${fmtInt(n)}</b>${owner ? `<b class="soft">${fmtInt(vault[r])} left</b>` : ''}</div>`).join('')}</div>`
       + `<p class="small soft" style="margin-top:8px">${owner ? 'The first number is how many exist. The second is how many are still in your vault.' : 'That’s how many of each rarity exist.'}</p></div>`
       + `<button type="button" class="btn btn-danger btn-block mt" data-act="logout">Log out</button>`;
     openSheet('settings', html, () => {
@@ -1628,6 +1835,42 @@ input:focus { border-color: var(--grape); }
           f2(m === 'That username and password don’t match.' ? 'Your current password isn’t right.' : m);
         }
         btn.disabled = false;
+      });
+    });
+  }
+
+  /* mint more (bank only) */
+  const ODDS_TEXT = joinWords(CAPS.map((n, r) => `${RN[r]} ${((n / SUPPLY) * 100).toFixed(1).replace('.0', '')}%`));
+  function rollOdds(n) {
+    const out = z();
+    for (let k = 0; k < n; k++) {
+      let x = Math.random() * SUPPLY;
+      for (let r = 0; r < 6; r++) { if (x < CAPS[r] || r === 5) { out[r]++; break; } x -= CAPS[r]; }
+    }
+    return out;
+  }
+  function openMintMore() {
+    if (!L || uid !== L.issuer || !guardWrite()) return;
+    const html = sheetHead('Mint more ScobbBucks', `${fmtInt(sumC(L.total))} exist right now`)
+      + `<div class="field"><label for="mm-amt">How many new coins</label><input id="mm-amt" type="text" inputmode="numeric" placeholder="0" data-autofocus><div class="qchips">${[100, 250, 500, 1000].map(n => `<button type="button" class="qchip" data-act="mm-q" data-v="${n}">${fmtInt(n)}</button>`).join('')}</div>`
+      + `<p class="hint">Each new coin gets a random rarity with the same odds as the first 5,000: ${ODDS_TEXT}.</p></div>`
+      + `<p class="small soft" style="margin-top:12px">New coins go into your vault. Minting can’t be undone, and more coins makes each one worth a little less.</p>`
+      + `<p class="err" id="mm-err" hidden></p><button type="button" class="btn btn-grape btn-block mt" id="mm-go">Mint</button><div id="mm-result"></div>`;
+    openSheet('mintmore', html, () => {
+      const err = $('#mm-err');
+      const fail = m => { err.textContent = m; err.hidden = false; };
+      $('#mm-go').addEventListener('click', () => {
+        err.hidden = true;
+        if (!guardWrite()) return;
+        const n = parseInt(($('#mm-amt').value || '').replace(/\D/g, ''), 10);
+        if (!(n > 0)) return fail('Enter how many coins to mint.');
+        if (n > 5000) return fail('You can mint up to 5,000 at a time.');
+        const c = rollOdds(n);
+        newEntry('mint', { c });
+        $('#mm-go').hidden = true;
+        $('#mm-amt').disabled = true;
+        $('#mm-result').innerHTML = `<div class="result"><h3>You minted ${bucks(n)}</h3><div class="chips">${coinChips(c)}</div><button type="button" class="btn btn-grape btn-block mt" data-act="close-sheet">Done</button></div>`;
+        if (c[4] || c[5]) confetti();
       });
     });
   }
@@ -1731,6 +1974,8 @@ input:focus { border-color: var(--grape); }
     'profile': b => openProfile(b.dataset.u),
     'prof-emote': b => playEmote($('#prof-av .av'), b.dataset.e),
     'qamt': b => { const el = $('#s-amt'); if (el) el.value = b.dataset.v; },
+    'mint-more': () => openMintMore(),
+    'mm-q': b => { const el = $('#mm-amt'); if (el) el.value = b.dataset.v; },
     'step': b => {
       const el = $('#' + b.dataset.p + '-' + b.dataset.r);
       if (!el) return;
