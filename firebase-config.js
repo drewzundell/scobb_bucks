@@ -11,3 +11,6 @@ export const FIREBASE_CONFIG = {
 
 // The bank's username. It matches bankUsername() in your Firestore rules.
 export const BANK_USERNAME = "drewzundell";
+
+// Scobb Farm preview: usernames (besides the bank) who can try the farm game, like ["mike", "sam"].
+export const FARM_TESTERS = [];
