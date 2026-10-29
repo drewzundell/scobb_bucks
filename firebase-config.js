@@ -13,4 +13,4 @@ export const FIREBASE_CONFIG = {
 export const BANK_USERNAME = "drewzundell";
 
 // Scobb Farm preview: usernames (besides the bank) who can try the farm game, like ["mike", "sam"].
-export const FARM_TESTERS = [];
+export const FARM_TESTERS = [therealscobb123];
