@@ -1,0 +1,1874 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ScobbBucks</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💸</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #F3EEFF;
+  --card: #FFFFFF;
+  --card-2: #F6F1FF;
+  --ink: #24113F;
+  --soft: #6A5A86;
+  --line: #E2D7F6;
+  --grape: #6C2BD9;
+  --grape-deep: #4A16A6;
+  --grape-tint: #EBE1FF;
+  --on-grape: #FFFFFF;
+  --lime: #9BE33A;
+  --lime-deep: #5C9A12;
+  --on-lime: #1E3205;
+  --tomato: #E9453C;
+  --tomato-deep: #A52A23;
+  --shadow: rgba(52, 22, 107, .16);
+  --scrim: rgba(28, 10, 56, .46);
+  --rt0: #5C6878; --rt1: #167F40; --rt2: #1C60C8; --rt3: #7429DB; --rt4: #A85B00; --rt5: #C8105A;
+  --rb0: #C9D0DA; --rb1: #84DBA4; --rb2: #92BCFF; --rb3: #CDA8FF; --rb4: #FFC66B; --rb5: #FF8DB8;
+  --font: "Baloo 2", "Trebuchet MS", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #150A29; --card: #22133F; --card-2: #2B1A4F; --ink: #F3ECFF; --soft: #B6A6D6; --line: #3B2868;
+    --grape: #8C58FF; --grape-deep: #5A2FD0; --grape-tint: #33205E; --on-grape: #FFFFFF;
+    --lime: #A6EC47; --lime-deep: #5C9A12; --on-lime: #1E3205;
+    --tomato: #FF6A60; --tomato-deep: #B3332B;
+    --shadow: rgba(0, 0, 0, .45); --scrim: rgba(0, 0, 0, .62);
+    --rt0: #B9C2CE; --rt1: #5BD98A; --rt2: #6EAAFF; --rt3: #C18FFF; --rt4: #FFBE57; --rt5: #FF72A6;
+    --rb0: #5A6472; --rb1: #2E8F55; --rb2: #2F64B8; --rb3: #6B3BB8; --rb4: #A86C12; --rb5: #B8326A;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #150A29; --card: #22133F; --card-2: #2B1A4F; --ink: #F3ECFF; --soft: #B6A6D6; --line: #3B2868;
+  --grape: #8C58FF; --grape-deep: #5A2FD0; --grape-tint: #33205E; --on-grape: #FFFFFF;
+  --lime: #A6EC47; --lime-deep: #5C9A12; --on-lime: #1E3205;
+  --tomato: #FF6A60; --tomato-deep: #B3332B;
+  --shadow: rgba(0, 0, 0, .45); --scrim: rgba(0, 0, 0, .62);
+  --rt0: #B9C2CE; --rt1: #5BD98A; --rt2: #6EAAFF; --rt3: #C18FFF; --rt4: #FFBE57; --rt5: #FF72A6;
+  --rb0: #5A6472; --rb1: #2E8F55; --rb2: #2F64B8; --rb3: #6B3BB8; --rb4: #A86C12; --rb5: #B8326A;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 500 16px/1.45 var(--font); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--grape); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+#app { max-width: 480px; margin: 0 auto; padding: 14px 18px 40px; }
+body.has-tabs #app { padding-bottom: 120px; }
+h1 { font-size: 32px; line-height: 1.05; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: 20px; line-height: 1.2; font-weight: 800; margin: 26px 0 8px; }
+h3 { font-size: 16px; line-height: 1.2; font-weight: 800; margin: 20px 0 8px; }
+p { margin: 0; }
+.soft { color: var(--soft); }
+.small { font-size: 14px; line-height: 1.4; }
+.mt { margin-top: 22px; }
+.rc0 { color: var(--rt0); } .rc1 { color: var(--rt1); } .rc2 { color: var(--rt2); } .rc3 { color: var(--rt3); } .rc4 { color: var(--rt4); } .rc5 { color: var(--rt5); }
+.ic { width: 22px; height: 22px; display: block; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 6px 0 16px; }
+.card { background: var(--card); border: 2px solid var(--line); border-radius: 24px; padding: 16px; }
+.link { border: 0; background: none; padding: 0; color: var(--grape); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+
+/* buttons: gummy */
+.btn { border: 0; border-radius: 16px; height: 52px; padding: 0 20px; font: 800 17px/1 var(--font); transition: transform .08s ease, box-shadow .08s ease; margin-bottom: 5px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-grape { background: var(--grape); color: var(--on-grape); box-shadow: 0 5px 0 var(--grape-deep); }
+.btn-lime { background: var(--lime); color: var(--on-lime); box-shadow: 0 5px 0 var(--lime-deep); }
+.btn-ghost { background: var(--card); color: var(--ink); box-shadow: 0 5px 0 var(--line), inset 0 0 0 2px var(--line); }
+.btn-danger { background: var(--tomato); color: #fff; box-shadow: 0 5px 0 var(--tomato-deep); }
+.btn:active:not(:disabled) { transform: translateY(4px); }
+.btn-grape:active:not(:disabled) { box-shadow: 0 1px 0 var(--grape-deep); }
+.btn-lime:active:not(:disabled) { box-shadow: 0 1px 0 var(--lime-deep); }
+.btn-ghost:active:not(:disabled) { box-shadow: 0 1px 0 var(--line), inset 0 0 0 2px var(--line); }
+.btn-danger:active:not(:disabled) { box-shadow: 0 1px 0 var(--tomato-deep); }
+.btn-block { display: block; width: 100%; }
+.btn-sm { height: 40px; padding: 0 14px; font-size: 15px; border-radius: 13px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.icon-btn { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--line); background: var(--card); display: grid; place-items: center; padding: 0; color: var(--ink); }
+
+/* message screens */
+.msg { min-height: 72vh; display: grid; place-content: center; justify-items: center; text-align: center; gap: 12px; padding: 0 10px; }
+.msg h1 { font-size: 28px; }
+.msg p { max-width: 34ch; color: var(--soft); }
+.blob { width: 110px; height: 110px; }
+.blob .av { width: 100%; height: 100%; }
+
+/* forms */
+.field { margin-top: 18px; }
+.field > label, .field > .label { display: block; font-weight: 800; font-size: 15px; margin-bottom: 6px; }
+.hint { font-size: 14px; color: var(--soft); margin-top: 6px; }
+.err { font-size: 14px; color: var(--tomato); margin-top: 6px; font-weight: 700; }
+.err[hidden] { display: none; }
+input[type="text"], input[type="tel"], input[type="password"] { width: 100%; height: 52px; padding: 0 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--card); font-size: 17px; font-weight: 600; outline: none; }
+input::placeholder { color: var(--soft); opacity: .75; font-weight: 500; }
+input:focus { border-color: var(--grape); }
+.at { position: relative; }
+.at > span { position: absolute; left: 14px; top: 50%; transform: translateY(-52%); font-weight: 800; color: var(--soft); pointer-events: none; font-size: 18px; }
+.at input { padding-left: 32px; }
+
+/* setup */
+.odds { margin-top: 16px; border-top: 2px solid var(--line); }
+.odds div { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 2px solid var(--line); font-weight: 700; }
+.odds div b { margin-left: auto; font-weight: 800; }
+.odds div span.small { min-width: 52px; text-align: right; }
+
+/* wallet */
+.me-chip { display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 3px 14px 3px 3px; font-weight: 800; min-width: 0; }
+.me-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hb { flex: none; display: inline-block; border-radius: 50%; background: var(--card-2); overflow: hidden; }
+.hb .av { width: 100%; height: 100%; display: block; }
+.bal-label { font-weight: 800; color: var(--soft); }
+.bal-num { font: 800 58px/1 var(--font); letter-spacing: -0.02em; margin: 6px 0 14px; display: flex; align-items: center; gap: 10px; }
+.rgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rcell { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 6px; row-gap: 2px; background: var(--card-2); border-radius: 14px; padding: 8px 10px; min-width: 0; }
+.rcell .rval { font-size: 19px; font-weight: 800; line-height: 1.1; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcell .rn { grid-column: 1 / -1; font-size: 12.5px; font-weight: 800; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bal .small { margin-top: 10px; }
+.banner { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; margin-top: 14px; padding: 14px; border-radius: 20px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font-weight: 700; }
+.banner.gift { background: var(--grape-tint); border-color: transparent; }
+.banner .bt { flex: 1; min-width: 0; }
+.banner .pill { flex: none; background: var(--grape); color: var(--on-grape); border-radius: 999px; padding: 6px 14px; font-weight: 800; box-shadow: 0 3px 0 var(--grape-deep); }
+.wiggle-in { animation: wig .9s ease 1; }
+@keyframes wig { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-3deg); } 40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(1deg); } }
+
+/* lists */
+.ev { display: flex; gap: 12px; padding: 12px 0; border-bottom: 2px solid var(--line); align-items: flex-start; }
+.ev:last-child { border-bottom: 0; }
+.ev .main { flex: 1; min-width: 0; }
+.ev .t { font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.ev .t b { font-weight: 800; }
+.ev .s { color: var(--soft); font-size: 14px; overflow-wrap: anywhere; }
+.ev .note { margin-top: 2px; font-size: 15px; overflow-wrap: anywhere; }
+.ev .when { flex: none; color: var(--soft); font-size: 13px; white-space: nowrap; padding-top: 2px; }
+.ev.hot { background: linear-gradient(90deg, rgba(255, 45, 122, .10), transparent 70%); border-radius: 14px; padding-left: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.cc { display: inline-flex; align-items: center; gap: 4px; background: var(--card-2); border-radius: 999px; padding: 2px 10px 2px 2px; font-weight: 800; font-size: 14px; }
+.cc .tok { flex: none; }
+.it-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--card-2); border-radius: 999px; padding: 2px 10px 2px 2px; font-weight: 700; font-size: 14px; }
+.it-tag .tb { width: 26px; height: 26px; border-radius: 50%; background: var(--card); overflow: hidden; }
+.it-tag .tb .av { width: 100%; height: 100%; }
+.empty { padding: 18px 0; color: var(--soft); }
+
+/* shop */
+.mini-bal { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.hscroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 8px; margin: 0 -18px; padding-left: 18px; padding-right: 18px; scrollbar-width: none; }
+.hscroll::-webkit-scrollbar { display: none; }
+.cat { flex: none; border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 15px; color: var(--ink); }
+.cat.on { background: var(--grape); border-color: var(--grape); color: var(--on-grape); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+.scard { position: relative; display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 10px; border-radius: 20px; border: 2px solid var(--rb0); background: var(--card); color: var(--ink); }
+.rb0 { border-color: var(--rb0); } .rb1 { border-color: var(--rb1); } .rb2 { border-color: var(--rb2); } .rb3 { border-color: var(--rb3); } .rb4 { border-color: var(--rb4); }
+.rb5 { border-color: transparent; background: linear-gradient(var(--card), var(--card)) padding-box, linear-gradient(120deg, #FF4F8B, #FFB347, #5BE38A, #3EC1FF, #9B5CFF) border-box; }
+.scard .thumb { position: relative; display: block; aspect-ratio: 1; border-radius: 14px; background: var(--card-2); overflow: hidden; }
+.scard .thumb .av { width: 100%; height: 100%; display: block; }
+.scard .nm { font-weight: 800; line-height: 1.15; margin-top: 4px; }
+.scard .pr { display: flex; align-items: center; gap: 4px; font-weight: 800; }
+.scard .pr .rt { font-size: 13px; }
+.scard .own { position: absolute; top: 14px; right: 14px; background: var(--lime); color: var(--on-lime); border-radius: 999px; padding: 0 9px; font-size: 13px; font-weight: 800; }
+.play { position: absolute; bottom: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: var(--grape); color: #fff; display: grid; place-items: center; }
+.play .ic { width: 14px; height: 14px; }
+
+/* closet */
+.stage { display: grid; place-items: center; }
+.stage-btn { border: 0; padding: 6px 0 0; width: 100%; border-radius: 28px; background: radial-gradient(closest-side, var(--card) 0%, var(--card) 55%, transparent 100%); display: grid; place-items: center; }
+.av.big { width: min(270px, 70vw); height: auto; display: block; }
+.stage-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.wchip { flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 96px; padding: 8px 6px; border-radius: 16px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font-weight: 700; font-size: 13.5px; line-height: 1.15; text-align: center; }
+.wchip.on { border-color: var(--grape); box-shadow: inset 0 0 0 2px var(--grape); }
+.wchip.none { justify-content: center; min-height: 104px; color: var(--soft); }
+.wthumb { width: 64px; height: 64px; border-radius: 12px; background: var(--card-2); overflow: hidden; display: block; }
+.wthumb .av { width: 100%; height: 100%; display: block; }
+.echip { flex: none; border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; font-weight: 800; color: var(--ink); }
+.echip.on { background: var(--grape); border-color: var(--grape); color: var(--on-grape); }
+
+/* trades */
+.offer { margin-top: 12px; }
+.offer-head { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.offer-head .bt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.offer-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.offer-cols > div { background: var(--card-2); border-radius: 16px; padding: 10px; min-width: 0; }
+.offer-cols .lbl { font-weight: 800; font-size: 14px; color: var(--soft); }
+.offer .note { margin-top: 10px; overflow-wrap: anywhere; }
+.offer .warn { margin-top: 10px; color: var(--tomato); font-weight: 700; font-size: 14px; }
+.status { display: inline-block; border-radius: 999px; padding: 0 10px; font-size: 13px; font-weight: 800; background: var(--card-2); color: var(--soft); }
+.status.done { background: var(--lime); color: var(--on-lime); }
+
+/* feed */
+.players { margin-top: 4px; }
+.pl { flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 74px; border: 0; background: none; padding: 0; color: var(--ink); font-weight: 700; font-size: 13px; }
+.pl span:last-child { max-width: 74px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl .hb { border: 2px solid var(--line); }
+
+/* look editor */
+.swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.sw { aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--card); background: var(--sw); box-shadow: 0 0 0 2px var(--line); padding: 0; }
+.sw.on { box-shadow: 0 0 0 3px var(--grape); }
+.opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.opt { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 16px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font-weight: 700; font-size: 14px; }
+.opt.on { border-color: var(--grape); box-shadow: inset 0 0 0 2px var(--grape); }
+.opt .face { width: 100%; aspect-ratio: 100 / 66; display: block; }
+.opt .face .av { width: 100%; height: 100%; display: block; }
+
+/* sheets */
+.sheet-root { position: fixed; inset: 0; z-index: 40; }
+.sheet-root[hidden] { display: none; }
+.backdrop { position: absolute; inset: 0; background: var(--scrim); animation: fade .2s ease both; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 520px; max-height: 92%; overflow-y: auto; overscroll-behavior: contain; background: var(--bg); border-radius: 28px 28px 0 0; padding: 8px 18px calc(24px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -12px 40px var(--shadow); animation: rise .3s cubic-bezier(.2, .9, .25, 1.05) both; outline: none; }
+.grabber { width: 44px; height: 5px; border-radius: 3px; background: var(--line); margin: 4px auto 12px; }
+.sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.sheet-head h2 { margin: 2px 0 0; font-size: 24px; overflow-wrap: anywhere; }
+.sheet-head .sub { color: var(--soft); margin-top: 2px; }
+.x { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--line); background: var(--card); display: grid; place-items: center; padding: 0; color: var(--ink); }
+.x .ic { width: 18px; height: 18px; }
+@keyframes rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.results { margin-top: 6px; }
+.res { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: 0; border-radius: 14px; background: none; text-align: left; color: var(--ink); }
+.res:hover, .res:focus-visible { background: var(--card-2); }
+.picked { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; border: 2px solid var(--grape); border-radius: 16px; background: var(--card); }
+.picked[hidden] { display: none; }
+.picked b { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.step { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 2px solid var(--line); }
+.step .sn { flex: 1; min-width: 0; font-weight: 800; line-height: 1.15; }
+.step .sn .small { display: block; font-weight: 600; color: var(--soft); }
+.sb { flex: none; width: 40px; height: 40px; border-radius: 12px; border: 2px solid var(--line); background: var(--card); font-size: 22px; font-weight: 800; line-height: 1; padding: 0; color: var(--ink); }
+.sv { flex: none; width: 64px; height: 40px; text-align: center; border: 2px solid var(--line); border-radius: 12px; background: var(--card); font: 800 18px/1 var(--font); outline: none; }
+.sv:focus { border-color: var(--grape); }
+.qchips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.qchip { border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 4px 14px; font-weight: 800; color: var(--ink); }
+.ipick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.ichip { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 92px; padding: 8px 6px; border-radius: 16px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font-weight: 700; font-size: 13px; line-height: 1.15; text-align: center; }
+.ichip[aria-pressed="true"] { border-color: var(--grape); box-shadow: inset 0 0 0 2px var(--grape); background: var(--grape-tint); }
+.side-card { background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 12px 14px; margin-top: 14px; }
+.side-card h3 { margin-top: 0; }
+.result { margin-top: 16px; text-align: center; }
+.result .chips { justify-content: center; }
+.preview-av { display: grid; place-items: center; margin: 4px 0 0; }
+.preview-av .stage-btn { max-width: 300px; }
+.price-row { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; margin-top: 8px; }
+.tag { display: inline-block; border-radius: 999px; padding: 0 10px; font-size: 13px; font-weight: 800; background: var(--card-2); }
+.tbl { margin-top: 10px; border-top: 2px solid var(--line); }
+.tbl div { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 2px solid var(--line); font-weight: 700; }
+.tbl div span:nth-child(2) { flex: 1; }
+.tbl div b { min-width: 54px; text-align: right; }
+
+/* reveal */
+.rv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 16px; }
+.rv { position: relative; aspect-ratio: 1; border: 0; background: none; padding: 0; perspective: 600px; }
+.rv .face { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; transition: transform .55s cubic-bezier(.3, .7, .3, 1.25); }
+.rv .face .tok { width: 100%; height: 100%; }
+.rv .back { transform: rotateY(180deg); }
+.rv.flipped .front { transform: rotateY(-180deg); }
+.rv.flipped .back { transform: rotateY(0deg); }
+.rv.flipped.r4 .back, .rv.flipped.r5 .back { filter: drop-shadow(0 0 8px rgba(255, 180, 60, .8)); }
+.rv.flipped.r5 .back { filter: drop-shadow(0 0 10px rgba(255, 45, 122, .9)); }
+.rv-sum { margin-top: 16px; text-align: center; }
+.rv-sum .chips { justify-content: center; }
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.confetti i { position: absolute; top: -16px; width: 10px; height: 14px; border-radius: 3px; animation: conf 1.9s cubic-bezier(.2, .6, .4, 1) forwards; }
+@keyframes conf { to { transform: translate(var(--dx), 108vh) rotate(var(--rot)); } }
+
+/* tabs */
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 2px solid var(--line); padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(5, 1fr); }
+.tabs[hidden] { display: none; }
+.tab { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; border: 0; background: none; padding: 4px 0; color: var(--soft); font-weight: 800; font-size: 12.5px; }
+.tab .ib { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 999px; }
+.tab[aria-current="page"] { color: var(--grape); }
+.tab[aria-current="page"] .ib { background: var(--grape-tint); }
+.badge { position: absolute; top: 0; left: calc(50% + 10px); min-width: 19px; height: 19px; border-radius: 10px; background: var(--tomato); color: #fff; font-size: 11.5px; font-weight: 800; display: grid; place-items: center; padding: 0 5px; }
+.badge[hidden] { display: none; }
+
+/* toast */
+.toast-wrap { position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; display: flex; justify-content: center; padding: 0 16px calc(96px + env(safe-area-inset-bottom, 0px)); pointer-events: none; }
+.toast { max-width: 420px; background: var(--ink); color: var(--bg); font-weight: 800; font-size: 15px; line-height: 1.35; padding: 12px 16px; border-radius: 16px; box-shadow: 0 10px 30px var(--shadow); animation: toast-in .25s cubic-bezier(.2, .9, .3, 1.3) both; }
+.toast[hidden] { display: none; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+
+/* coin tokens */
+.tok { display: block; flex: none; }
+.tok-my { filter: drop-shadow(0 0 3px rgba(255, 45, 122, .55)); }
+
+/* avatar motion */
+.av .av-all, .av .av-jelly, .av .av-arm, .av .av-shadow, .av .av-fx { transform-box: view-box; }
+.av .av-jelly { transform-origin: 100px 232px; animation: av-jelly 2.6s ease-in-out infinite; }
+.av .av-arm-l { transform-origin: 62px 128px; animation: av-sway-l 2.6s ease-in-out infinite; }
+.av .av-arm-r { transform-origin: 138px 128px; animation: av-sway-r 2.6s ease-in-out infinite; }
+.av .av-all { transform-origin: 100px 232px; }
+.av .av-shadow { transform-origin: 100px 234px; }
+.av .av-fx { opacity: 0; transform-origin: 100px 110px; }
+.av.still .av-jelly, .av.still .av-arm { animation: none; }
+@keyframes av-jelly { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.022, .978); } }
+@keyframes av-sway-l { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(5deg); } }
+@keyframes av-sway-r { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-5deg); } }
+
+.av.emote-wave .av-arm-r { animation: em-wave 1.8s ease-in-out; }
+@keyframes em-wave { 0% { transform: rotate(0); } 18% { transform: rotate(-150deg); } 32% { transform: rotate(-118deg); } 46% { transform: rotate(-150deg); } 60% { transform: rotate(-118deg); } 74% { transform: rotate(-150deg); } 100% { transform: rotate(0); } }
+.av.emote-hop .av-all { animation: em-hop 1.2s cubic-bezier(.3, .7, .4, 1); }
+.av.emote-hop .av-shadow { animation: em-hop-sh 1.2s cubic-bezier(.3, .7, .4, 1); }
+@keyframes em-hop { 0% { transform: translateY(0) scale(1, 1); } 14% { transform: translateY(0) scale(1.1, .88); } 34% { transform: translateY(-56px) scale(.94, 1.08); } 54% { transform: translateY(0) scale(1.12, .86); } 70% { transform: translateY(-24px) scale(.97, 1.04); } 86% { transform: translateY(0) scale(1.05, .95); } 100% { transform: translateY(0) scale(1, 1); } }
+@keyframes em-hop-sh { 0%, 14%, 54%, 86%, 100% { transform: scale(1); opacity: 1; } 34% { transform: scale(.55); opacity: .5; } 70% { transform: scale(.8); opacity: .8; } }
+.av.emote-wiggle .av-all { animation: em-wiggle 1.6s ease-in-out; }
+.av.emote-wiggle .av-arm-l { animation: em-flail-l .4s ease-in-out 4; }
+.av.emote-wiggle .av-arm-r { animation: em-flail-r .4s ease-in-out 4; }
+@keyframes em-wiggle { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(-9deg); } 35% { transform: rotate(9deg); } 55% { transform: rotate(-9deg); } 75% { transform: rotate(9deg); } }
+@keyframes em-flail-l { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(40deg); } }
+@keyframes em-flail-r { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-40deg); } }
+.av.emote-spin .av-all { transform-origin: 100px 130px; animation: em-spin 1.2s ease-in-out; }
+@keyframes em-spin { 0% { transform: scale(1, 1); } 25% { transform: scale(.08, 1.02); } 50% { transform: scale(-1, 1); } 75% { transform: scale(.08, 1.02); } 100% { transform: scale(1, 1); } }
+.av.emote-flex .av-arm-l { animation: em-flex-l 1.8s ease-in-out; }
+.av.emote-flex .av-arm-r { animation: em-flex-r 1.8s ease-in-out; }
+.av.emote-flex .av-jelly { animation: em-pump 1.8s ease-in-out; }
+@keyframes em-flex-l { 0%, 100% { transform: rotate(0); } 20%, 50%, 80% { transform: rotate(118deg); } 35%, 65% { transform: rotate(102deg); } }
+@keyframes em-flex-r { 0%, 100% { transform: rotate(0); } 20%, 50%, 80% { transform: rotate(-118deg); } 35%, 65% { transform: rotate(-102deg); } }
+@keyframes em-pump { 0%, 100% { transform: scale(1, 1); } 25%, 50%, 75% { transform: scale(1.07, .95); } 37%, 62% { transform: scale(.98, 1.03); } }
+.av.emote-splat .av-all { animation: em-splat 2.2s cubic-bezier(.3, .7, .3, 1); }
+@keyframes em-splat { 0% { transform: translateY(0) scale(1, 1); } 18% { transform: translateY(-40px) scale(.9, 1.12); } 34% { transform: translateY(0) scale(1.55, .32); } 62% { transform: translateY(0) scale(1.5, .34); } 78% { transform: translateY(-14px) scale(.86, 1.18); } 90% { transform: translateY(0) scale(1.06, .95); } 100% { transform: translateY(0) scale(1, 1); } }
+.av.emote-dance .av-all { animation: em-dance 2.4s ease-in-out; }
+.av.emote-dance .av-arm-l { animation: em-dance-l .6s ease-in-out 4; }
+.av.emote-dance .av-arm-r { animation: em-dance-r .6s ease-in-out 4; }
+.av.emote-dance .av-fx { animation: em-fx 2.4s ease-out; }
+@keyframes em-dance { 0%, 25%, 50%, 75%, 100% { transform: translateY(0) rotate(0); } 12.5%, 62.5% { transform: translateY(-16px) rotate(-6deg); } 37.5%, 87.5% { transform: translateY(-16px) rotate(6deg); } }
+@keyframes em-dance-l { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(130deg); } }
+@keyframes em-dance-r { 0%, 100% { transform: rotate(-130deg); } 50% { transform: rotate(0); } }
+@keyframes em-fx { 0% { opacity: 0; transform: scale(.6) rotate(0); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: scale(1.2) rotate(40deg); } }
+
+/* item effects */
+.fx-twinkle { transform-box: fill-box; transform-origin: center; animation: fx-tw 1.8s ease-in-out infinite; }
+@keyframes fx-tw { 0%, 100% { opacity: .3; transform: scale(.6); } 50% { opacity: 1; transform: scale(1); } }
+.fx-flicker { transform-box: fill-box; transform-origin: 50% 100%; animation: fx-fl .5s ease-in-out infinite alternate; }
+@keyframes fx-fl { from { transform: scaleY(1); } to { transform: scale(.98, 1.07); } }
+.fx-jet { transform-box: fill-box; transform-origin: 50% 0%; animation: fx-jt .18s linear infinite alternate; }
+@keyframes fx-jt { from { transform: scaleY(.82); opacity: .85; } to { transform: scaleY(1.1); opacity: 1; } }
+.fx-pulse { animation: fx-pu 1.6s ease-in-out infinite; }
+@keyframes fx-pu { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+.fx-float { animation: fx-fo 2.4s ease-in-out infinite; }
+@keyframes fx-fo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.fx-scan { animation: fx-sc 1.6s ease-in-out infinite alternate; }
+@keyframes fx-sc { from { transform: translateX(0); } to { transform: translateX(54px); } }
+.fx-wing-l { transform-box: view-box; transform-origin: 64px 128px; animation: fx-wl 1.8s ease-in-out infinite; }
+.fx-wing-r { transform-box: view-box; transform-origin: 136px 128px; animation: fx-wr 1.8s ease-in-out infinite; }
+@keyframes fx-wl { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-9deg); } }
+@keyframes fx-wr { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(9deg); } }
+
+@media (max-width: 360px) {
+  #app { padding-left: 14px; padding-right: 14px; }
+  .hscroll { margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
+  .bal-num { font-size: 48px; }
+  .rgrid { grid-template-columns: repeat(2, 1fr); }
+  .swatches { grid-template-columns: repeat(4, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .av .av-jelly, .av .av-arm, .fx-twinkle, .fx-flicker, .fx-jet, .fx-pulse, .fx-float, .fx-scan, .fx-wing-l, .fx-wing-r, .wiggle-in { animation: none; }
+  .sheet, .backdrop, .toast { animation: none; }
+  .rv .face { transition: none; }
+}
+</style>
+</head>
+<body>
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="tk0" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F1F4F7"/><stop offset="1" stop-color="#97A2B0"/></linearGradient>
+    <linearGradient id="tk1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C2F7D3"/><stop offset="1" stop-color="#22A456"/></linearGradient>
+    <linearGradient id="tk2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C7DEFF"/><stop offset="1" stop-color="#1F6FE0"/></linearGradient>
+    <linearGradient id="tk3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E6CCFF"/><stop offset="1" stop-color="#7A2FE0"/></linearGradient>
+    <linearGradient id="tk4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE9A8"/><stop offset="1" stop-color="#E88700"/></linearGradient>
+    <linearGradient id="tk5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB3D1"/><stop offset=".45" stop-color="#FF2D7A"/><stop offset="1" stop-color="#6E36F0"/></linearGradient>
+    <linearGradient id="tkq" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D8C8FF"/><stop offset="1" stop-color="#6C2BD9"/></linearGradient>
+    <linearGradient id="rainbow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF4F8B"/><stop offset=".25" stop-color="#FFB347"/><stop offset=".5" stop-color="#5BE38A"/><stop offset=".75" stop-color="#3EC1FF"/><stop offset="1" stop-color="#9B5CFF"/></linearGradient>
+    <pattern id="pat-check" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#F4F4F0"/><rect width="8" height="8" fill="#222228"/><rect x="8" y="8" width="8" height="8" fill="#222228"/></pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+</svg>
+
+<div id="app" aria-live="polite"></div>
+
+<nav class="tabs" id="tabs" hidden aria-label="Main">
+  <button type="button" class="tab" data-act="tab" data-tab="wallet"><span class="ib" data-icon="wallet"></span><span>Wallet</span><i class="badge" id="bd-wallet" hidden></i></button>
+  <button type="button" class="tab" data-act="tab" data-tab="shop"><span class="ib" data-icon="shop"></span><span>Shop</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="closet"><span class="ib" data-icon="closet"></span><span>Closet</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="trades"><span class="ib" data-icon="trades"></span><span>Trades</span><i class="badge" id="bd-trades" hidden></i></button>
+  <button type="button" class="tab" data-act="tab" data-tab="feed"><span class="ib" data-icon="feed"></span><span>Feed</span></button>
+</nav>
+
+<div class="sheet-root" id="sheet-root" hidden>
+  <div class="backdrop" data-act="close-sheet"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1">
+    <div class="grabber" aria-hidden="true"></div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
+<div class="toast-wrap"><div class="toast" id="toast" role="status" hidden></div></div>
+
+<script type="module">
+
+  /* ================= constants ================= */
+  const RN = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic'];
+  const CAPS = [2750, 1250, 600, 275, 100, 25];
+  const SUPPLY = 5000;
+  const RDEEP = ['#6B7584', '#167F40', '#1758BD', '#6421C4', '#B86200', '#B80F55'];
+  const TERMINAL = ['invalid_argument', 'revoked', 'not_granted', 'capability_disabled', 'capability_removed', 'transform_error', 'quota_exceeded', 'permission-denied', 'unauthenticated', 'invalid-argument', 'failed-precondition', 'resource-exhausted'];
+  const SLOTS = ['hat', 'hair', 'eyes', 'top', 'pants', 'back', 'watch', 'emote'];
+  const SLOT_NAME = { hat: 'Hats', hair: 'Hair', eyes: 'Eyewear', top: 'Tops', pants: 'Pants', back: 'Backpacks', watch: 'Watches', emote: 'Emotes' };
+  const CROP = { hat: '20 -24 160 120', hair: '20 -24 160 130', eyes: '50 34 100 60', top: '20 84 160 124', pants: '36 150 128 92', back: '0 46 200 176', watch: '18 132 66 60', emote: '0 -24 200 268' };
+  const HEAD_CROP = '36 -12 128 128';
+  const BODY = {
+    grape: { n: 'Grape', c: '#A98BF5' }, bubblegum: { n: 'Bubblegum', c: '#F78FB3' }, ruby: { n: 'Ruby', c: '#E85A68' },
+    tangerine: { n: 'Tangerine', c: '#F79B54' }, lemon: { n: 'Lemon', c: '#F6D25A' }, lime: { n: 'Lime', c: '#ABDB5A' },
+    mint: { n: 'Mint', c: '#7EDDB0' }, teal: { n: 'Teal', c: '#3FBFBD' }, sky: { n: 'Sky', c: '#7CC4F2' },
+    cocoa: { n: 'Cocoa', c: '#A6714E' }, slate: { n: 'Slate', c: '#6E7B8C' }, snow: { n: 'Snow', c: '#ECEDF2' }
+  };
+  const EYES = [['dots', 'Dots'], ['happy', 'Happy'], ['sleepy', 'Sleepy'], ['wide', 'Wide'], ['angry', 'Fierce'], ['wink', 'Wink']];
+  const MOUTHS = [['smile', 'Smile'], ['grin', 'Grin'], ['o', 'Oh'], ['flat', 'Flat'], ['tongue', 'Silly'], ['none', 'None']];
+  const DEFAULT_LOOK = { color: 'grape', eyes: 'dots', mouth: 'smile', blush: true };
+  const EMOTE_MS = { wave: 1800, hop: 1200, wiggle: 1600, spin: 1200, flex: 1800, splat: 2200, dance: 2400 };
+  const TORSO = 'M100 96C134 96 148 120 148 152C148 184 128 200 100 200C72 200 52 184 52 152C52 120 66 96 100 96Z';
+
+  const ICON = {
+    wallet: '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a2 2 0 0 1 2 2v1"/><path d="M4 7.5V17a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H6.5A2.5 2.5 0 0 1 4 7.5Z"/><circle cx="16" cy="13.5" r="1.3" fill="currentColor" stroke="none"/>',
+    shop: '<path d="M5 8h14l-1.2 12H6.2L5 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+    closet: '<path d="M9 4 4.5 6.5 6 11l2.2-.9V20h7.6V10.1L18 11l1.5-4.5L15 4c-.6 1.6-1.6 2.4-3 2.4S9.6 5.6 9 4Z"/>',
+    trades: '<path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/>',
+    feed: '<path d="M4 5.5h16v10H9.5L5 19V5.5Z"/><path d="M8 9.5h8M8 12.5h5"/>',
+    gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.5 12h3M18.5 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/>',
+    close: '<path d="M6 6l12 12M18 6 6 18"/>',
+    play: '<path d="M8 5.5 19 12 8 18.5V5.5Z" fill="currentColor"/>',
+    gift: '<path d="M4 11h16v9H4zM3 7.5h18V11H3zM12 7.5V20"/><path d="M12 7.5C10.5 4 7 4 7.2 6.3 7.4 8 10 7.5 12 7.5ZM12 7.5c1.5-3.5 5-3.5 4.8-1.2-.2 1.7-2.8 1.2-4.8 1.2Z"/>'
+  };
+  const icon = n => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
+
+  /* ================= small helpers ================= */
+  const $ = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+  const sleep = ms => new Promise(res => setTimeout(res, ms));
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const z = () => [0, 0, 0, 0, 0, 0];
+  const sumC = c => c.reduce((a, b) => a + b, 0);
+  const fmtInt = n => Number(n || 0).toLocaleString('en-US');
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]); }
+  function rid() { const a = new Uint32Array(2); crypto.getRandomValues(a); return (a[0].toString(36) + a[1].toString(36)).slice(0, 10); }
+  function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function mix(a, b, t) { const x = hexToRgb(a), y = hexToRgb(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
+  function ago(t) {
+    const s = (Date.now() - t) / 1000;
+    if (s < 60) return 'now';
+    if (s < 3600) return Math.floor(s / 60) + 'm';
+    if (s < 86400) return Math.floor(s / 3600) + 'h';
+    if (s < 604800) return Math.floor(s / 86400) + 'd';
+    return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function joinWords(parts) {
+    if (parts.length <= 1) return parts.join('');
+    return parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1];
+  }
+  function coinsText(c) { return joinWords(c.map((n, r) => (n ? `${fmtInt(n)} ${RN[r]}` : '')).filter(Boolean)); }
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  const plural = (n, one, many) => `${fmtInt(n)} ${n === 1 ? one : many}`;
+  const bucks = n => plural(n, 'ScobbBuck', 'ScobbBucks');
+
+  /* ================= coins ================= */
+  function coinSVG(r, s) {
+    const d = RDEEP[r];
+    return `<svg class="tok${r === 5 ? ' tok-my' : ''}" viewBox="0 0 40 40" width="${s}" height="${s}" aria-hidden="true"><circle cx="20" cy="22" r="17.5" fill="${d}"/><circle cx="20" cy="19.5" r="17.5" fill="url(#tk${r})"/><circle cx="20" cy="19.5" r="13" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2"/><text x="20" y="26" text-anchor="middle" font-family="'Baloo 2', system-ui, sans-serif" font-weight="800" font-size="19" fill="#fff" stroke="${d}" stroke-width="2.4" paint-order="stroke">S</text><ellipse cx="13" cy="11" rx="4" ry="2.4" fill="#fff" fill-opacity=".6" transform="rotate(-30 13 11)"/></svg>`;
+  }
+  function mysterySVG() {
+    return `<svg class="tok" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="22" r="17.5" fill="#4A16A6"/><circle cx="20" cy="19.5" r="17.5" fill="url(#tkq)"/><circle cx="20" cy="19.5" r="13" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-dasharray="3 3"/><text x="20" y="26.5" text-anchor="middle" font-family="'Baloo 2', system-ui, sans-serif" font-weight="800" font-size="20" fill="#fff">?</text></svg>`;
+  }
+  function coinChips(c) {
+    return c.map((n, r) => (n ? `<span class="cc" title="${RN[r]}">${coinSVG(r, 22)}<span>${fmtInt(n)}</span><span class="rc${r}">${RN[r]}</span></span>` : '')).join('');
+  }
+  function coinChipsCompact(c) {
+    return c.map((n, r) => (n ? `<span class="cc" title="${fmtInt(n)} ${RN[r]}">${coinSVG(r, 22)}<span>${fmtInt(n)}</span></span>` : '')).join('');
+  }
+
+  /* ================= avatar items ================= */
+  const ST = pts => pts.map(([x, y], i) => `<path class="fx-twinkle" style="animation-delay:${(i * 0.37).toFixed(2)}s" d="M${x} ${y - 4.5}L${x + 1.3} ${y - 1.3}L${x + 4.5} ${y}L${x + 1.3} ${y + 1.3}L${x} ${y + 4.5}L${x - 1.3} ${y + 1.3}L${x - 4.5} ${y}L${x - 1.3} ${y - 1.3}Z" fill="#fff"/>`).join('');
+  const STC = pts => pts.map(([x, y, c], i) => `<path class="fx-twinkle" style="animation-delay:${(i * 0.21).toFixed(2)}s" d="M${x} ${y - 7}L${x + 2} ${y - 2}L${x + 7} ${y}L${x + 2} ${y + 2}L${x} ${y + 7}L${x - 2} ${y + 2}L${x - 7} ${y}L${x - 2} ${y - 2}Z" fill="${c}"/>`).join('');
+  const DANCE_FX = STC([[28, 40, '#FF4F8B'], [172, 52, '#FFC233'], [20, 140, '#3EC1FF'], [180, 150, '#5BE38A'], [52, -8, '#9B5CFF'], [150, -4, '#FF8A3D'], [36, 206, '#FFC233'], [166, 200, '#FF4F8B']]);
+  const STRAPS = c => `<path d="M77 104C73 128 73 150 77 170M123 104C127 128 127 150 123 170" stroke="${c}" stroke-width="7" stroke-linecap="round" fill="none"/>`;
+  const WR = s => `<g transform="translate(0 36.8)">${s}</g>`;
+  const LONG_BACK = c => `<path d="M50 72C44 30 72 14 100 14C128 14 156 30 150 72L156 138C146 148 128 144 122 132H78C72 144 54 148 44 138Z" fill="${c}"/>`;
+  const BANGS = c => `<path d="M56 56C60 30 80 18 100 18C120 18 140 30 144 56C134 44 120 38 106 42C100 34 84 34 56 56Z" fill="${c}"/>`;
+  function curls(c) {
+    let s = '';
+    for (let i = 0; i < 9; i++) { const a = (200 + i * 17.5) * Math.PI / 180; s += `<circle cx="${(100 + 40 * Math.cos(a)).toFixed(1)}" cy="${(66 + 40 * Math.sin(a)).toFixed(1)}" r="13" fill="${c}"/>`; }
+    for (let i = 0; i < 5; i++) { const a = (230 + i * 20) * Math.PI / 180; s += `<circle cx="${(100 + 28 * Math.cos(a)).toFixed(1)}" cy="${(66 + 28 * Math.sin(a)).toFixed(1)}" r="12" fill="${c}"/>`; }
+    return s + '<circle cx="84" cy="30" r="4" fill="#fff" fill-opacity=".14"/><circle cx="112" cy="28" r="3.5" fill="#fff" fill-opacity=".14"/>';
+  }
+  function afroBack(c) {
+    let s = `<circle cx="100" cy="50" r="58" fill="${c}"/>`;
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; s += `<circle cx="${(100 + 56 * Math.cos(a)).toFixed(1)}" cy="${(50 + 56 * Math.sin(a)).toFixed(1)}" r="14" fill="${c}"/>`; }
+    return s;
+  }
+  function pants(id, name, r, n, fill, o = {}) {
+    const f = P => (typeof fill === 'function' ? fill(P) : fill);
+    return {
+      id, slot: 'pants', name, r, n, defs: o.defs,
+      lower: P => `<rect x="40" y="166" width="120" height="40" fill="${f(P)}"/><rect x="40" y="166" width="120" height="5" fill="#000" fill-opacity=".16"/>${o.lowerX ? o.lowerX(P) : ''}`,
+      legs: P => { const h = o.short ? 24 : 46; return `<rect x="67" y="176" width="29" height="${h}" rx="11" fill="${f(P)}"/><rect x="104" y="176" width="29" height="${h}" rx="11" fill="${f(P)}"/>${o.legsX ? o.legsX(P) : ''}`; }
+    };
+  }
+
+  const ITEMS = [
+    /* hats */
+    { id: 'hat_beanie', slot: 'hat', name: 'Beanie', r: 0, n: 5, head: () => `<path d="M56 50C56 24 76 12 100 12C124 12 144 24 144 50Z" fill="#E4572E"/><path d="M72 22C80 16 88 14 96 14" stroke="#fff" stroke-opacity=".25" stroke-width="4" stroke-linecap="round" fill="none"/><rect x="52" y="42" width="96" height="15" rx="7.5" fill="#B83A1B"/>${[60, 68, 76, 84, 92, 100, 108, 116, 124, 132, 140].map(x => `<line x1="${x}" y1="45" x2="${x}" y2="54" stroke="#000" stroke-opacity=".18" stroke-width="2"/>`).join('')}<circle cx="100" cy="10" r="10" fill="#FFD166"/>` },
+    { id: 'hat_cap', slot: 'hat', name: 'Baseball cap', r: 0, n: 7, head: () => `<g transform="translate(0 -3)"><path d="M58 48C58 22 78 12 100 12C122 12 142 22 142 48Z" fill="#2F6BFF"/><path d="M100 12V48" stroke="#1F4FCC" stroke-width="2"/><circle cx="100" cy="13" r="4" fill="#1F4FCC"/><path d="M50 49C70 39 130 39 150 49C152 57 140 61 100 59C60 61 48 57 50 49Z" fill="#1F4FCC"/></g>` },
+    { id: 'hat_party', slot: 'hat', name: 'Party hat', r: 1, n: 2, head: () => `<g transform="rotate(12 100 30)"><path d="M100 -22L77 34H123Z" fill="#FF5DA2"/><circle cx="96" cy="0" r="3" fill="#FFE066"/><circle cx="103" cy="-10" r="2.4" fill="#fff"/><circle cx="106" cy="14" r="3" fill="#fff"/><circle cx="90" cy="22" r="3" fill="#FFE066"/><circle cx="112" cy="28" r="3" fill="#FFE066"/><ellipse cx="100" cy="34" rx="25" ry="5" fill="#D63B80"/><circle cx="100" cy="-22" r="7" fill="#FFE066"/></g>` },
+    { id: 'hat_bucket', slot: 'hat', name: 'Bucket hat', r: 1, n: 3, head: () => `<path d="M62 44C62 22 80 13 100 13C120 13 138 22 138 44Z" fill="#7FB069"/><path d="M50 42H150L160 58C138 50 62 50 40 58Z" fill="#5E8C4D"/><path d="M64 41H136" stroke="#fff" stroke-opacity=".4" stroke-width="1.5" stroke-dasharray="3 3"/>` },
+    { id: 'hat_cowboy', slot: 'hat', name: 'Cowboy hat', r: 2, n: 3, head: () => `<g transform="translate(0 -8)"><path d="M68 48C66 20 78 4 90 8C96 12 104 12 110 8C122 4 134 20 132 48Z" fill="#A0673A"/><rect x="67" y="36" width="66" height="8" fill="#5B3A20"/><path d="M28 42C40 54 70 56 100 54C130 56 160 54 172 42C170 60 140 66 100 64C60 66 30 60 28 42Z" fill="#83522B"/></g>` },
+    { id: 'hat_top', slot: 'hat', name: 'Top hat', r: 3, n: 2, head: () => `<rect x="70" y="-20" width="60" height="62" rx="5" fill="#26232B"/><rect x="76" y="-14" width="6" height="44" rx="3" fill="#fff" fill-opacity=".12"/><rect x="70" y="27" width="60" height="9" fill="#D7263D"/><ellipse cx="100" cy="42" rx="46" ry="8" fill="#1B181F"/>` },
+    { id: 'hat_viking', slot: 'hat', name: 'Viking helmet', r: 4, n: 2, defs: P => `<linearGradient id="${P.p}-steel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EEF1F5"/><stop offset="1" stop-color="#8E99A6"/></linearGradient>`, head: P => `<path d="M60 34C42 28 32 10 38 -10C46 6 56 14 70 20Z" fill="#F4E7C7" stroke="#CDB98C" stroke-width="2"/><path d="M140 34C158 28 168 10 162 -10C154 6 144 14 130 20Z" fill="#F4E7C7" stroke="#CDB98C" stroke-width="2"/><path d="M56 50C56 22 76 10 100 10C124 10 144 22 144 50Z" fill="url(#${P.p}-steel)"/><rect x="96" y="10" width="8" height="36" fill="#B7792F"/><rect x="53" y="42" width="94" height="12" rx="4" fill="#B7792F"/>${[62, 78, 94, 106, 122, 138].map(x => `<circle cx="${x}" cy="48" r="2.2" fill="#F1C27D"/>`).join('')}` },
+    { id: 'hat_halo', slot: 'hat', name: 'Halo', r: 5, n: 1, head: () => `<g class="fx-float"><ellipse cx="100" cy="0" rx="30" ry="8" fill="none" stroke="#FFD34D" stroke-width="6" filter="url(#glow)"/><ellipse cx="100" cy="0" rx="30" ry="8" fill="none" stroke="#FFF6C9" stroke-width="2"/></g>` },
+
+    /* hair */
+    { id: 'hair_buzz', slot: 'hair', name: 'Buzz cut', r: 0, n: 4, head: () => `<path d="M56 62C54 34 74 18 100 18C126 18 146 34 144 62C134 46 118 40 100 40C82 40 66 46 56 62Z" fill="#3B2A20" fill-opacity=".9"/>` },
+    { id: 'hair_spiky', slot: 'hair', name: 'Spiky hair', r: 0, n: 6, head: () => `<path d="M56 58L58 30L70 38L74 14L86 30L94 6L104 28L114 8L120 30L132 16L136 38L146 32L144 58C134 44 118 38 100 38C82 38 66 44 56 58Z" fill="#2B2B33"/>` },
+    { id: 'hair_curly', slot: 'hair', name: 'Curly hair', r: 1, n: 3, head: () => curls('#5A3825') },
+    { id: 'hair_mohawk', slot: 'hair', name: 'Mohawk', r: 2, n: 2, head: () => `<path d="M86 44L80 -2L92 14L100 -18L108 14L120 -2L114 44Z" fill="#FF3FA4"/><path d="M88 44C90 30 110 30 112 44Z" fill="#C21C7A"/>` },
+    { id: 'hair_long', slot: 'hair', name: 'Long hair', r: 2, n: 3, hairBack: () => LONG_BACK('#8A4B2A'), head: () => BANGS('#8A4B2A') },
+    { id: 'hair_afro', slot: 'hair', name: 'Afro', r: 3, n: 2, hairBack: () => afroBack('#2E1E16'), head: () => `<path d="M56 58C54 32 74 16 100 16C126 16 146 32 144 58C134 44 118 38 100 38C82 38 66 44 56 58Z" fill="#2E1E16"/>` },
+    { id: 'hair_flame', slot: 'hair', name: 'Flame hair', r: 4, n: 2, defs: P => `<linearGradient id="${P.p}-fl" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FF3D2E"/><stop offset=".5" stop-color="#FF9F1C"/><stop offset="1" stop-color="#FFE66D"/></linearGradient>`, head: P => `<path class="fx-flicker" d="M58 50C54 30 66 18 64 0C76 12 80 24 82 32C84 14 92 4 90 -16C104 0 108 16 108 28C112 18 120 10 122 -4C134 12 142 30 138 50C126 40 112 36 100 36C86 36 70 40 58 50Z" fill="url(#${P.p}-fl)"/>` },
+    { id: 'hair_cosmic', slot: 'hair', name: 'Cosmic hair', r: 5, n: 1, defs: P => `<linearGradient id="${P.p}-cs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B2BD6"/><stop offset=".5" stop-color="#1BC7FF"/><stop offset="1" stop-color="#FF4FD8"/></linearGradient>`, hairBack: P => LONG_BACK(`url(#${P.p}-cs)`) + ST([[58, 92], [142, 96], [50, 118], [150, 124], [46, 134], [154, 130]]), head: P => BANGS(`url(#${P.p}-cs)`) + ST([[80, 28], [112, 24], [128, 40]]) },
+
+    /* eyewear */
+    { id: 'eyes_round', slot: 'eyes', name: 'Round glasses', r: 0, n: 4, head: () => `<g fill="none" stroke="#2A2A2E" stroke-width="3.2"><circle cx="85" cy="64" r="12" fill="#fff" fill-opacity=".18"/><circle cx="115" cy="64" r="12" fill="#fff" fill-opacity=".18"/><path d="M97 63Q100 60 103 63"/><path d="M73 62L57 57M127 62L143 57" stroke-linecap="round"/></g>` },
+    { id: 'eyes_sun', slot: 'eyes', name: 'Sunglasses', r: 0, n: 6, head: () => `<path d="M70 61L57 57M130 61L143 57" stroke="#17161C" stroke-width="3.5" stroke-linecap="round"/><rect x="70" y="55" width="28" height="18" rx="7" fill="#17161C"/><rect x="102" y="55" width="28" height="18" rx="7" fill="#17161C"/><rect x="96" y="59" width="8" height="3.5" rx="1.5" fill="#17161C"/><path d="M75 60L82 60M107 60L114 60" stroke="#fff" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round"/>` },
+    { id: 'eyes_3d', slot: 'eyes', name: '3D glasses', r: 1, n: 3, head: () => `<rect x="66" y="54" width="68" height="22" rx="5" fill="#F7F7F4" stroke="#D6D6D0" stroke-width="1.5"/><rect x="71" y="58" width="24" height="14" rx="3" fill="#E83D4F" fill-opacity=".92"/><rect x="105" y="58" width="24" height="14" rx="3" fill="#2E9BFF" fill-opacity=".92"/>` },
+    { id: 'eyes_heart', slot: 'eyes', name: 'Heart glasses', r: 2, n: 3, head: () => { const h = x => `<path d="M${x} 76C${x - 16} 66 ${x - 15} 52 ${x - 6} 53C${x - 3} 53 ${x} 56 ${x} 59C${x} 56 ${x + 3} 53 ${x + 6} 53C${x + 15} 52 ${x + 16} 66 ${x} 76Z" fill="#FF5FA2" stroke="#C2185B" stroke-width="2"/>`; return `${h(85)}${h(115)}<path d="M93 61Q100 57 107 61" stroke="#C2185B" stroke-width="2.5" fill="none"/>`; } },
+    { id: 'eyes_goggles', slot: 'eyes', name: 'Ski goggles', r: 3, n: 2, defs: P => `<linearGradient id="${P.p}-gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFC75F"/><stop offset=".5" stop-color="#FF5E8A"/><stop offset="1" stop-color="#7B3FF2"/></linearGradient>`, head: P => `<rect x="54" y="57" width="92" height="12" rx="4" fill="#2D2A38"/><rect x="64" y="50" width="72" height="28" rx="14" fill="url(#${P.p}-gg)" stroke="#1E1B26" stroke-width="3"/><path d="M74 58C84 54 96 54 104 56" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round" fill="none"/>` },
+    { id: 'eyes_visor', slot: 'eyes', name: 'Laser visor', r: 4, n: 2, defs: P => `<clipPath id="${P.p}-vz"><rect x="58" y="55" width="84" height="18" rx="9"/></clipPath>`, head: P => `<rect x="58" y="55" width="84" height="18" rx="9" fill="#FF2442" filter="url(#glow)"/><rect x="58" y="55" width="84" height="18" rx="9" fill="#FF5A6E"/><g clip-path="url(#${P.p}-vz)"><rect class="fx-scan" x="62" y="57" width="16" height="14" rx="7" fill="#fff" fill-opacity=".7"/></g>` },
+    { id: 'eyes_diamond', slot: 'eyes', name: 'Diamond shades', r: 5, n: 1, defs: P => `<linearGradient id="${P.p}-pr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9EF6FF"/><stop offset=".35" stop-color="#D7B6FF"/><stop offset=".7" stop-color="#FFC6E9"/><stop offset="1" stop-color="#B5FFD9"/></linearGradient>`, head: P => { const hex = x => { const pts = []; for (let i = 0; i < 6; i++) { const a = (i * 60 + 30) * Math.PI / 180; pts.push(`${(x + 14 * Math.cos(a)).toFixed(1)},${(64 + 12 * Math.sin(a)).toFixed(1)}`); } return `<polygon points="${pts.join(' ')}" fill="url(#${P.p}-pr)" stroke="#fff" stroke-width="2"/>`; }; return `<path d="M71 62L57 57M129 62L143 57" stroke="#E6E0FF" stroke-width="3" stroke-linecap="round"/>${hex(85)}${hex(115)}<path d="M98 63H102" stroke="#fff" stroke-width="3"/>${ST([[76, 56], [124, 70], [108, 54]])}`; } },
+
+    /* tops */
+    { id: 'top_tee', slot: 'top', name: 'Plain tee', r: 0, n: 5, color: '#F4F3EE', hem: 92, sleeve: 'short', torso: () => `<rect x="40" y="90" width="120" height="92" fill="#F4F3EE"/><rect x="40" y="178" width="120" height="5" fill="#000" fill-opacity=".07"/>` },
+    { id: 'top_stripe', slot: 'top', name: 'Striped tee', r: 0, n: 7, color: '#2B3A67', hem: 92, sleeve: 'short', torso: () => `<rect x="40" y="90" width="120" height="92" fill="#2B3A67"/>${[104, 118, 132, 146, 160, 174].map(y => `<rect x="40" y="${y}" width="120" height="6" fill="#F2F0E6"/>`).join('')}` },
+    { id: 'top_hoodie', slot: 'top', name: 'Hoodie', r: 1, n: 4, color: '#FF8A3D', hem: 100, sleeve: 'long', cuff: '#E06A20', torso: () => `<rect x="40" y="90" width="120" height="100" fill="#FF8A3D"/><rect x="40" y="181" width="120" height="9" fill="#E06A20"/><rect x="72" y="148" width="56" height="26" rx="10" fill="#E9782E"/><path d="M92 114L90 136M108 114L110 136" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="90" cy="137" r="2.6" fill="#fff"/><circle cx="110" cy="137" r="2.6" fill="#fff"/>`, collar: () => `<ellipse cx="100" cy="112" rx="38" ry="11" fill="#E06A20"/>` },
+    { id: 'top_jersey', slot: 'top', name: 'Jersey', r: 2, n: 3, color: '#E63946', hem: 94, sleeve: 'none', torso: () => `<rect x="40" y="90" width="120" height="94" fill="#E63946"/><rect x="40" y="90" width="16" height="94" fill="#F7F7F2"/><rect x="144" y="90" width="16" height="94" fill="#F7F7F2"/><text x="100" y="170" text-anchor="middle" font-family="'Baloo 2', system-ui, sans-serif" font-weight="800" font-size="34" fill="#fff" stroke="#B3202D" stroke-width="2" paint-order="stroke">00</text>`, collar: () => `<path d="M74 106Q100 128 126 106" stroke="#F7F7F2" stroke-width="5" fill="none" stroke-linecap="round"/>` },
+    { id: 'top_tux', slot: 'top', name: 'Tuxedo', r: 3, n: 2, color: '#1C1B22', hem: 100, sleeve: 'long', cuff: '#FFFFFF', torso: () => `<rect x="40" y="90" width="120" height="100" fill="#1C1B22"/><path d="M84 104H116L100 172Z" fill="#FFFFFF"/><path d="M84 104L100 172L74 150Z" fill="#2E2C37"/><path d="M116 104L100 172L126 150Z" fill="#2E2C37"/><circle cx="100" cy="180" r="2.6" fill="#55525F"/><circle cx="100" cy="140" r="1.8" fill="#1C1B22"/><circle cx="100" cy="152" r="1.8" fill="#1C1B22"/>`, collar: () => `<path d="M100 117L87 109V125Z" fill="#D7263D"/><path d="M100 117L113 109V125Z" fill="#D7263D"/><circle cx="100" cy="117" r="3.6" fill="#A81C2E"/>` },
+    { id: 'top_varsity', slot: 'top', name: 'Varsity jacket', r: 4, n: 2, color: '#1D3A8A', hem: 100, sleeve: 'long', sleeveColor: '#F1E6C8', cuff: '#1D3A8A', torso: () => `<rect x="40" y="90" width="120" height="100" fill="#1D3A8A"/><rect x="40" y="177" width="120" height="11" fill="#F1E6C8"/><rect x="40" y="181" width="120" height="3" fill="#1D3A8A"/><line x1="100" y1="112" x2="100" y2="186" stroke="#000" stroke-opacity=".25" stroke-width="1.5"/>${[126, 140, 154, 168].map(y => `<circle cx="100" cy="${y}" r="2.6" fill="#F1E6C8"/>`).join('')}<text x="80" y="150" text-anchor="middle" font-family="'Baloo 2', system-ui, sans-serif" font-weight="800" font-size="28" fill="#F1E6C8" stroke="#C9A227" stroke-width="1.6" paint-order="stroke">S</text>`, collar: () => `<path d="M72 108Q100 128 128 108" stroke="#F1E6C8" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M72 108Q100 128 128 108" stroke="#1D3A8A" stroke-width="2" fill="none" stroke-linecap="round"/>` },
+    { id: 'top_lava', slot: 'top', name: 'Lava jacket', r: 5, n: 1, color: '#2A1F25', hem: 100, sleeve: 'long', cuff: '#3A2A31', torso: () => `<rect x="40" y="90" width="120" height="100" fill="#2A1F25"/><g class="fx-pulse" stroke="#FF7A1A" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"><path d="M66 120L78 132L72 146L86 160"/><path d="M128 116L118 130L126 142L114 158L120 172"/><path d="M92 170L100 160L108 172"/><path d="M84 128L96 136"/></g>`, collar: () => `<path d="M72 108Q100 126 128 108" stroke="#3A2A31" stroke-width="6" fill="none" stroke-linecap="round"/>` },
+
+    /* pants */
+    pants('pants_shorts', 'Gym shorts', 0, 4, '#3A86FF', { short: true, legsX: () => `<path d="M70 182V196M130 182V196" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>` }),
+    pants('pants_jeans', 'Jeans', 0, 6, '#3D5A98', { lowerX: () => `<circle cx="100" cy="177" r="2.4" fill="#C9A227"/>`, legsX: () => `<rect x="67" y="213" width="29" height="7" rx="3" fill="#5677B8"/><rect x="104" y="213" width="29" height="7" rx="3" fill="#5677B8"/><path d="M81 180V211M119 180V211" stroke="#2F4778" stroke-width="1.5" stroke-dasharray="3 3"/>` }),
+    pants('pants_cargo', 'Cargo pants', 1, 3, '#7A8450', { legsX: () => `<rect x="62" y="190" width="12" height="15" rx="3" fill="#66703F" stroke="#525A32" stroke-width="1.2"/><rect x="126" y="190" width="12" height="15" rx="3" fill="#66703F" stroke="#525A32" stroke-width="1.2"/>` }),
+    pants('pants_track', 'Track pants', 2, 2, '#1F1F25', { legsX: () => `<path d="M70 178V219M74 178V219M126 178V219M130 178V219" stroke="#fff" stroke-width="2" stroke-linecap="round"/>` }),
+    pants('pants_check', 'Checkered pants', 3, 2, 'url(#pat-check)'),
+    pants('pants_gold', 'Gold pants', 4, 2, P => `url(#${P.p}-gold)`, { defs: P => `<linearGradient id="${P.p}-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1A8"/><stop offset=".5" stop-color="#E3B341"/><stop offset="1" stop-color="#A87A14"/></linearGradient>`, legsX: () => `<rect x="72" y="180" width="5" height="34" rx="2.5" fill="#fff" fill-opacity=".45"/><rect x="109" y="180" width="5" height="34" rx="2.5" fill="#fff" fill-opacity=".45"/>` }),
+    pants('pants_star', 'Starlight pants', 5, 1, P => `url(#${P.p}-sky)`, { defs: P => `<linearGradient id="${P.p}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B1B6B"/><stop offset="1" stop-color="#7B3FF2"/></linearGradient>`, legsX: () => ST([[76, 188], [88, 206], [112, 192], [124, 210], [80, 216]]) }),
+
+    /* backpacks */
+    { id: 'back_basic', slot: 'back', name: 'Backpack', r: 0, n: 5, back: () => `<rect x="47" y="102" width="106" height="86" rx="32" fill="#2EC4B6"/><rect x="47" y="150" width="106" height="20" fill="#26A69A"/>`, straps: () => STRAPS('#1F8F84') },
+    { id: 'back_teddy', slot: 'back', name: 'Teddy backpack', r: 1, n: 3, back: () => `<rect x="49" y="104" width="102" height="82" rx="30" fill="#C08552"/><circle cx="137" cy="84" r="7" fill="#A9744F"/><circle cx="163" cy="84" r="7" fill="#A9744F"/><circle cx="150" cy="98" r="18" fill="#A9744F"/><ellipse cx="150" cy="104" rx="8" ry="6" fill="#E7C9A9"/><circle cx="144" cy="94" r="2.2" fill="#2B1B12"/><circle cx="156" cy="94" r="2.2" fill="#2B1B12"/><ellipse cx="150" cy="101.5" rx="2.6" ry="2" fill="#2B1B12"/>`, straps: () => STRAPS('#8C5A33') },
+    { id: 'back_shell', slot: 'back', name: 'Turtle shell', r: 2, n: 3, back: () => `<ellipse cx="100" cy="146" rx="60" ry="58" fill="#3FA34D" stroke="#2C7A38" stroke-width="5"/>${[[44, 120], [42, 150], [46, 178], [156, 120], [158, 150], [154, 178], [70, 96], [130, 96], [100, 146], [76, 140], [124, 140]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="#5BBF68" stroke="#2C7A38" stroke-width="2.5"/>`).join('')}`, straps: () => STRAPS('#2C7A38') },
+    { id: 'back_guitar', slot: 'back', name: 'Guitar', r: 3, n: 2, back: () => `<g transform="rotate(-32 100 140)"><rect x="95" y="14" width="10" height="110" rx="3" fill="#6B3E26"/><rect x="92" y="4" width="16" height="18" rx="4" fill="#4A2A19"/><circle cx="100" cy="150" r="30" fill="#C8553D"/><circle cx="100" cy="118" r="22" fill="#C8553D"/><circle cx="100" cy="138" r="7" fill="#3A1F14"/><path d="M98 20V150M102 20V150" stroke="#E8DCC8" stroke-width=".8"/></g>`, straps: () => `<path d="M72 112L136 184" stroke="#2D2D33" stroke-width="7" stroke-linecap="round"/>` },
+    { id: 'back_jet', slot: 'back', name: 'Jetpack', r: 4, n: 2, defs: P => `<linearGradient id="${P.p}-tank" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9AA5B1"/><stop offset=".45" stop-color="#F1F4F8"/><stop offset="1" stop-color="#7C8794"/></linearGradient><linearGradient id="${P.p}-jf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE66D"/><stop offset=".5" stop-color="#FF9F1C"/><stop offset="1" stop-color="#FF3D2E" stop-opacity="0"/></linearGradient>`, back: P => `<path class="fx-jet" d="M40 176Q49 216 58 176Z" fill="url(#${P.p}-jf)"/><path class="fx-jet" d="M142 176Q151 216 160 176Z" fill="url(#${P.p}-jf)"/><rect x="35" y="104" width="28" height="70" rx="13" fill="url(#${P.p}-tank)"/><rect x="137" y="104" width="28" height="70" rx="13" fill="url(#${P.p}-tank)"/><rect x="40" y="168" width="18" height="10" rx="3" fill="#5C6570"/><rect x="142" y="168" width="18" height="10" rx="3" fill="#5C6570"/><rect x="58" y="118" width="84" height="40" rx="12" fill="#4B5563"/>`, straps: () => STRAPS('#374151') },
+    { id: 'back_wings', slot: 'back', name: 'Angel wings', r: 5, n: 1, back: () => `<g class="fx-wing-l"><path d="M64 124C26 92 0 110 4 146C12 140 20 144 24 154C30 146 40 146 46 156C50 144 58 138 66 136Z" fill="#FFFFFF" stroke="#C9D4EC" stroke-width="2.5"/><path d="M58 128C40 116 24 118 16 128M56 134C44 128 34 130 28 140" stroke="#C9D4EC" stroke-width="2" fill="none" stroke-linecap="round"/></g><g class="fx-wing-r"><path d="M136 124C174 92 200 110 196 146C188 140 180 144 176 154C170 146 160 146 154 156C150 144 142 138 134 136Z" fill="#FFFFFF" stroke="#C9D4EC" stroke-width="2.5"/><path d="M142 128C160 116 176 118 184 128M144 134C156 128 166 130 172 140" stroke="#C9D4EC" stroke-width="2" fill="none" stroke-linecap="round"/></g>` },
+
+    /* watches (drawn on the left wrist, in arm coordinates) */
+    { id: 'watch_plastic', slot: 'watch', name: 'Plastic watch', r: 0, n: 3, wrist: () => WR(`<rect x="-14" y="-5.5" width="28" height="11" rx="4" fill="#FFD23F"/><circle r="6.8" fill="#fff" stroke="#333" stroke-width="1.3"/><path d="M0 0V-4M0 0H3" stroke="#333" stroke-width="1.2" stroke-linecap="round"/>`) },
+    { id: 'watch_sport', slot: 'watch', name: 'Sports watch', r: 1, n: 2, wrist: () => WR(`<rect x="-14" y="-5.5" width="28" height="11" rx="4" fill="#23232A"/><rect x="-8" y="-6.5" width="16" height="13" rx="3.5" fill="#101418" stroke="#3A3F47" stroke-width="1.2"/><path d="M-4.5 0H4.5" stroke="#39FF8E" stroke-width="2.2" stroke-linecap="round"/>`) },
+    { id: 'watch_smart', slot: 'watch', name: 'Smartwatch', r: 2, n: 2, wrist: () => WR(`<rect x="-14" y="-5.5" width="28" height="11" rx="4" fill="#1E1E24"/><rect x="-9" y="-9" width="18" height="18" rx="5.5" fill="#0B0B12" stroke="#555A66" stroke-width="1.2"/><rect class="fx-pulse" x="-6" y="-6" width="12" height="12" rx="3.5" fill="#3EC1FF"/>`) },
+    { id: 'watch_gold', slot: 'watch', name: 'Gold watch', r: 3, n: 2, defs: P => `<linearGradient id="${P.p}-wg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1A8"/><stop offset=".5" stop-color="#E3B341"/><stop offset="1" stop-color="#9E7212"/></linearGradient>`, wrist: P => WR(`<rect x="-15" y="-5.5" width="30" height="11" rx="3" fill="url(#${P.p}-wg)"/><path d="M-11 -5.5V5.5M-7 -5.5V5.5M7 -5.5V5.5M11 -5.5V5.5" stroke="#9E7212" stroke-width="1"/><circle r="7.6" fill="#FFF8E1" stroke="url(#${P.p}-wg)" stroke-width="2.4"/><path d="M0 0V-4.5M0 0H3.2" stroke="#5A4510" stroke-width="1.2" stroke-linecap="round"/>`) },
+    { id: 'watch_diamond', slot: 'watch', name: 'Diamond watch', r: 4, n: 1, wrist: () => WR(`<rect x="-15" y="-5.5" width="30" height="11" rx="3" fill="#D5DDE5"/><circle r="8.2" fill="#E8F7FF" stroke="#BFE7FF" stroke-width="2.4"/>${[0, 90, 180, 270].map(a => `<path transform="rotate(${a})" d="M0 -11L1.8 -9.2L0 -7.4L-1.8 -9.2Z" fill="#fff" stroke="#9CD6FF" stroke-width=".6"/>`).join('')}${ST([[-8, -8], [8, 6]])}`) },
+    { id: 'watch_warp', slot: 'watch', name: 'Time-warp watch', r: 5, n: 1, wrist: () => WR(`<rect x="-15" y="-5.5" width="30" height="11" rx="3" fill="#2B1B4F"/><circle r="8.8" fill="url(#rainbow)" filter="url(#glow)"/><circle r="8.8" fill="url(#rainbow)"/><line x1="0" y1="0" x2="0" y2="-6.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="1.4s" repeatCount="indefinite"/></line>`) },
+
+    /* emotes */
+    { id: 'emote_wave', slot: 'emote', name: 'Wave', r: -1, n: 0, free: true, emote: 'wave' },
+    { id: 'emote_hop', slot: 'emote', name: 'Hop', r: 0, n: 4, emote: 'hop' },
+    { id: 'emote_wiggle', slot: 'emote', name: 'Wiggle', r: 1, n: 3, emote: 'wiggle' },
+    { id: 'emote_spin', slot: 'emote', name: 'Spin', r: 2, n: 2, emote: 'spin' },
+    { id: 'emote_flex', slot: 'emote', name: 'Flex', r: 3, n: 2, emote: 'flex' },
+    { id: 'emote_splat', slot: 'emote', name: 'Splat', r: 4, n: 1, emote: 'splat' },
+    { id: 'emote_dance', slot: 'emote', name: 'Jelly dance', r: 5, n: 1, emote: 'dance' }
+  ];
+  const CAT = {};
+  ITEMS.forEach(it => { CAT[it.id] = it; });
+  const priceOf = it => { const c = z(); if (!it.free) c[it.r] = it.n; return c; };
+  const sameC = (a, b) => a.length === 6 && a.every((n, r) => n === b[r]);
+
+  /* ================= avatar ================= */
+  let AVN = 0;
+  function faceSVG(look) {
+    const ink = '#1E1B24';
+    let e;
+    switch (look.eyes) {
+      case 'happy': e = `<path d="M78 66Q85 57 92 66M108 66Q115 57 122 66" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`; break;
+      case 'sleepy': e = `<path d="M78 63Q85 69 92 63M108 63Q115 69 122 63" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`; break;
+      case 'wide': e = `<circle cx="85" cy="63" r="9" fill="#fff"/><circle cx="115" cy="63" r="9" fill="#fff"/><circle cx="86.5" cy="64.5" r="4.6" fill="${ink}"/><circle cx="116.5" cy="64.5" r="4.6" fill="${ink}"/>`; break;
+      case 'angry': e = `<circle cx="85" cy="66" r="5.5" fill="${ink}"/><circle cx="115" cy="66" r="5.5" fill="${ink}"/><path d="M76 54L93 59M124 54L107 59" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>`; break;
+      case 'wink': e = `<circle cx="85" cy="64" r="5.5" fill="${ink}"/><circle cx="86.6" cy="62.2" r="1.6" fill="#fff"/><path d="M108 65Q115 59 122 65" stroke="${ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`; break;
+      default: e = `<circle cx="85" cy="64" r="5.5" fill="${ink}"/><circle cx="115" cy="64" r="5.5" fill="${ink}"/><circle cx="86.6" cy="62.2" r="1.6" fill="#fff"/><circle cx="116.6" cy="62.2" r="1.6" fill="#fff"/>`;
+    }
+    let m = '';
+    switch (look.mouth) {
+      case 'grin': m = `<path d="M87 80H113Q112 95 100 95Q88 95 87 80Z" fill="${ink}"/><path d="M90 81H110V85H90Z" fill="#fff"/>`; break;
+      case 'o': m = `<ellipse cx="100" cy="86" rx="5.5" ry="6.5" fill="${ink}"/>`; break;
+      case 'flat': m = `<path d="M92 85H108" stroke="${ink}" stroke-width="3.6" stroke-linecap="round"/>`; break;
+      case 'tongue': m = `<path d="M90 82Q100 90 110 82" stroke="${ink}" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M96 86Q96 94 101 94Q106 94 106 86Z" fill="#FF6F91"/>`; break;
+      case 'none': m = ''; break;
+      default: m = `<path d="M90 82Q100 91 110 82" stroke="${ink}" stroke-width="3.6" fill="none" stroke-linecap="round"/>`;
+    }
+    const blush = look.blush ? '<ellipse cx="72" cy="78" rx="7" ry="4.5" fill="#FF7FA0" fill-opacity=".45"/><ellipse cx="128" cy="78" rx="7" ry="4.5" fill="#FF7FA0" fill-opacity=".45"/>' : '';
+    return e + m + blush;
+  }
+
+  function armSVG(side, skin, top, watch, P) {
+    const left = side === 'l';
+    const tr = left ? 'translate(62 128) rotate(17.6)' : 'translate(138 128) rotate(-17.6)';
+    let s = `<rect x="-11" y="-11" width="22" height="68" rx="11" fill="${skin}"/>`;
+    if (top && top.sleeve && top.sleeve !== 'none') {
+      const c = top.sleeveColor || top.color;
+      if (top.sleeve === 'long') {
+        s += `<rect x="-12.8" y="-12.8" width="25.6" height="57.6" rx="12.8" fill="${c}"/>`;
+        if (top.cuff) s += `<rect x="-12.8" y="28" width="25.6" height="16.8" rx="8" fill="${top.cuff}"/>`;
+      } else {
+        s += `<rect x="-13.5" y="-13" width="27" height="40" rx="13" fill="${c}"/>`;
+      }
+    }
+    s += `<circle cx="0" cy="50" r="12.5" fill="${skin}"/>`;
+    if (left && watch && watch.wrist) s += watch.wrist(P);
+    return `<g class="av-arm av-arm-${side}"><g transform="${tr}">${s}</g></g>`;
+  }
+
+  function avatarSVG(look, eq, opts) {
+    const o = Object.assign({ crop: '0 -24 200 268', back: false, cls: '', label: 'Avatar', fx: true }, opts || {});
+    look = look || DEFAULT_LOOK;
+    const p = 'a' + (++AVN);
+    const col = (BODY[look.color] || BODY.grape).c;
+    const P = { p, base: col };
+    const skin = `url(#${p}-sk)`;
+    const pick = s => { const id = eq && eq[s]; const it = id && CAT[id]; return it && it.slot === s ? it : null; };
+    const hat = pick('hat'), hair = pick('hair'), eyes = pick('eyes'), top = pick('top'), pnt = pick('pants'), bk = pick('back'), watch = pick('watch');
+    const worn = [hat, hair, eyes, top, pnt, bk, watch].filter(Boolean);
+    const call = (it, k) => (it && it[k] ? it[k](P) : '');
+    const clip = s => (s ? `<g clip-path="url(#${p}-tc)">${s}</g>` : '');
+    const defs = `<defs><radialGradient id="${p}-sk" cx="36%" cy="28%" r="80%"><stop offset="0" stop-color="${mix(col, '#ffffff', 0.42)}"/><stop offset=".55" stop-color="${col}"/><stop offset="1" stop-color="${mix(col, '#000000', 0.2)}"/></radialGradient><clipPath id="${p}-tc"><path d="${TORSO}"/></clipPath>${worn.map(it => call(it, 'defs')).join('')}</defs>`;
+    const legs = `<g class="av-legs"><rect x="70" y="176" width="24" height="50" rx="12" fill="${skin}"/><rect x="106" y="176" width="24" height="50" rx="12" fill="${skin}"/>${call(pnt, 'legs')}<ellipse cx="80" cy="226" rx="15" ry="9" fill="${skin}"/><ellipse cx="120" cy="226" rx="15" ry="9" fill="${skin}"/></g>`;
+    const topBack = top ? `<rect x="40" y="90" width="120" height="${top.hem || 92}" fill="${top.color}"/>` : '';
+    const torso = `<g class="av-torso"><path d="${TORSO}" fill="${skin}"/><ellipse cx="76" cy="134" rx="9" ry="17" fill="#fff" fill-opacity=".2" transform="rotate(18 76 134)"/>${clip(call(pnt, 'lower') + (o.back ? topBack : call(top, 'torso') + call(bk, 'straps')))}</g>`;
+    const head = `<g class="av-head"><circle cx="100" cy="66" r="45" fill="${skin}"/><ellipse cx="80" cy="41" rx="14" ry="8" fill="#fff" fill-opacity=".38" transform="rotate(-24 80 41)"/>${o.back ? call(hair, 'hairBack') : faceSVG(look)}${call(hair, 'head')}${o.back ? '' : call(eyes, 'head')}${call(hat, 'head')}</g>`;
+    const arms = armSVG('l', skin, top, watch, P) + armSVG('r', skin, top, null, P);
+    const body = o.back
+      ? `${legs}${torso}<g class="av-pack">${call(bk, 'back')}</g>${arms}${head}`
+      : `<g class="av-backlayer">${call(bk, 'back')}${call(hair, 'hairBack')}</g>${legs}${torso}<g class="av-collar">${call(top, 'collar')}</g>${arms}${head}`;
+    return `<svg class="av ${o.cls}" viewBox="${o.crop}" role="img" aria-label="${esc(o.label)}" xmlns="http://www.w3.org/2000/svg">${defs}<ellipse class="av-shadow" cx="100" cy="234" rx="48" ry="7" fill="#000" fill-opacity=".14"/><g class="av-all"><g class="av-jelly">${body}</g></g>${o.fx ? `<g class="av-fx">${DANCE_FX}</g>` : ''}</svg>`;
+  }
+
+  function thumbSVG(itemId, look, label) {
+    const it = CAT[itemId];
+    if (!it) return '';
+    const eq = it.slot === 'emote' ? {} : { [it.slot]: itemId };
+    return avatarSVG(look, eq, { crop: CROP[it.slot], back: it.slot === 'back', cls: 'still', fx: false, label: label || it.name });
+  }
+
+  function playEmote(svg, name) {
+    if (!svg || !EMOTE_MS[name]) return;
+    Object.keys(EMOTE_MS).forEach(k => svg.classList.remove('emote-' + k));
+    void svg.getBoundingClientRect();
+    svg.classList.add('emote-' + name);
+    clearTimeout(svg._emT);
+    svg._emT = setTimeout(() => svg.classList.remove('emote-' + name), EMOTE_MS[name] + 80);
+  }
+
+  /* ================= ledger replay ================= */
+  const okCoins = c => Array.isArray(c) && c.length === 6 && c.every(n => Number.isInteger(n) && n >= 0 && n <= SUPPLY);
+  const okItems = a => Array.isArray(a) && a.length <= 24 && a.every(s => typeof s === 'string' && s.length < 160) && new Set(a).size === a.length;
+  const str = n => (typeof n === 'string' ? n.slice(0, 120) : '');
+
+  function replay(cfg, pl) {
+    const issuer = cfg.issuer;
+    const bal = Object.create(null);
+    const get = u => bal[u] || (bal[u] = z());
+    bal[issuer] = cfg.caps.slice();
+    const items = Object.create(null);
+    const offers = Object.create(null);
+    const events = [];
+    const bad = Object.create(null);
+    const all = [];
+    for (const u of Object.keys(pl)) {
+      const p = pl[u];
+      if (!p || !Array.isArray(p.log)) continue;
+      const seen = new Set();
+      for (const e of p.log) {
+        if (!e || typeof e.i !== 'string' || seen.has(e.i) || typeof e.t !== 'number' || typeof e.k !== 'string') continue;
+        seen.add(e.i);
+        all.push({ e, a: u, key: u + ':' + e.i });
+      }
+    }
+    all.sort((x, y) => (x.e.t - y.e.t) || (x.a < y.a ? -1 : x.a > y.a ? 1 : 0) || ((x.e.q || 0) - (y.e.q || 0)));
+    const has = (u, c) => { const b = get(u); return c.every((n, r) => b[r] >= n); };
+    const move = (f, t, c) => { const bf = get(f), bt = get(t); c.forEach((n, r) => { bf[r] -= n; bt[r] += n; }); };
+    const owns = (u, list) => list.every(id => items[id] && items[id].owner === u);
+    let maxT = 0;
+    for (const { e, a, key } of all) {
+      if (e.t > maxT) maxT = e.t;
+      if (e.k === 'send') {
+        if (!pl[e.to] || e.to === a) { bad[key] = 'nobody'; continue; }
+        if (!okCoins(e.c) || sumC(e.c) < 1) { bad[key] = 'shape'; continue; }
+        if (!has(a, e.c)) { bad[key] = 'funds'; continue; }
+        move(a, e.to, e.c);
+        events.push({ k: 'send', key, a, to: e.to, c: e.c.slice(), n: str(e.n), t: e.t, drop: a === issuer });
+      } else if (e.k === 'buy') {
+        const it = CAT[e.it];
+        if (!it || it.free) { bad[key] = 'item'; continue; }
+        const price = priceOf(it);
+        if (!okCoins(e.c) || !sameC(e.c, price)) { bad[key] = 'price'; continue; }
+        if (!has(a, price)) { bad[key] = 'funds'; continue; }
+        move(a, issuer, price);
+        items[key] = { it: e.it, owner: a, t: e.t };
+        events.push({ k: 'buy', key, a, it: e.it, t: e.t });
+      } else if (e.k === 'offer') {
+        if (!pl[e.to] || e.to === a) { bad[key] = 'nobody'; continue; }
+        const gc = e.gc || z(), wc = e.wc || z(), gi = e.gi || [], wi = e.wi || [];
+        if (!okCoins(gc) || !okCoins(wc) || !okItems(gi) || !okItems(wi)) { bad[key] = 'shape'; continue; }
+        if (sumC(gc) + gi.length < 1 || sumC(wc) + wi.length < 1) { bad[key] = 'empty'; continue; }
+        offers[key] = { key, from: a, to: e.to, gc: gc.slice(), wc: wc.slice(), gi: gi.slice(), wi: wi.slice(), n: str(e.n), t: e.t, status: 'open', end: 0, why: '' };
+      } else if (e.k === 'cancel' || e.k === 'decline' || e.k === 'accept') {
+        const o = offers[e.o];
+        if (!o || o.status !== 'open') { bad[key] = 'closed'; continue; }
+        if (e.k === 'cancel') {
+          if (o.from !== a) { bad[key] = 'who'; continue; }
+          o.status = 'cancelled'; o.end = e.t; continue;
+        }
+        if (o.to !== a) { bad[key] = 'who'; continue; }
+        if (e.k === 'decline') { o.status = 'declined'; o.end = e.t; continue; }
+        o.end = e.t;
+        if (!has(o.from, o.gc)) { o.status = 'failed'; o.why = 'from-coins'; continue; }
+        if (!has(o.to, o.wc)) { o.status = 'failed'; o.why = 'to-coins'; continue; }
+        if (!owns(o.from, o.gi)) { o.status = 'failed'; o.why = 'from-items'; continue; }
+        if (!owns(o.to, o.wi)) { o.status = 'failed'; o.why = 'to-items'; continue; }
+        move(o.from, o.to, o.gc);
+        move(o.to, o.from, o.wc);
+        o.gi.forEach(id => { items[id].owner = o.to; });
+        o.wi.forEach(id => { items[id].owner = o.from; });
+        o.status = 'done';
+        events.push({ k: 'trade', key, a: o.from, to: o.to, gc: o.gc, wc: o.wc, gi: o.gi.map(id => items[id].it), wi: o.wi.map(id => items[id].it), t: e.t });
+      } else {
+        bad[key] = 'kind';
+      }
+    }
+    return { bal, items, offers, events, bad, maxT, issuer };
+  }
+
+  /* ================= state ================= */
+  const EMAIL_DOMAIN = '@scobbbucks.example.com';
+  let FB = null, auth = null, fs = null, BANK = '';
+  let uid = null, uname = '', isOwner = false, authed = false, authReady = false;
+  let config = null, configLoaded = false;
+  let players = {}, playersLoaded = false;
+  let entriesSnap = {}, entriesLoaded = false;
+  const pendingEntries = new Map();
+  let meDoc = null, creatingProfile = false, pendingSignup = null, sessionSignup = null, phoneHashing = false;
+  let priv = { seen: [] }, privLoaded = false;
+  let L = null;
+  let readOnly = false;
+  let playerRef = null, privRef = null;
+  let lastLocalT = 0;
+  let unsubs = [];
+  const ui = { fatal: '', screen: 'loading', tab: 'wallet', shopCat: 'hat', closetBack: false, lookDraft: null, editingLook: false, noAccess: false, authMode: 'login' };
+
+  const validConfig = c => !!(c && typeof c.issuer === 'string' && Array.isArray(c.caps) && c.caps.length === 6 && sumC(c.caps) === SUPPLY && typeof c.salt === 'string');
+  function allEntries() {
+    const m = new Map();
+    for (const k in entriesSnap) m.set(k, entriesSnap[k]);
+    for (const [k, e] of pendingEntries) if (!m.has(k)) m.set(k, e);
+    return [...m.values()];
+  }
+  const myEntries = () => allEntries().filter(e => e.a === uid);
+  function allPlayers() {
+    const logs = {};
+    for (const e of allEntries()) (logs[e.a] || (logs[e.a] = [])).push(e);
+    const o = {};
+    for (const u of Object.keys(players)) o[u] = Object.assign({}, players[u], { log: logs[u] || [] });
+    if (meDoc) o[uid] = Object.assign({}, meDoc, { log: logs[uid] || [] });
+    return o;
+  }
+  const P_ = u => (u === uid && meDoc ? meDoc : players[u]);
+  const nameOf = u => { const p = P_(u); return p && p.username ? '@' + p.username : 'someone'; };
+  const lookOf = u => { const p = P_(u); return (p && p.avatar) || DEFAULT_LOOK; };
+  function balOf(u) { return L && L.bal[u] ? L.bal[u].slice() : z(); }
+  function reservedOf(u) {
+    const c = z(), it = new Set();
+    if (L) for (const k in L.offers) { const o = L.offers[k]; if (o.status === 'open' && o.from === u) { o.gc.forEach((n, r) => { c[r] += n; }); o.gi.forEach(i => it.add(i)); } }
+    return { c, it };
+  }
+  function availOf(u) { const b = balOf(u), rs = reservedOf(u).c; return b.map((n, r) => Math.max(0, n - rs[r])); }
+  function itemsOf(u) { const out = []; if (L) for (const id in L.items) if (L.items[id].owner === u) out.push({ id, it: L.items[id].it, t: L.items[id].t }); return out.sort((a, b) => b.t - a.t); }
+  function availItemsOf(u) { const rs = reservedOf(u).it; return itemsOf(u).filter(x => !rs.has(x.id)); }
+  function ownedCount(u, itemId) { return itemsOf(u).filter(x => x.it === itemId).length; }
+  function validInst(u, inst) { return !!(inst && L && L.items[inst] && L.items[inst].owner === u); }
+  function equipIds(u) {
+    const p = P_(u), out = {};
+    if (!p || !p.equip || !L) return out;
+    for (const s of SLOTS) { if (s === 'emote') continue; const inst = p.equip[s]; if (validInst(u, inst)) out[s] = L.items[inst].it; }
+    return out;
+  }
+  function emoteOf(u) { const p = P_(u); const inst = p && p.equip && p.equip.emote; return validInst(u, inst) ? CAT[L.items[inst].it].emote : 'wave'; }
+  function ava(u, opts) { return avatarSVG(lookOf(u), equipIds(u), Object.assign({ label: nameOf(u) }, opts || {})); }
+  function headBubble(u, s) { return `<span class="hb" style="width:${s}px;height:${s}px">${ava(u, { crop: HEAD_CROP, cls: 'still', fx: false })}</span>`; }
+
+  function unopened() {
+    if (!L || !meDoc || !privLoaded) return { count: 0, list: [] };
+    const seen = new Set(priv.seen || []);
+    const list = L.events.filter(ev => ev.k === 'send' && ev.to === uid && !seen.has(ev.key) && ev.t >= (meDoc.joinedAt || 0) - 120000);
+    return { count: list.reduce((a, ev) => a + sumC(ev.c), 0), list };
+  }
+  const incomingOpen = () => (L ? Object.values(L.offers).filter(o => o.status === 'open' && o.to === uid).sort((a, b) => b.t - a.t) : []);
+
+  /* ================= saving ================= */
+  const wq = { chain: Promise.resolve(), queued: false };
+  const pq = { chain: Promise.resolve(), queued: false };
+  function queueSave(q, refFn, bodyFn) {
+    if (q.queued) return;
+    q.queued = true;
+    q.chain = q.chain.then(async () => {
+      q.queued = false;
+      const ref = refFn();
+      const body = bodyFn();
+      if (!ref || !body) return;
+      const ok = await writeWith(() => ref.set(body));
+      if (ok === 'retry') setTimeout(() => queueSave(q, refFn, bodyFn), 5000);
+    }).catch(() => {});
+  }
+  const savePlayer = () => queueSave(wq, () => playerRef, () => (meDoc ? clone(meDoc) : null));
+  const savePriv = () => queueSave(pq, () => privRef, () => clone(priv));
+  async function writeWith(fn) {
+    for (let a = 0; a < 3; a++) {
+      try { await fn(); return true; } catch (e) {
+        const code = e && e.code;
+        if (TERMINAL.includes(code)) { onDenied(code); return false; }
+        await sleep(500 * (a + 1) + Math.random() * 500);
+      }
+    }
+    toast('Couldn’t save just now. Trying again in a moment.');
+    return 'retry';
+  }
+  function onDenied(code) {
+    if (code === 'quota_exceeded' || code === 'resource-exhausted') { toast('ScobbBucks hit its database limit for now, so that change didn’t save.'); return; }
+    toast('The database refused that change. If you set ScobbBucks up, check the Firestore rules step in the README.');
+  }
+  function guardWrite() {
+    if (readOnly) { toast('You can’t make changes here. Ask the owner to share ScobbBucks with you as a contributor.'); return false; }
+    if (meDoc && JSON.stringify(meDoc).length > 240000) { toast('Your ScobbBucks history is full.'); return false; }
+    return true;
+  }
+
+  function newEntry(k, f) {
+    const t = Math.max(Date.now(), (L ? L.maxT : 0) + 1, lastLocalT + 1);
+    lastLocalT = t;
+    const q = myEntries().reduce((m, e) => Math.max(m, e.q || 0), 0) + 1;
+    const e = Object.assign({ i: rid(), q, t, k, a: uid }, f);
+    const id = uid + '_' + e.i;
+    pendingEntries.set(id, e);
+    const body = clone(e);
+    body.ct = body.t;
+    delete body.t;
+    body.st = FB.serverTimestamp();
+    FB.setDoc(FB.doc(fs, 'entries/' + id), body).catch(err => {
+      pendingEntries.delete(id);
+      onDenied(err && err.code);
+      recompute();
+    });
+    recompute();
+    return e;
+  }
+
+  /* ================= phone ================= */
+  function normPhone(s) {
+    let d = String(s || '').replace(/\D/g, '');
+    if (d.length === 11 && d[0] === '1') d = d.slice(1);
+    return d.length >= 10 && d.length <= 15 ? d : '';
+  }
+  const phoneCache = new Map();
+  async function phoneKey(digits) {
+    if (phoneCache.has(digits)) return phoneCache.get(digits);
+    const enc = new TextEncoder();
+    const k = await crypto.subtle.importKey('raw', enc.encode(digits), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode('scobbbucks:' + config.salt), iterations: 60000 }, k, 128);
+    const h = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+    phoneCache.set(digits, h);
+    return h;
+  }
+  function fmtPhone(d) { return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : d; }
+  async function findPeople(q) {
+    q = q.trim();
+    if (!q) return [];
+    const others = Object.keys(players).filter(u => u !== uid && players[u] && players[u].username && players[u].avatar);
+    if (/^[\d\s()+.\-]+$/.test(q)) {
+      const d = normPhone(q);
+      if (!d) return [];
+      const h = await phoneKey(d);
+      return others.filter(u => players[u].phoneHash === h).map(u => ({ u, phone: true }));
+    }
+    const lq = q.replace(/^@/, '').toLowerCase();
+    if (!lq) return [];
+    const starts = others.filter(u => (players[u].uname || '').startsWith(lq));
+    const inc = others.filter(u => !(players[u].uname || '').startsWith(lq) && (players[u].uname || '').includes(lq));
+    return starts.concat(inc).slice(0, 6).map(u => ({ u }));
+  }
+  function nameTaken(lname) {
+    const mine = meDoc && meDoc.joinedAt ? meDoc.joinedAt : Infinity;
+    return Object.keys(players).some(u => u !== uid && players[u] && players[u].uname === lname && (players[u].joinedAt || 0) <= mine);
+  }
+
+  /* ================= actions ================= */
+  async function doSetup() {
+    if (!isOwner) return;
+    const btn = $('#setup-go');
+    if (btn) { btn.disabled = true; btn.textContent = 'Minting…'; }
+    const salt = rid() + rid();
+    try {
+      await FB.setDoc(FB.doc(fs, 'config/main'), { v: 1, issuer: uid, caps: CAPS.slice(), supply: SUPPLY, salt, createdAt: Date.now() });
+      config = { v: 1, issuer: uid, caps: CAPS.slice(), supply: SUPPLY, salt, createdAt: Date.now() };
+      configLoaded = true;
+      recompute();
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Mint 5,000 ScobbBucks'; }
+      toast(TERMINAL.includes(e && e.code) ? 'Only the owner can mint ScobbBucks.' : 'That didn’t work. Try again.');
+    }
+  }
+
+  const NAME_RE = /^(?!.*\.\.)(?!\.)(?!.*\.$)[A-Za-z0-9_.]{3,16}$/;
+  function authMsg(code) {
+    switch (code) {
+      case 'auth/email-already-in-use': return 'That username is taken. Try another one.';
+      case 'auth/invalid-credential': case 'auth/invalid-login-credentials': case 'auth/wrong-password': case 'auth/user-not-found': return 'That username and password don’t match.';
+      case 'auth/too-many-requests': return 'Too many tries. Wait a minute, then try again.';
+      case 'auth/network-request-failed': return 'No connection. Check your internet and try again.';
+      case 'auth/weak-password': case 'auth/password-does-not-meet-requirements': return 'That password is too weak. Try a longer one.';
+      case 'auth/invalid-email': return 'Use only letters, numbers, periods or underscores.';
+      case 'auth/operation-not-allowed': return 'Username and password logins aren’t turned on yet. The README shows how.';
+      default: return 'That didn’t work. Try again.';
+    }
+  }
+
+  async function doRegister() {
+    const nameEl = $('#su-name'), passEl = $('#su-pass'), pass2El = $('#su-pass2'), phoneEl = $('#su-phone'), err = $('#su-err'), btn = $('#su-go');
+    const fail = (m, el) => { err.textContent = m; err.hidden = false; if (el) el.focus(); };
+    err.hidden = true;
+    const name = nameEl.value.trim().replace(/^@/, '');
+    if (!NAME_RE.test(name)) return fail('Use 3 to 16 letters, numbers, periods or underscores.', nameEl);
+    if (passEl.value.length < 8) return fail('Use at least 8 characters for your password.', passEl);
+    if (passEl.value !== pass2El.value) return fail('Those passwords don’t match.', pass2El);
+    let digits = '';
+    if (phoneEl.value.trim()) {
+      digits = normPhone(phoneEl.value);
+      if (!digits) return fail('That doesn’t look like a phone number.', phoneEl);
+    }
+    btn.disabled = true;
+    btn.textContent = 'Creating your account…';
+    pendingSignup = { username: name, phone: digits };
+    try {
+      await FB.createUserWithEmailAndPassword(auth, name.toLowerCase() + EMAIL_DOMAIN, passEl.value);
+    } catch (e) {
+      pendingSignup = null;
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+      fail(authMsg(e && e.code));
+    }
+  }
+
+  async function doLogin() {
+    const nameEl = $('#li-name'), passEl = $('#li-pass'), err = $('#li-err'), btn = $('#li-go');
+    const fail = (m, el) => { err.textContent = m; err.hidden = false; if (el) el.focus(); };
+    err.hidden = true;
+    const name = nameEl.value.trim().replace(/^@/, '').toLowerCase();
+    if (!NAME_RE.test(name)) return fail('Enter your username.', nameEl);
+    if (!passEl.value) return fail('Enter your password.', passEl);
+    btn.disabled = true;
+    btn.textContent = 'Logging in…';
+    try {
+      await FB.signInWithEmailAndPassword(auth, name + EMAIL_DOMAIN, passEl.value);
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'Log in';
+      fail(authMsg(e && e.code));
+    }
+  }
+
+  function ensureProfile() {
+    if (!authed || !playersLoaded || meDoc || creatingProfile) return;
+    if (players[uid]) { meDoc = clone(players[uid]); return; }
+    creatingProfile = true;
+    const su = sessionSignup;
+    meDoc = { v: 1, username: su ? su.username : uname, uname, phoneHash: null, joinedAt: Date.now(), avatar: null, equip: {} };
+    ui.lookDraft = Object.assign({}, DEFAULT_LOOK, { color: Object.keys(BODY)[Math.floor(Math.random() * 12)] });
+    savePlayer();
+    creatingProfile = false;
+  }
+
+  async function ensurePhoneHash() {
+    const digits = sessionSignup && sessionSignup.phone;
+    if (phoneHashing || !digits || !meDoc || meDoc.phoneHash || !playersLoaded || !validConfig(config)) return;
+    phoneHashing = true;
+    try {
+      const h = await phoneKey(digits);
+      if (Object.keys(players).some(u => u !== uid && players[u] && players[u].phoneHash === h)) {
+        toast('That phone number is already used by someone else, so it wasn’t added.');
+      } else {
+        meDoc.phoneHash = h;
+        savePlayer();
+      }
+      sessionSignup.phone = '';
+    } finally {
+      phoneHashing = false;
+    }
+  }
+
+  function saveLook() {
+    if (!guardWrite()) return;
+    meDoc.avatar = Object.assign({}, ui.lookDraft);
+    ui.editingLook = false;
+    ui.lookDraft = null;
+    savePlayer();
+    if (!ui.welcomed) { ui.welcomed = true; ui.tab = 'wallet'; }
+    recompute();
+    toast('Looking good');
+  }
+
+  function doEquip(slot, inst) {
+    if (!guardWrite()) return;
+    meDoc.equip = Object.assign({}, meDoc.equip || {});
+    meDoc.equip[slot] = inst || null;
+    savePlayer();
+    recompute();
+  }
+
+  function drawRandom(n, pool) {
+    const p = pool.slice(), out = z();
+    for (let k = 0; k < n; k++) {
+      const tot = sumC(p);
+      if (!tot) break;
+      let x = Math.random() * tot;
+      for (let r = 0; r < 6; r++) { if (x < p[r]) { out[r]++; p[r]--; break; } x -= p[r]; }
+    }
+    return out;
+  }
+
+  /* ================= rendering ================= */
+  const app = $('#app');
+  function route() {
+    if (ui.fatal) return ui.fatal;
+    if (!authReady) return 'loading';
+    if (!authed) return ui.authMode === 'register' ? 'register' : 'login';
+    if (!configLoaded || !playersLoaded || !entriesLoaded) return 'loading';
+    if (!validConfig(config)) return isOwner ? 'setup' : 'waiting';
+    if (!meDoc || !meDoc.username) return 'loading';
+    if (!meDoc.avatar || ui.editingLook) return 'look';
+    return 'main';
+  }
+  function msgScreen(title, text, extra) {
+    return `<div class="msg"><div class="blob">${avatarSVG(DEFAULT_LOOK, {}, { label: 'ScobbBucks', fx: false })}</div><h1>${title}</h1>${text ? `<p>${text}</p>` : ''}${extra || ''}</div>`;
+  }
+
+  let rafPending = false;
+  function recompute() {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(() => {
+      rafPending = false;
+      L = validConfig(config) ? replay(config, allPlayers()) : null;
+      const next = route();
+      if (next !== ui.screen || next === 'main' || next === 'loading') render();
+      if (sheet && sheet.refresh) sheet.refresh();
+      renderTabs();
+    });
+  }
+
+  function render() {
+    const s = route();
+    ui.screen = s;
+    const tabsOn = s === 'main';
+    $('#tabs').hidden = !tabsOn;
+    document.body.classList.toggle('has-tabs', tabsOn);
+    if (s === 'main') { renderTab(); renderTabs(); return; }
+    const out = '<button type="button" class="btn btn-ghost" data-act="logout">Log out</button>';
+    if (s === 'loading') app.innerHTML = msgScreen('Loading ScobbBucks…', '');
+    else if (s === 'notconfigured') app.innerHTML = msgScreen('Almost ready', 'Add your Firebase settings and the bank’s username to firebase-config.js. The README walks you through it.');
+    else if (s === 'offline') app.innerHTML = msgScreen('Can’t reach ScobbBucks', 'Check your internet connection, then reload the page.');
+    else if (s === 'rules') app.innerHTML = msgScreen('ScobbBucks couldn’t load', 'The database turned the request down. If you set ScobbBucks up, check the Firestore rules step in the README.', out);
+    else if (s === 'lost') app.innerHTML = msgScreen('Lost connection', 'Reload the page to get back in.');
+    else if (s === 'waiting') app.innerHTML = msgScreen('No ScobbBucks yet', 'The bank hasn’t minted the coins yet. Check back soon.', out);
+    else if (s === 'setup') renderSetup();
+    else if (s === 'login') renderLogin();
+    else if (s === 'register') renderRegister();
+    else if (s === 'look') renderLook();
+  }
+
+  function renderSetup() {
+    app.innerHTML = `<header class="top"><h1>Mint ScobbBucks</h1></header>
+      <section class="card">
+        <p>You’re the bank. You start with all ${fmtInt(SUPPLY)} ScobbBucks and send them out to friends by username or phone number.</p>
+        <p class="small soft" style="margin-top:8px">Every coin you send lands on a random rarity, based on what’s left in your vault. Coins people spend in the shop come back to you.</p>
+        <div class="odds">${CAPS.map((n, r) => `<div>${coinSVG(r, 28)}<span class="rc${r}">${RN[r]}</span><b>${fmtInt(n)}</b><span class="small soft">${((n / SUPPLY) * 100).toFixed(1).replace('.0', '')}%</span></div>`).join('')}</div>
+      </section>
+      <button type="button" class="btn btn-grape btn-block mt" id="setup-go" data-act="setup">Mint ${fmtInt(SUPPLY)} ScobbBucks</button>`;
+  }
+
+  function renderLogin() {
+    app.innerHTML = `<header class="top"><h1>ScobbBucks</h1></header>
+      <div class="stage"><div style="width:150px">${avatarSVG(DEFAULT_LOOK, {}, { label: 'ScobbBucks', fx: false })}</div></div>
+      <div class="field"><label for="li-name">Username</label><div class="at"><span aria-hidden="true">@</span><input id="li-name" type="text" maxlength="16" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="yourname"></div></div>
+      <div class="field"><label for="li-pass">Password</label><input id="li-pass" type="password" autocomplete="current-password"></div>
+      <p class="err" id="li-err" hidden></p>
+      <button type="button" class="btn btn-grape btn-block mt" id="li-go" data-act="login">Log in</button>
+      <p class="small soft" style="text-align:center;margin-top:16px">New here? <button type="button" class="link" data-act="auth-mode" data-m="register">Create an account</button></p>`;
+  }
+
+  function renderRegister() {
+    app.innerHTML = `<header class="top"><h1>Make your account</h1></header>
+      <div class="field"><label for="su-name">Username</label><div class="at"><span aria-hidden="true">@</span><input id="su-name" type="text" maxlength="16" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="yourname"></div><p class="hint">3 to 16 letters, numbers, periods or underscores. You log in with it, so it can’t be changed later.</p></div>
+      <div class="field"><label for="su-pass">Password</label><input id="su-pass" type="password" autocomplete="new-password"><p class="hint">At least 8 characters. There’s no password reset, so pick one you’ll remember.</p></div>
+      <div class="field"><label for="su-pass2">Type your password again</label><input id="su-pass2" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="su-phone">Phone number (optional)</label><input id="su-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-0123"><p class="hint">Friends can find you by your number. ScobbBucks only stores a scrambled version of it.</p></div>
+      <p class="err" id="su-err" hidden></p>
+      <button type="button" class="btn btn-grape btn-block mt" id="su-go" data-act="register">Create account</button>
+      <p class="small soft" style="text-align:center;margin-top:16px">Already have an account? <button type="button" class="link" data-act="auth-mode" data-m="login">Log in</button></p>`;
+  }
+
+  function renderLook() {
+    if (!ui.lookDraft) ui.lookDraft = Object.assign({}, (meDoc && meDoc.avatar) || DEFAULT_LOOK);
+    const d = ui.lookDraft;
+    const isNew = !meDoc.avatar;
+    const eq = isNew ? {} : equipIds(uid);
+    const faceOpt = (k, v, label) => {
+      const on = d[k] === v;
+      return `<button type="button" class="opt${on ? ' on' : ''}" data-act="look" data-k="${k}" data-v="${v}" aria-pressed="${on}"><span class="face">${avatarSVG(Object.assign({}, d, { [k]: v }), {}, { crop: '50 34 100 66', cls: 'still', fx: false, label })}</span><span>${label}</span></button>`;
+    };
+    app.innerHTML = `<header class="top"><h1>${isNew ? 'Make your avatar' : 'Edit your look'}</h1>${isNew ? '' : '<button type="button" class="btn btn-ghost btn-sm" data-act="look-cancel">Cancel</button>'}</header>
+      <div class="stage"><button type="button" class="stage-btn" data-act="look-wave" aria-label="Wave">${avatarSVG(d, eq, { cls: 'big', label: 'Your avatar' })}</button></div>
+      <h3>Color</h3><div class="swatches">${Object.keys(BODY).map(k => `<button type="button" class="sw${d.color === k ? ' on' : ''}" data-act="look" data-k="color" data-v="${k}" aria-label="${BODY[k].n}" aria-pressed="${d.color === k}" style="--sw:${BODY[k].c}"></button>`).join('')}</div>
+      <h3>Eyes</h3><div class="opts">${EYES.map(([v, l]) => faceOpt('eyes', v, l)).join('')}</div>
+      <h3>Mouth</h3><div class="opts">${MOUTHS.map(([v, l]) => faceOpt('mouth', v, l)).join('')}</div>
+      <h3>Cheeks</h3><div class="opts">${[[true, 'Rosy'], [false, 'Plain']].map(([v, l]) => { const on = !!d.blush === v; return `<button type="button" class="opt${on ? ' on' : ''}" data-act="look" data-k="blush" data-v="${v}" aria-pressed="${on}"><span class="face">${avatarSVG(Object.assign({}, d, { blush: v }), {}, { crop: '50 34 100 66', cls: 'still', fx: false, label: l })}</span><span>${l}</span></button>`; }).join('')}</div>
+      <button type="button" class="btn btn-grape btn-block mt" data-act="look-save">${isNew ? 'Done' : 'Save look'}</button>`;
+  }
+
+  function renderTabs() {
+    const tabs = $('#tabs');
+    if (tabs.hidden) return;
+    $$('.tab', tabs).forEach(b => { if (b.dataset.tab === ui.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    const un = unopened().count, inc = incomingOpen().length;
+    const bw = $('#bd-wallet'), bt = $('#bd-trades');
+    bw.hidden = !un; bw.textContent = un > 99 ? '99+' : String(un);
+    bt.hidden = !inc; bt.textContent = String(inc);
+  }
+
+  function renderTab() {
+    const t = ui.tab;
+    app.innerHTML = t === 'shop' ? shopTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : walletTab();
+  }
+
+  /* ---- wallet ---- */
+  function walletTab() {
+    const bal = balOf(uid), res = reservedOf(uid).c;
+    const owner = uid === L.issuer;
+    const out = SUPPLY - sumC(balOf(L.issuer));
+    const un = unopened();
+    const inc = incomingOpen();
+    let h = `<header class="top"><button type="button" class="me-chip" data-act="tab" data-tab="closet" aria-label="Open your closet">${headBubble(uid, 40)}<span>@${esc(meDoc.username)}</span></button><button type="button" class="icon-btn" data-act="settings" aria-label="Settings">${icon('gear')}</button></header>`;
+    h += `<section class="card bal"><div class="bal-label">${owner ? 'In your vault' : 'Your ScobbBucks'}</div><div class="bal-num">${coinSVG(5, 44)}${fmtInt(sumC(bal))}</div>
+      <div class="rgrid">${RN.map((n, r) => `<div class="rcell">${coinSVG(r, 24)}<div class="rval">${fmtInt(bal[r])}</div><div class="rn rc${r}">${n}</div></div>`).join('')}</div>
+      ${sumC(res) ? `<p class="small soft">${plural(sumC(res), 'coin is', 'coins are')} held for your open trade offers.</p>` : ''}
+      ${owner ? `<p class="small soft">You’re the bank. ${fmtInt(out)} of ${fmtInt(SUPPLY)} are out with friends.</p>` : (sumC(bal) === 0 ? `<p class="small soft">Ask ${esc(nameOf(L.issuer))}, the bank, to send you some ScobbBucks.</p>` : '')}
+      <div class="row2"><button type="button" class="btn btn-grape" data-act="send">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade">Trade</button></div></section>`;
+    if (un.count) {
+      const from = [...new Set(un.list.map(ev => ev.a))].map(nameOf);
+      h += `<button type="button" class="banner gift wiggle-in" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
+    }
+    if (inc.length) h += `<button type="button" class="banner" data-act="tab" data-tab="trades">${headBubble(inc[0].from, 34)}<span class="bt">${inc.length === 1 ? `${esc(nameOf(inc[0].from))} sent you a trade offer` : `${inc.length} trade offers are waiting on you`}</span><span class="pill">View</span></button>`;
+    h += `<h2>Your activity</h2>${activityHTML()}`;
+    return h;
+  }
+
+  function evCoins(c) { return `<div class="chips">${coinChips(c)}</div>`; }
+  function itemTags(list, owner) { return list.map(it => CAT[it] ? `<span class="it-tag"><span class="tb">${thumbSVG(it, lookOf(owner))}</span>${esc(CAT[it].name)}</span>` : '').join(''); }
+
+  function activityHTML() {
+    const seen = new Set(priv.seen || []);
+    const rows = [];
+    for (const ev of L.events) {
+      if (ev.k === 'send' && (ev.a === uid || ev.to === uid)) rows.push(ev);
+      else if (ev.k === 'buy' && ev.a === uid) rows.push(ev);
+      else if (ev.k === 'trade' && (ev.a === uid || ev.to === uid)) rows.push(ev);
+    }
+    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy')) rows.push({ k: 'bad', e, t: e.t }); }
+    rows.sort((a, b) => b.t - a.t);
+    if (!rows.length) return `<p class="empty">Nothing here yet. Coins you send and get will show up here.</p>`;
+    return `<div class="list">${rows.slice(0, 40).map(ev => {
+      let other = ev.a === uid ? ev.to : ev.a, t = '', more = '';
+      if (ev.k === 'send' && ev.a === uid) { t = `You sent <b>${esc(nameOf(ev.to))}</b> ${bucks(sumC(ev.c))}`; more = evCoins(ev.c); }
+      else if (ev.k === 'send') { t = `<b>${esc(nameOf(ev.a))}</b> sent you ${bucks(sumC(ev.c))}`; more = seen.has(ev.key) ? evCoins(ev.c) : '<p class="s">Open it on your wallet to see what you got.</p>'; }
+      else if (ev.k === 'buy') { other = uid; t = `You bought the <b>${esc(CAT[ev.it].name)}</b>`; more = `<div class="chips">${coinChips(priceOf(CAT[ev.it]))}</div>`; }
+      else if (ev.k === 'trade') {
+        const mineGive = ev.a === uid ? { c: ev.gc, i: ev.gi } : { c: ev.wc, i: ev.wi };
+        const mineGet = ev.a === uid ? { c: ev.wc, i: ev.wi } : { c: ev.gc, i: ev.gi };
+        t = `You traded with <b>${esc(nameOf(other))}</b>`;
+        more = `<p class="s">You gave</p><div class="chips">${coinChips(mineGive.c)}${itemTags(mineGive.i, other)}</div><p class="s" style="margin-top:4px">You got</p><div class="chips">${coinChips(mineGet.c)}${itemTags(mineGet.i, uid)}</div>`;
+      } else if (ev.k === 'bad') {
+        other = ev.e.to || uid;
+        t = ev.e.k === 'send' ? `Your send to <b>${esc(nameOf(ev.e.to))}</b> didn’t go through` : `Your ${esc((CAT[ev.e.it] || { name: 'item' }).name)} purchase didn’t go through`;
+        more = '<p class="s">You didn’t have enough coins when it reached everyone, so nothing moved.</p>';
+      }
+      const note = ev.n ? `<p class="note">“${esc(ev.n)}”</p>` : '';
+      return `<div class="ev">${headBubble(other, 40)}<div class="main"><div class="t">${t}</div>${note}${more}</div><span class="when">${ago(ev.t)}</span></div>`;
+    }).join('')}</div>`;
+  }
+
+  /* ---- shop ---- */
+  function shopTab() {
+    const av = availOf(uid);
+    let h = `<header class="top"><h1>Shop</h1><div class="mini-bal">${coinChipsCompact(av) || '<span class="small soft">No coins yet</span>'}</div></header>`;
+    h += `<div class="hscroll cats" role="tablist" aria-label="Shop categories">${SLOTS.map(s => `<button type="button" class="cat${ui.shopCat === s ? ' on' : ''}" role="tab" aria-selected="${ui.shopCat === s}" data-act="cat" data-cat="${s}">${SLOT_NAME[s]}</button>`).join('')}</div>`;
+    h += `<p class="small soft" style="margin:6px 0 4px">Each price is a number of coins of one rarity.</p>`;
+    h += `<div class="grid">${ITEMS.filter(it => it.slot === ui.shopCat && !it.free).map(shopCard).join('')}</div>`;
+    return h;
+  }
+  function shopCard(it) {
+    const owned = ownedCount(uid, it.id);
+    return `<button type="button" class="scard rb${it.r}" data-act="item" data-id="${it.id}"><span class="thumb">${thumbSVG(it.id, meDoc.avatar, it.name)}${it.slot === 'emote' ? `<span class="play">${icon('play')}</span>` : ''}</span><span class="nm">${esc(it.name)}</span><span class="pr">${coinSVG(it.r, 20)}<span>×${it.n}</span><span class="rt rc${it.r}">${RN[it.r]}</span></span>${owned ? `<span class="own">Owned${owned > 1 ? ' ×' + owned : ''}</span>` : ''}</button>`;
+  }
+
+  /* ---- closet ---- */
+  function uniqueItems(list) { const seen = new Map(); for (const x of list) { if (!seen.has(x.it)) seen.set(x.it, Object.assign({ count: 0 }, x)); seen.get(x.it).count++; } return [...seen.values()]; }
+  function closetTab() {
+    const eq = equipIds(uid);
+    const mine = itemsOf(uid);
+    const cur = meDoc.equip || {};
+    let h = `<header class="top"><h1>Closet</h1><button type="button" class="btn btn-ghost btn-sm" data-act="edit-look">Edit look</button></header>`;
+    h += `<div class="stage"><button type="button" class="stage-btn" id="closet-av" data-act="emote-me" aria-label="Play your emote">${avatarSVG(meDoc.avatar, eq, { back: ui.closetBack, cls: 'big', label: 'Your avatar' })}</button></div>`;
+    h += `<div class="stage-tools"><span class="small soft">Tap your avatar to play your emote.</span><button type="button" class="link" data-act="turn">${ui.closetBack ? 'Face front' : 'Turn around'}</button></div>`;
+    const emotes = [{ id: 'wave', it: 'emote_wave', count: 1 }].concat(uniqueItems(mine.filter(x => CAT[x.it].slot === 'emote')));
+    const curE = validInst(uid, cur.emote) ? L.items[cur.emote].it : 'emote_wave';
+    h += `<h2>Emotes</h2><div class="hscroll">${emotes.map(e => `<button type="button" class="echip${curE === e.it ? ' on' : ''}" data-act="emote-pick" data-inst="${e.id}" aria-pressed="${curE === e.it}">${esc(CAT[e.it].name)}</button>`).join('')}</div>`;
+    if (emotes.length === 1) h += `<p class="small soft">More emotes are in the shop.</p>`;
+    for (const s of SLOTS) {
+      if (s === 'emote') continue;
+      const list = uniqueItems(mine.filter(x => CAT[x.it].slot === s));
+      h += `<h3>${SLOT_NAME[s]}</h3>`;
+      if (!list.length) { h += `<p class="small soft">None yet. <button type="button" class="link" data-act="shop-cat" data-cat="${s}">Shop ${SLOT_NAME[s].toLowerCase()}</button></p>`; continue; }
+      const curIt = validInst(uid, cur[s]) ? L.items[cur[s]].it : null;
+      h += `<div class="hscroll"><button type="button" class="wchip none${!curIt ? ' on' : ''}" data-act="equip" data-slot="${s}" data-inst="" aria-pressed="${!curIt}">None</button>${list.map(x => `<button type="button" class="wchip${curIt === x.it ? ' on' : ''}" data-act="equip" data-slot="${s}" data-inst="${esc(x.id)}" aria-pressed="${curIt === x.it}"><span class="wthumb">${thumbSVG(x.it, meDoc.avatar)}</span><span>${esc(CAT[x.it].name)}${x.count > 1 ? ' ×' + x.count : ''}</span></button>`).join('')}</div>`;
+    }
+    return h;
+  }
+
+  /* ---- trades ---- */
+  function sideHTML(c, items, owner) {
+    const parts = coinChips(c) + itemTags(items.map(id => (L.items[id] ? L.items[id].it : null)).filter(Boolean), owner);
+    return parts ? `<div class="chips">${parts}</div>` : '<p class="small soft">Nothing</p>';
+  }
+  function offerProblem(o) {
+    const fromBal = balOf(o.from), toAv = availOf(o.to);
+    if (!o.gc.every((n, r) => fromBal[r] >= n)) return `${nameOf(o.from)} doesn’t have those coins anymore.`;
+    if (!o.gi.every(id => validInst(o.from, id))) return `${nameOf(o.from)} doesn’t have those items anymore.`;
+    if (o.to === uid) {
+      const bal = balOf(uid);
+      if (!o.wc.every((n, r) => bal[r] >= n)) return 'You don’t have the coins they asked for.';
+      if (!o.wc.every((n, r) => toAv[r] >= n)) return 'Some of those coins are held for your other offers. Cancel one first.';
+      if (!o.wi.every(id => validInst(uid, id))) return 'You don’t have the items they asked for anymore.';
+    }
+    return '';
+  }
+  function offerCard(o) {
+    const incoming = o.to === uid;
+    const other = incoming ? o.from : o.to;
+    const give = incoming ? sideHTML(o.wc, o.wi, uid) : sideHTML(o.gc, o.gi, uid);
+    const get = incoming ? sideHTML(o.gc, o.gi, other) : sideHTML(o.wc, o.wi, other);
+    const stat = { done: 'Traded', declined: 'Declined', cancelled: 'Cancelled', failed: 'Didn’t go through' }[o.status];
+    const head = o.status === 'open' ? (incoming ? `<b>${esc(nameOf(other))}</b> wants to trade` : `Waiting on <b>${esc(nameOf(other))}</b>`) : `Trade with <b>${esc(nameOf(other))}</b>`;
+    const prob = o.status === 'open' ? offerProblem(o) : '';
+    let btns = '';
+    if (o.status === 'open' && !readOnly) {
+      btns = incoming
+        ? `<div class="row2"><button type="button" class="btn btn-ghost" data-act="decline" data-o="${esc(o.key)}">Decline</button><button type="button" class="btn btn-lime" data-act="accept" data-o="${esc(o.key)}"${prob ? ' disabled' : ''}>Accept</button></div>`
+        : `<div class="row2" style="grid-template-columns:1fr"><button type="button" class="btn btn-ghost" data-act="cancel" data-o="${esc(o.key)}">Cancel offer</button></div>`;
+    }
+    return `<div class="card offer"><div class="offer-head">${headBubble(other, 38)}<span class="bt">${head}</span>${stat ? `<span class="status${o.status === 'done' ? ' done' : ''}">${stat}</span>` : `<span class="small soft">${ago(o.t)}</span>`}</div>
+      <div class="offer-cols"><div><div class="lbl">You give</div>${give}</div><div><div class="lbl">You get</div>${get}</div></div>
+      ${o.n ? `<p class="note">“${esc(o.n)}”</p>` : ''}${prob ? `<p class="warn">${esc(prob)}</p>` : ''}${o.status === 'failed' ? '<p class="small soft" style="margin-top:8px">Someone was missing coins or items when it was accepted, so nothing moved.</p>' : ''}${btns}</div>`;
+  }
+  function tradesTab() {
+    const all = Object.values(L.offers).filter(o => o.from === uid || o.to === uid);
+    const inc = all.filter(o => o.status === 'open' && o.to === uid).sort((a, b) => b.t - a.t);
+    const out = all.filter(o => o.status === 'open' && o.from === uid).sort((a, b) => b.t - a.t);
+    const done = all.filter(o => o.status !== 'open').sort((a, b) => b.end - a.end).slice(0, 20);
+    let h = `<header class="top"><h1>Trades</h1><button type="button" class="btn btn-grape btn-sm" data-act="new-trade">New trade</button></header>`;
+    h += `<p class="small soft">Swap coins for better rarities, or trade coins and items with anyone by username or phone number.</p>`;
+    h += `<h2>Waiting on you</h2>${inc.length ? inc.map(offerCard).join('') : '<p class="empty">No offers right now.</p>'}`;
+    h += `<h2>Waiting on them</h2>${out.length ? out.map(offerCard).join('') : '<p class="empty">You haven’t sent any offers.</p>'}`;
+    if (done.length) h += `<h2>Finished</h2>${done.map(offerCard).join('')}`;
+    return h;
+  }
+
+  /* ---- feed ---- */
+  function feedTab() {
+    const seen = new Set(priv.seen || []);
+    const list = Object.keys(players).filter(u => players[u] && players[u].username && players[u].avatar).sort((a, b) => (players[a].joinedAt || 0) - (players[b].joinedAt || 0));
+    let h = `<header class="top"><h1>Feed</h1></header>`;
+    h += `<h3 style="margin-top:0">Players</h3><div class="hscroll players">${list.map(u => `<button type="button" class="pl" data-act="profile" data-u="${esc(u)}">${headBubble(u, 58)}<span>${esc(nameOf(u))}</span></button>`).join('')}</div>`;
+    const evs = L.events.slice().sort((a, b) => b.t - a.t).slice(0, 80);
+    if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades and shop buys show up here.</p>';
+    h += `<div class="list">${evs.map(ev => {
+      let t = '', more = '', hot = false, face = ev.a;
+      if (ev.k === 'send') {
+        t = `<b>${esc(nameOf(ev.a))}</b> sent <b>${esc(nameOf(ev.to))}</b> ${bucks(sumC(ev.c))}`;
+        const spoiler = ev.to === uid && !seen.has(ev.key);
+        if (ev.drop && !spoiler && (ev.c[4] || ev.c[5])) {
+          hot = true;
+          more = `<p class="s"><b class="${ev.c[5] ? 'rc5' : 'rc4'}">${esc(nameOf(ev.to))} pulled ${ev.c[5] ? (ev.c[5] > 1 ? ev.c[5] + ' Mythics' : 'a Mythic') : (ev.c[4] > 1 ? ev.c[4] + ' Legendaries' : 'a Legendary')}!</b></p>`;
+        }
+      } else if (ev.k === 'buy') {
+        t = `<b>${esc(nameOf(ev.a))}</b> got the <b>${esc(CAT[ev.it].name)}</b>`;
+        more = `<div class="chips">${itemTags([ev.it], ev.a)}</div>`;
+        hot = CAT[ev.it].r >= 4;
+      } else if (ev.k === 'trade') {
+        t = `<b>${esc(nameOf(ev.a))}</b> and <b>${esc(nameOf(ev.to))}</b> made a trade`;
+      }
+      return `<div class="ev${hot ? ' hot' : ''}">${headBubble(face, 40)}<div class="main"><div class="t">${t}</div>${ev.n ? `<p class="note">“${esc(ev.n)}”</p>` : ''}${more}</div><span class="when">${ago(ev.t)}</span></div>`;
+    }).join('')}</div>`;
+    return h;
+  }
+
+  /* ================= sheets ================= */
+  let sheet = null;
+  let lastFocus = null;
+  function sheetHead(title, sub, extraClass) {
+    return `<div class="sheet-head"><div><h2 id="sheet-title"${extraClass ? ` class="${extraClass}"` : ''}>${title}</h2>${sub ? `<p class="sub">${sub}</p>` : ''}</div><button type="button" class="x" data-act="close-sheet" aria-label="Close">${icon('close')}</button></div>`;
+  }
+  function openSheet(kind, html, wire, extra) {
+    closeSheet(true);
+    lastFocus = document.activeElement;
+    $('#sheet-body').innerHTML = html;
+    $('#sheet-root').hidden = false;
+    document.body.style.overflow = 'hidden';
+    sheet = Object.assign({ kind }, extra || {});
+    if (wire) wire();
+    const focusEl = $('#sheet-body [data-autofocus]');
+    setTimeout(() => { (focusEl || $('#sheet')).focus({ preventScroll: true }); }, 60);
+  }
+  function closeSheet(silent) {
+    const root = $('#sheet-root');
+    if (root.hidden) return;
+    const s = sheet;
+    sheet = null;
+    root.hidden = true;
+    $('#sheet-body').innerHTML = '';
+    document.body.style.overflow = '';
+    if (s && s.onClose) s.onClose();
+    if (!silent && lastFocus && document.contains(lastFocus) && lastFocus.offsetParent !== null) lastFocus.focus({ preventScroll: true });
+  }
+
+  /* person picker (username or phone) */
+  function toFieldHTML(label) {
+    return `<div class="field"><label for="to-in">${label}</label><div class="picked" id="to-pick" hidden></div><input id="to-in" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@username or phone number" data-autofocus><div class="results" id="to-res"></div></div>`;
+  }
+  function wireTo(onPick, pref) {
+    const inp = $('#to-in'), res = $('#to-res'), pick = $('#to-pick');
+    let seq = 0, timer = 0;
+    const set = u => {
+      if (u) {
+        pick.innerHTML = `${headBubble(u, 38)}<b>${esc(nameOf(u))}</b><button type="button" class="link" id="to-change">Change</button>`;
+        pick.hidden = false; inp.hidden = true; res.innerHTML = '';
+        $('#to-change').addEventListener('click', () => set(null));
+      } else { pick.hidden = true; inp.hidden = false; inp.value = ''; inp.focus(); }
+      onPick(u);
+    };
+    const search = async () => {
+      const my = ++seq;
+      const q = inp.value.trim();
+      const list = await findPeople(q);
+      if (my !== seq) return;
+      if (list.length) res.innerHTML = list.map(x => `<button type="button" class="res" data-u="${esc(x.u)}">${headBubble(x.u, 38)}<span><b>${esc(nameOf(x.u))}</b>${x.phone ? '<span class="small soft"> matches that number</span>' : ''}</span></button>`).join('');
+      else if (q.replace(/^@/, '').length >= 2) res.innerHTML = `<p class="small soft" style="padding:8px 4px">${/^[\d\s()+.\-]+$/.test(q) ? (normPhone(q) ? 'Nobody has added that number.' : 'Keep typing the full number.') : 'Nobody by that name. Check the spelling, or try their phone number.'}</p>`;
+      else res.innerHTML = '';
+    };
+    inp.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 180); });
+    res.addEventListener('click', e => { const b = e.target.closest('.res'); if (b) set(b.dataset.u); });
+    if (pref && players[pref]) set(pref);
+  }
+
+  function stepperHTML(prefix, avail, verb) {
+    const rows = RN.map((n, r) => (avail[r] > 0 ? `<div class="step">${coinSVG(r, 30)}<span class="sn"><span class="rc${r}">${n}</span><span class="small">${fmtInt(avail[r])} available</span></span><button type="button" class="sb" data-act="step" data-p="${prefix}" data-r="${r}" data-d="-1" aria-label="One fewer ${n}">−</button><input class="sv" id="${prefix}-${r}" type="text" inputmode="numeric" value="0" data-max="${avail[r]}" aria-label="${n} coins to ${verb}"><button type="button" class="sb" data-act="step" data-p="${prefix}" data-r="${r}" data-d="1" aria-label="One more ${n}">+</button></div>` : '')).join('');
+    return rows || '<p class="small soft">No coins available.</p>';
+  }
+  function readSteps(prefix) {
+    return RN.map((_, r) => {
+      const el = $('#' + prefix + '-' + r);
+      if (!el) return 0;
+      const v = parseInt(el.value.replace(/\D/g, ''), 10);
+      return Number.isFinite(v) && v > 0 ? Math.min(v, Number(el.dataset.max) || 0) : 0;
+    });
+  }
+  function itemPickHTML(prefix, list, owner) {
+    if (!list.length) return '<p class="small soft">No items to trade.</p>';
+    return `<div class="ipick">${list.map(x => `<button type="button" class="ichip" data-act="ipick" data-p="${prefix}" data-inst="${esc(x.id)}" aria-pressed="false"><span class="wthumb">${thumbSVG(x.it, lookOf(owner))}</span><span>${esc(CAT[x.it].name)}</span></button>`).join('')}</div>`;
+  }
+  const readPicks = prefix => $$(`.ichip[data-p="${prefix}"][aria-pressed="true"]`).map(b => b.dataset.inst);
+
+  /* send */
+  function openSend(prefTo) {
+    if (!guardWrite()) return;
+    const owner = uid === L.issuer;
+    const av = availOf(uid);
+    let to = null;
+    const total = sumC(av);
+    const body = owner
+      ? `<div class="field"><label for="s-amt">How many</label><input id="s-amt" type="text" inputmode="numeric" placeholder="0" value=""><div class="qchips">${[1, 5, 10, 25, 100].map(n => `<button type="button" class="qchip" data-act="qamt" data-v="${n}">${n}</button>`).join('')}</div><p class="hint">Each coin lands on a random rarity. Right now the odds are ${joinWords(av.map((n, r) => (n ? `${RN[r]} ${((n / Math.max(1, total)) * 100).toFixed(1).replace('.0', '')}%` : '')).filter(Boolean))}.</p></div>`
+      : `<div class="field"><span class="label">Which coins</span>${stepperHTML('sg', av, 'send')}</div>`;
+    const html = sheetHead('Send ScobbBucks', owner ? `${fmtInt(total)} in your vault` : `${fmtInt(total)} available`)
+      + toFieldHTML('To') + body
+      + `<div class="field"><label for="s-note">Note (optional)</label><input id="s-note" type="text" maxlength="80" autocomplete="off" placeholder="What’s it for?"></div>`
+      + `<p class="err" id="s-err" hidden></p><button type="button" class="btn btn-grape btn-block mt" id="s-go">Send</button><div id="s-result"></div>`;
+    openSheet('send', html, () => {
+      wireTo(u => { to = u; }, prefTo);
+      const err = $('#s-err');
+      const fail = m => { err.textContent = m; err.hidden = false; };
+      $('#s-go').addEventListener('click', () => {
+        err.hidden = true;
+        if (!guardWrite()) return;
+        if (!to || !players[to]) return fail('Pick who to send to.');
+        const note = $('#s-note').value.trim().slice(0, 80);
+        const nowAv = availOf(uid);
+        let c;
+        if (uid === L.issuer) {
+          const n = parseInt(($('#s-amt').value || '').replace(/\D/g, ''), 10);
+          if (!(n > 0)) return fail('Enter how many to send.');
+          if (n > sumC(nowAv)) return fail(`You only have ${fmtInt(sumC(nowAv))} in your vault.`);
+          c = drawRandom(n, nowAv);
+        } else {
+          c = readSteps('sg');
+          if (!sumC(c)) return fail('Add at least one coin.');
+          if (!c.every((n, r) => n <= nowAv[r])) return fail('You don’t have that many available.');
+        }
+        newEntry('send', { to, c, n: note });
+        if (uid === L.issuer) {
+          $('#s-go').hidden = true;
+          $('#s-result').innerHTML = `<div class="result"><h3>${esc(nameOf(to))} got</h3><div class="chips">${coinChips(c)}</div><button type="button" class="btn btn-grape btn-block mt" data-act="close-sheet">Done</button></div>`;
+          if (c[4] || c[5]) confetti();
+        } else {
+          closeSheet();
+          toast(`Sent ${bucks(sumC(c))} to ${nameOf(to)}`);
+        }
+      });
+    });
+  }
+
+  /* trade */
+  function openTrade(prefTo) {
+    if (!guardWrite()) return;
+    let to = null;
+    const html = sheetHead('New trade', 'Pick what you give and what you want back.')
+      + toFieldHTML('Trade with')
+      + `<div id="t-body"></div>`
+      + `<div class="field"><label for="t-note">Note (optional)</label><input id="t-note" type="text" maxlength="80" autocomplete="off" placeholder="Say something nice"></div>`
+      + `<p class="err" id="t-err" hidden></p><button type="button" class="btn btn-grape btn-block mt" id="t-go">Send offer</button>`;
+    openSheet('trade', html, () => {
+      const body = $('#t-body');
+      const draw = () => {
+        if (!to) { body.innerHTML = ''; return; }
+        body.innerHTML = `<div class="side-card"><h3>You give</h3>${stepperHTML('tg', availOf(uid), 'give')}<h3>Your items</h3>${itemPickHTML('tgi', availItemsOf(uid), uid)}</div>
+          <div class="side-card"><h3>You get from ${esc(nameOf(to))}</h3>${stepperHTML('tw', availOf(to), 'ask for')}<h3>Their items</h3>${itemPickHTML('twi', availItemsOf(to), to)}</div>`;
+      };
+      wireTo(u => { to = u; draw(); }, prefTo);
+      const err = $('#t-err');
+      const fail = m => { err.textContent = m; err.hidden = false; };
+      $('#t-go').addEventListener('click', () => {
+        err.hidden = true;
+        if (!guardWrite()) return;
+        if (!to || !players[to]) return fail('Pick someone to trade with.');
+        const gc = readSteps('tg'), wc = readSteps('tw'), gi = readPicks('tgi'), wi = readPicks('twi');
+        if (sumC(gc) + gi.length < 1 || sumC(wc) + wi.length < 1) return fail('Add something to both sides.');
+        const myAv = availOf(uid), theirAv = availOf(to);
+        if (!gc.every((n, r) => n <= myAv[r])) return fail('You don’t have that many coins available.');
+        if (!wc.every((n, r) => n <= theirAv[r])) return fail(`${nameOf(to)} doesn’t have that many coins.`);
+        newEntry('offer', { to, gc, gi, wc, wi, n: $('#t-note').value.trim().slice(0, 80) });
+        closeSheet();
+        ui.tab = 'trades';
+        render();
+        toast(`Offer sent to ${nameOf(to)}`);
+      });
+    });
+  }
+
+  /* shop item */
+  function openItem(id) {
+    const it = CAT[id];
+    if (!it) return;
+    let back = it.slot === 'back';
+    const draw = () => {
+      const eq = equipIds(uid);
+      if (it.slot !== 'emote') eq[it.slot] = id;
+      const av = availOf(uid);
+      const have = it.free ? Infinity : av[it.r];
+      const owned = ownedCount(uid, id);
+      const curInst = meDoc.equip && meDoc.equip[it.slot];
+      const wearing = validInst(uid, curInst) && L.items[curInst].it === id;
+      const ownInst = itemsOf(uid).find(x => x.it === id);
+      const need = it.n - have;
+      let actions = '';
+      if (owned) {
+        actions += it.slot === 'emote'
+          ? `<button type="button" class="btn btn-lime btn-block mt" data-act="item-wear" data-id="${id}">${wearing ? 'This is your emote' : 'Make it my emote'}</button>`
+          : `<button type="button" class="btn btn-lime btn-block mt" data-act="item-wear" data-id="${id}">${wearing ? 'Take it off' : 'Wear it'}</button>`;
+      }
+      actions += `<button type="button" class="btn ${owned ? 'btn-ghost' : 'btn-grape'} btn-block mt" data-act="buy" data-id="${id}"${need > 0 || readOnly ? ' disabled' : ''}>${owned ? 'Buy another' : 'Buy'} for ${it.n} ${RN[it.r]}</button>`;
+      $('#sheet-body').innerHTML = sheetHead(esc(it.name), `<span class="rc${it.r}">${RN[it.r]}</span> ${SLOT_NAME[it.slot].replace(/s$/, '').toLowerCase()}`)
+        + `<div class="preview-av"><button type="button" class="stage-btn" id="item-av" data-act="item-emote" data-e="${it.emote || ''}" aria-label="${it.slot === 'emote' ? 'Play emote' : 'Avatar preview'}">${avatarSVG(meDoc.avatar, eq, { back, cls: 'big', label: 'Preview' })}</button></div>`
+        + `${it.slot !== 'emote' ? `<div class="stage-tools"><span class="small soft">Trying it on</span><button type="button" class="link" data-act="item-turn">${back ? 'Face front' : 'Turn around'}</button></div>` : '<p class="small soft" style="text-align:center">Tap to play it.</p>'}`
+        + `<div class="price-row">${coinSVG(it.r, 30)}${it.n} ${RN[it.r]}</div>`
+        + `<p class="small ${need > 0 ? 'err' : 'soft'}">${need > 0 ? `You need ${need} more ${RN[it.r]}. Trade with friends to get some.` : `You have ${fmtInt(have)} ${RN[it.r]} available.`}${owned ? ` You own ${owned}.` : ''}</p>`
+        + actions;
+      if (it.slot === 'emote') setTimeout(() => playEmote($('#item-av .av'), it.emote), 250);
+      void ownInst;
+    };
+    openSheet('item', '', draw, { refresh: draw, toggleBack: () => { back = !back; draw(); } });
+  }
+
+  function doBuy(id) {
+    const it = CAT[id];
+    if (!it || it.free || !guardWrite()) return;
+    const av = availOf(uid);
+    if (av[it.r] < it.n) { toast(`You need ${it.n - av[it.r]} more ${RN[it.r]}.`); return; }
+    const e = newEntry('buy', { it: id, c: priceOf(it) });
+    const inst = uid + ':' + e.i;
+    if (it.slot !== 'emote' && !validInst(uid, (meDoc.equip || {})[it.slot])) { meDoc.equip = Object.assign({}, meDoc.equip || {}); meDoc.equip[it.slot] = inst; savePlayer(); }
+    toast(`You got the ${it.name}`);
+    if (it.r >= 4) confetti();
+  }
+
+  function wearToggle(id) {
+    const it = CAT[id];
+    const cur = meDoc.equip && meDoc.equip[it.slot];
+    const wearing = validInst(uid, cur) && L.items[cur].it === id;
+    if (it.slot === 'emote') { if (!wearing) { const inst = itemsOf(uid).find(x => x.it === id); if (inst) doEquip('emote', inst.id); } return; }
+    if (wearing) doEquip(it.slot, null);
+    else { const inst = itemsOf(uid).find(x => x.it === id); if (inst) doEquip(it.slot, inst.id); }
+  }
+
+  /* profile */
+  function openProfile(u) {
+    if (!players[u] && u !== uid) return;
+    const draw = () => {
+      const p = P_(u);
+      const bal = balOf(u);
+      const its = uniqueItems(itemsOf(u));
+      const me = u === uid;
+      $('#sheet-body').innerHTML = sheetHead(esc(nameOf(u)), `Joined ${new Date(p.joinedAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${u === L.issuer ? '. The bank.' : ''}`)
+        + `<div class="preview-av"><button type="button" class="stage-btn" id="prof-av" data-act="prof-emote" data-e="${emoteOf(u)}" aria-label="Play their emote">${ava(u, { cls: 'big' })}</button></div>`
+        + `<h3>Coins</h3>${sumC(bal) ? `<div class="chips">${coinChips(bal)}</div>` : '<p class="small soft">No coins yet.</p>'}`
+        + `<h3>Items</h3>${its.length ? `<div class="chips">${its.map(x => `<span class="it-tag"><span class="tb">${thumbSVG(x.it, lookOf(u))}</span>${esc(CAT[x.it].name)}${x.count > 1 ? ' ×' + x.count : ''}</span>`).join('')}</div>` : '<p class="small soft">No items yet.</p>'}`
+        + (me || readOnly ? '' : `<div class="row2 mt"><button type="button" class="btn btn-grape" data-act="send" data-u="${esc(u)}">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade" data-u="${esc(u)}">Trade</button></div>`);
+    };
+    openSheet('profile', '', draw, { refresh: draw });
+  }
+
+  /* settings */
+  function openSettings() {
+    const owner = uid === L.issuer;
+    const vault = balOf(L.issuer);
+    const hasPhone = !!meDoc.phoneHash;
+    const html = sheetHead('Settings', `Logged in as @${esc(meDoc.username)}`)
+      + `<div class="field"><label for="st-phone">${hasPhone ? 'Change your phone number' : 'Add a phone number'}</label><input id="st-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-0123"><p class="hint">${hasPhone ? 'Your number is on your account. Type a new one to replace it.' : 'Friends can find you by your number.'} ScobbBucks only stores a scrambled version of it.</p></div>`
+      + `<p class="err" id="st-err" hidden></p><button type="button" class="btn btn-grape btn-block mt" id="st-save">Save number</button>`
+      + (hasPhone ? `<button type="button" class="btn btn-ghost btn-block mt" id="st-remove">Remove my number</button>` : '')
+      + `<button type="button" class="btn btn-ghost btn-block mt" data-act="edit-look">Edit your look</button>`
+      + `<div class="side-card"><h3>Change password</h3><div class="field"><label for="pw-old">Current password</label><input id="pw-old" type="password" autocomplete="current-password"></div><div class="field"><label for="pw-new">New password</label><input id="pw-new" type="password" autocomplete="new-password"><p class="hint">At least 8 characters.</p></div><p class="err" id="pw-err" hidden></p><button type="button" class="btn btn-ghost btn-block mt" id="pw-go">Change password</button></div>`
+      + `<div class="side-card"><h3>${owner ? 'You’re the bank' : 'How ScobbBucks work'}</h3>`
+      + `<p class="small soft">${owner ? `${fmtInt(SUPPLY - sumC(vault))} of ${fmtInt(SUPPLY)} are out with friends. Coins spent in the shop come back to your vault.` : `${esc(nameOf(L.issuer))} holds the vault and sends coins out. Every coin from the vault lands on a random rarity. Spend coins in the shop, or trade with friends for better ones.`}</p>`
+      + `<div class="tbl">${CAPS.map((n, r) => `<div>${coinSVG(r, 24)}<span class="rc${r}">${RN[r]}</span><b>${fmtInt(n)}</b>${owner ? `<b class="soft">${fmtInt(vault[r])} left</b>` : ''}</div>`).join('')}</div>`
+      + `<p class="small soft" style="margin-top:8px">${owner ? 'The first number is how many exist. The second is how many are still in your vault.' : 'That’s how many of each rarity exist.'}</p></div>`
+      + `<button type="button" class="btn btn-danger btn-block mt" data-act="logout">Log out</button>`;
+    openSheet('settings', html, () => {
+      const err = $('#st-err');
+      const fail = m => { err.textContent = m; err.hidden = false; };
+      $('#st-save').addEventListener('click', async () => {
+        err.hidden = true;
+        const digits = normPhone($('#st-phone').value);
+        if (!digits) return fail('That doesn’t look like a phone number.');
+        const hash = await phoneKey(digits);
+        if (Object.keys(players).some(u => u !== uid && players[u] && players[u].phoneHash === hash)) return fail('Someone already uses that phone number.');
+        meDoc.phoneHash = hash;
+        savePlayer();
+        closeSheet();
+        recompute();
+        toast('Phone number saved');
+      });
+      const rm = $('#st-remove');
+      if (rm) rm.addEventListener('click', () => { meDoc.phoneHash = null; savePlayer(); closeSheet(); recompute(); toast('Phone number removed'); });
+      $('#pw-go').addEventListener('click', async () => {
+        const e2 = $('#pw-err');
+        const f2 = m => { e2.textContent = m; e2.hidden = false; };
+        e2.hidden = true;
+        const oldP = $('#pw-old').value, newP = $('#pw-new').value;
+        if (!oldP) return f2('Enter your current password.');
+        if (newP.length < 8) return f2('Use at least 8 characters for the new password.');
+        const btn = $('#pw-go');
+        btn.disabled = true;
+        try {
+          await FB.reauthenticateWithCredential(auth.currentUser, FB.EmailAuthProvider.credential(uname + EMAIL_DOMAIN, oldP));
+          await FB.updatePassword(auth.currentUser, newP);
+          $('#pw-old').value = '';
+          $('#pw-new').value = '';
+          toast('Password changed');
+        } catch (e) {
+          const m = authMsg(e && e.code);
+          f2(m === 'That username and password don’t match.' ? 'Your current password isn’t right.' : m);
+        }
+        btn.disabled = false;
+      });
+    });
+  }
+
+  /* reveal */
+  function openReveal() {
+    const un = unopened();
+    if (!un.count) return;
+    const coins = [];
+    un.list.forEach(ev => ev.c.forEach((n, r) => { for (let i = 0; i < n; i++) coins.push(r); }));
+    shuffle(coins);
+    const shown = coins.slice(0, 40);
+    const total = z();
+    coins.forEach(r => { total[r]++; });
+    const keys = un.list.map(ev => ev.key);
+    const notes = un.list.filter(ev => ev.n).map(ev => `<p class="note" style="margin-top:6px">${esc(nameOf(ev.a))}: “${esc(ev.n)}”</p>`).join('');
+    const from = [...new Set(un.list.map(ev => ev.a))].map(nameOf);
+    const html = sheetHead(`You got ${bucks(un.count)}`, `from ${esc(joinWords(from))}`) + notes
+      + `<p class="small soft" style="margin-top:10px">Tap a coin to flip it.${coins.length > shown.length ? ` Showing ${shown.length} of ${fmtInt(coins.length)}.` : ''}</p>`
+      + `<div class="rv-grid">${shown.map((r, i) => `<button type="button" class="rv r${r}" data-act="flip" data-i="${i}" aria-label="Flip coin ${i + 1}"><span class="face front">${mysterySVG()}</span><span class="face back">${coinSVG(r, 40)}</span></button>`).join('')}</div>`
+      + `<div id="rv-sum"></div>`
+      + `<button type="button" class="btn btn-ghost btn-block mt" id="rv-all">Flip all</button>`;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      $('#rv-all').hidden = true;
+      $('#rv-sum').innerHTML = `<div class="rv-sum"><h3>${total[5] ? 'A Mythic!' : total[4] ? 'A Legendary!' : 'Nice haul'}</h3><div class="chips">${coinChips(total)}</div><button type="button" class="btn btn-grape btn-block mt" data-act="close-sheet">Nice</button></div>`;
+      if (total[3] || total[4] || total[5]) confetti(total[5] ? 90 : 50);
+    };
+    openSheet('reveal', html, () => {
+      $('#rv-all').addEventListener('click', () => {
+        $$('.rv').forEach((b, i) => setTimeout(() => b.classList.add('flipped'), i * 40));
+        setTimeout(finish, shown.length * 40 + 450);
+      });
+    }, {
+      flip: b => { b.classList.add('flipped'); if ($$('.rv:not(.flipped)').length === 0) setTimeout(finish, 450); },
+      onClose: () => { priv.seen = (priv.seen || []).concat(keys).slice(-600); savePriv(); recompute(); }
+    });
+  }
+
+  function confetti(n) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const box = document.createElement('div');
+    box.className = 'confetti';
+    const cols = ['#FF4F8B', '#FFB347', '#5BE38A', '#3EC1FF', '#9B5CFF', '#FFE066'];
+    for (let i = 0; i < (n || 50); i++) {
+      const p = document.createElement('i');
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.background = cols[i % cols.length];
+      p.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+      p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+      p.style.animationDelay = (Math.random() * 0.4) + 's';
+      box.appendChild(p);
+    }
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 2600);
+  }
+
+  let toastT = 0;
+  function toast(msg) {
+    const el = $('#toast');
+    el.textContent = msg;
+    el.hidden = true;
+    void el.offsetWidth;
+    el.hidden = false;
+    clearTimeout(toastT);
+    toastT = setTimeout(() => { el.hidden = true; }, 2800);
+  }
+
+  /* ================= events ================= */
+  const ACT = {
+    'tab': b => { ui.tab = b.dataset.tab; closeSheet(true); render(); window.scrollTo(0, 0); },
+    'settings': () => openSettings(),
+    'send': b => openSend(b.dataset.u || null),
+    'new-trade': b => openTrade(b.dataset.u || null),
+    'reveal': () => openReveal(),
+    'flip': b => { if (sheet && sheet.flip) sheet.flip(b); },
+    'close-sheet': () => closeSheet(),
+    'cat': b => { ui.shopCat = b.dataset.cat; render(); },
+    'shop-cat': b => { ui.shopCat = b.dataset.cat; ui.tab = 'shop'; render(); window.scrollTo(0, 0); },
+    'item': b => openItem(b.dataset.id),
+    'buy': b => doBuy(b.dataset.id),
+    'item-wear': b => wearToggle(b.dataset.id),
+    'item-turn': () => { if (sheet && sheet.toggleBack) sheet.toggleBack(); },
+    'item-emote': b => { if (b.dataset.e) playEmote($('#item-av .av'), b.dataset.e); },
+    'equip': b => doEquip(b.dataset.slot, b.dataset.inst || null),
+    'emote-pick': b => { const inst = b.dataset.inst; doEquip('emote', inst === 'wave' ? null : inst); const e = inst === 'wave' ? 'wave' : CAT[L.items[inst].it].emote; setTimeout(() => playEmote($('#closet-av .av'), e), 60); },
+    'emote-me': () => playEmote($('#closet-av .av'), emoteOf(uid)),
+    'turn': () => { ui.closetBack = !ui.closetBack; render(); },
+    'edit-look': () => { closeSheet(true); ui.lookDraft = Object.assign({}, meDoc.avatar || DEFAULT_LOOK); ui.editingLook = true; render(); window.scrollTo(0, 0); },
+    'look': b => { const k = b.dataset.k; let v = b.dataset.v; if (k === 'blush') v = v === 'true'; ui.lookDraft[k] = v; renderLook(); },
+    'look-wave': () => playEmote($('.stage-btn .av'), 'wave'),
+    'look-save': () => saveLook(),
+    'look-cancel': () => { ui.editingLook = false; ui.lookDraft = null; render(); },
+    'setup': () => doSetup(),
+    'register': () => doRegister(),
+    'login': () => doLogin(),
+    'auth-mode': b => { ui.authMode = b.dataset.m; render(); },
+    'logout': () => { closeSheet(true); if (FB && auth) FB.signOut(auth); },
+    'profile': b => openProfile(b.dataset.u),
+    'prof-emote': b => playEmote($('#prof-av .av'), b.dataset.e),
+    'qamt': b => { const el = $('#s-amt'); if (el) el.value = b.dataset.v; },
+    'step': b => {
+      const el = $('#' + b.dataset.p + '-' + b.dataset.r);
+      if (!el) return;
+      const max = Number(el.dataset.max) || 0;
+      const v = (parseInt(el.value.replace(/\D/g, ''), 10) || 0) + Number(b.dataset.d);
+      el.value = String(Math.max(0, Math.min(max, v)));
+    },
+    'ipick': b => b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')),
+    'accept': b => {
+      if (!guardWrite()) return;
+      const o = L.offers[b.dataset.o];
+      if (!o || o.status !== 'open' || o.to !== uid) return;
+      const prob = offerProblem(o);
+      if (prob) { toast(prob); return; }
+      newEntry('accept', { o: o.key });
+      toast(`Trade done with ${nameOf(o.from)}`);
+    },
+    'decline': b => { if (!guardWrite()) return; const o = L.offers[b.dataset.o]; if (o && o.status === 'open' && o.to === uid) { newEntry('decline', { o: o.key }); toast('Offer declined'); } },
+    'cancel': b => { if (!guardWrite()) return; const o = L.offers[b.dataset.o]; if (o && o.status === 'open' && o.from === uid) { newEntry('cancel', { o: o.key }); toast('Offer cancelled'); } }
+  };
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]');
+    if (!b || b.disabled) return;
+    const fn = ACT[b.dataset.act];
+    if (fn) { e.preventDefault(); fn(b, e); }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target && e.target.id) { if (e.target.id.startsWith('li-')) { e.preventDefault(); doLogin(); return; } if (e.target.id.startsWith('su-')) { e.preventDefault(); doRegister(); return; } }
+    if ($('#sheet-root').hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeSheet(); return; }
+    if (e.key === 'Tab') {
+      const f = $$('#sheet button:not([disabled]):not([hidden]), #sheet input:not([hidden])').filter(el => el.offsetParent !== null);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === $('#sheet'))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  $$('[data-icon]').forEach(el => { el.innerHTML = icon(el.dataset.icon); });
+  setInterval(() => { if (ui.screen === 'main' && !sheet && !document.hidden && (ui.tab === 'wallet' || ui.tab === 'feed')) render(); }, 60000);
+
+  /* ================= boot ================= */
+  const FB_VERSION = '12.15.0';
+  async function loadFirebase() {
+    const base = `https://www.gstatic.com/firebasejs/${FB_VERSION}/`;
+    const mods = await Promise.all(['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map(f => import(base + f)));
+    return Object.assign({}, ...mods);
+  }
+  function onDbError(err) {
+    ui.fatal = err && err.code === 'permission-denied' ? 'rules' : 'lost';
+    render();
+  }
+  const docRef = path => ({ set: body => FB.setDoc(FB.doc(fs, path), body) });
+
+  function endSession() {
+    unsubs.forEach(fn => { try { fn(); } catch (e) { /* already stopped */ } });
+    unsubs = [];
+    authed = false; uid = null; uname = ''; isOwner = false;
+    config = null; configLoaded = false; players = {}; playersLoaded = false;
+    entriesSnap = {}; entriesLoaded = false; pendingEntries.clear();
+    meDoc = null; creatingProfile = false; sessionSignup = null;
+    priv = { seen: [] }; privLoaded = false; L = null;
+    playerRef = null; privRef = null;
+    if (ui.fatal === 'rules' || ui.fatal === 'lost') ui.fatal = '';
+    ui.tab = 'wallet'; ui.editingLook = false; ui.lookDraft = null; ui.authMode = 'login';
+    closeSheet(true);
+  }
+
+  function startSession(user) {
+    if (authed && uid === user.uid) return;
+    endSession();
+    authed = true;
+    uid = user.uid;
+    uname = String(user.email || '').split('@')[0].toLowerCase();
+    isOwner = uname === BANK;
+    sessionSignup = pendingSignup && pendingSignup.username.toLowerCase() === uname ? pendingSignup : null;
+    pendingSignup = null;
+    playerRef = docRef('players/' + uid);
+    privRef = docRef('private/' + uid);
+    unsubs.push(FB.onSnapshot(FB.doc(fs, 'config/main'), snap => {
+      config = snap.exists() ? clone(snap.data()) : null;
+      configLoaded = true;
+      ensurePhoneHash();
+      recompute();
+    }, onDbError));
+    unsubs.push(FB.onSnapshot(FB.collection(fs, 'players'), qs => {
+      const next = {};
+      qs.forEach(d => { next[d.id] = d.data(); });
+      players = next;
+      if (next[uid] && !meDoc) meDoc = clone(next[uid]);
+      playersLoaded = true;
+      ensureProfile();
+      ensurePhoneHash();
+      recompute();
+    }, onDbError));
+    unsubs.push(FB.onSnapshot(FB.collection(fs, 'entries'), qs => {
+      const next = {};
+      qs.forEach(d => {
+        const x = d.data({ serverTimestamps: 'estimate' });
+        if (!x || typeof x.a !== 'string' || typeof x.i !== 'string') return;
+        const e = Object.assign({}, x);
+        e.t = x.st && typeof x.st.toMillis === 'function' ? x.st.toMillis() : (typeof x.ct === 'number' ? x.ct : 0);
+        delete e.st;
+        next[d.id] = e;
+        pendingEntries.delete(d.id);
+      });
+      entriesSnap = next;
+      entriesLoaded = true;
+      recompute();
+    }, onDbError));
+    FB.getDoc(FB.doc(fs, 'private/' + uid)).then(snap => {
+      if (snap.exists()) priv = Object.assign({ seen: [] }, clone(snap.data()));
+      privLoaded = true;
+      recompute();
+    }).catch(() => { privLoaded = true; recompute(); });
+    render();
+  }
+
+  async function boot() {
+    render();
+    let cfgMod = null;
+    try { cfgMod = await import('./firebase-config.js'); } catch (e) { cfgMod = null; }
+    const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
+    const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
+    if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
+    BANK = bank;
+    try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
+    const fbApp = FB.initializeApp(cfg);
+    auth = FB.getAuth(fbApp);
+    fs = FB.getFirestore(fbApp);
+    FB.onAuthStateChanged(auth, user => {
+      authReady = true;
+      if (user) startSession(user);
+      else { endSession(); render(); }
+    });
+  }
+
+  boot();
+</script>
+</body>
+</html>
