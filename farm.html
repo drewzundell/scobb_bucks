@@ -833,7 +833,7 @@ input[type="text"]:focus { border-color: var(--grape); }
     if (!r || !S) return h;
     const label = S.phase === 'lobby' ? 'Starts in' : S.phase === 'live' ? 'Time left' : 'Round over';
     h += `<div class="status mt"><span>Round ${r.n}</span><span>${label} <b data-live="timer">${S.phase === 'over' ? '' : clock((S.phase === 'lobby' ? S.startAt : S.endAt) - now())}</b></span></div>`;
-    if (isBank() && r.by === uid && S.phase !== 'over') h += `<p class="small" style="margin-top:6px;text-align:right"><button type="button" class="link" data-act="end-ask">End this round</button></p>`;
+    if (isBank() && r.by === uid && S.phase !== 'over') h += `<button type="button" class="btn btn-danger btn-sm btn-block" style="margin-top:8px" data-act="end-ask">End this round</button>`;
     const p = me();
     if (p && S.phase === 'live') {
       h += `<div class="res"><div><span>Jelly</span><b data-res="j">${fmt(p.j)}</b></div><div><span>Gold</span><b data-res="c">${fmt(p.c)}</b></div><div><span>Idle villagers</span><b>${p.idle}</b></div><div><span>Army</span><b>${fmt(sumObj(p.army))}</b></div><div><span>Farms</span><b>${farmsOf(p)}</b></div><div><span>Age</span><b style="font-size:14px">${AGES[p.age - 1]}</b></div></div>`;
@@ -1008,7 +1008,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   }
 
   /* ---- base tab ---- */
-  function progRow(text, from, at, cancel, b) { return `<div class="prog"><div class="t"><span>${text}</span><span data-cd="${at}">${secs(at - now())}</span></div><div class="bar"><i data-prog="${from}:${at}"></i></div>${cancel ? `<button type="button" class="link small" style="margin-top:6px" data-act="${cancel}"${b ? ` data-b="${b}"` : ''}>${cancel === 'cancelbuild' ? 'Cancel and get your money back' : 'Cancel training and get your money back'}</button>` : ''}</div>`; }
+  function progRow(text, from, at, cancel, b) { return `<div class="prog"><div class="t"><span>${text}</span><span data-cd="${at}">${secs(at - now())}</span></div><div class="bar"><i data-prog="${from}:${at}"></i></div>${cancel ? `<button type="button" class="btn btn-danger btn-sm" style="margin:8px 0 0" data-act="${cancel}"${b ? ` data-b="${b}"` : ''}>${cancel === 'cancelbuild' ? 'Stop building (full refund)' : 'Stop training (full refund)'}</button>` : ''}</div>`; }
   function queueRows(p) {
     let h = '';
     if (p.build) h += progRow(`Building a ${BUILDS[p.build.b].name.toLowerCase()}`, p.build.from, p.build.at, 'cancelbuild');
@@ -1104,6 +1104,8 @@ input[type="text"]:focus { border-color: var(--grape); }
   function armyView() {
     const p = me(), t = now(), col = colorOf(lookOf(uid));
     let h = `<div class="card mt"><b>Troops at home</b>${armyChips(p.army, col)}<p class="small soft" style="margin-top:6px">${fmt(p.awayN)} out on attacks. Defense power about ${fmt(defenseOf(p))}.</p></div>`;
+    const lines = queueRows(p);
+    h += `<h2>Training and building</h2>${lines || '<p class="small soft">Nothing is training or being built right now.</p>'}`;
     h += `<h2>Train troops</h2><div class="card blist">`;
     for (const b of MIL) {
       const B = BUILDS[b], c = p.cur[b];
