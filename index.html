@@ -913,6 +913,8 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
   const okItems = a => Array.isArray(a) && a.length <= 24 && a.every(s => typeof s === 'string' && s.length < 160) && new Set(a).size === a.length;
   const str = n => (typeof n === 'string' ? n.slice(0, 120) : '');
 
+  // Upgrade coins with the vault: SWAP[r] coins of rarity r buy 1 coin of rarity r + 1.
+  const SWAP = [3, 3, 3, 4, 5];
   function replay(cfg, pl) {
     const issuer = cfg.issuer;
     const bal = Object.create(null);
@@ -953,6 +955,17 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         const b = get(issuer);
         e.c.forEach((n, r) => { b[r] += n; total[r] += n; });
         events.push({ k: 'mint', key, a, c: e.c.slice(), t: e.t });
+      } else if (e.k === 'swap') {
+        if (a === issuer) { bad[key] = 'who'; continue; }
+        const r = e.r, n = e.n;
+        if (!Number.isInteger(r) || r < 0 || r > 4 || !Number.isInteger(n) || n < 1 || n > 1000) { bad[key] = 'shape'; continue; }
+        const give = z(), got = z();
+        give[r] = SWAP[r] * n; got[r + 1] = n;
+        if (!has(a, give)) { bad[key] = 'funds'; continue; }
+        if (!has(issuer, got)) { bad[key] = 'vault'; continue; }
+        move(a, issuer, give);
+        move(issuer, a, got);
+        events.push({ k: 'swap', key, a, r, n, t: e.t });
       } else if (e.k === 'buy') {
         const it = CAT[e.it];
         if (!it || it.free) { bad[key] = 'item'; continue; }
@@ -1280,7 +1293,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     recompute();
   }
 
-  const FARM_PRIZES = [50, 25, 10];
+  const FARM_PRIZES = [25];
   const prizeKeys = new Set();
   function payPrizes() {
     if (!FARM_LIVE || !L || !meDoc || !config || uid !== L.issuer || readOnly) return;
@@ -1289,7 +1302,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     for (const rid of Object.keys(farmResults)) {
       const r = farmResults[rid];
       if (!r || r.by !== uid || !Array.isArray(r.places)) continue;
-      r.places.slice(0, 3).forEach((winner, i) => {
+      r.places.slice(0, FARM_PRIZES.length).forEach((winner, i) => {
         const key = rid + ':' + i;
         if (prizeKeys.has(key) || mine.some(e => e.pz === key)) return;
         if (!winner || winner === uid || !players[winner]) { prizeKeys.add(key); return; }
@@ -1545,13 +1558,13 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
       <div class="rgrid">${RN.map((n, r) => `<div class="rcell">${coinSVG(r, 24)}<div class="rval">${fmtInt(bal[r])}</div><div class="rn rc${r}">${n}</div></div>`).join('')}</div>
       ${sumC(res) ? `<p class="small soft">${plural(sumC(res), 'coin is', 'coins are')} held for your open trade offers.</p>` : ''}
       ${owner ? `<p class="small soft">You’re the bank. ${fmtInt(out)} of ${fmtInt(supply)} are out with friends.</p>` : (sumC(bal) === 0 ? `<p class="small soft">Ask ${esc(nameOf(L.issuer))}, the bank, to send you some ScobbBucks.</p>` : '')}
-      <div class="row2"><button type="button" class="btn btn-grape" data-act="send">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade">Trade</button></div>${owner ? '<button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="mint-more">Mint more ScobbBucks</button>' : ''}</section>`;
+      <div class="row2"><button type="button" class="btn btn-grape" data-act="send">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade">Trade</button></div>${owner ? '<button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="mint-more">Mint more ScobbBucks</button>' : '<button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="swap">⬆️ Upgrade coins</button>'}</section>`;
     if (un.count) {
       const from = [...new Set(un.list.map(ev => ev.a))].map(nameOf);
       h += `<button type="button" class="banner gift wiggle-in" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
     }
     if (inc.length) h += `<button type="button" class="banner" data-act="tab" data-tab="trades">${headBubble(inc[0].from, 34)}<span class="bt">${inc.length === 1 ? `${esc(nameOf(inc[0].from))} sent you a trade offer` : `${inc.length} trade offers are waiting on you`}</span><span class="pill">View</span></button>`;
-    if (farmVisible()) h += `<a class="farm-card" href="./farm.html"><span class="fe" aria-hidden="true">🌾</span><span class="ft"><b>Scobb Farm</b><span>Build a farm, raid your friends and take over the map.${FARM_LIVE ? ' Top 3 win ScobbBucks.' : ' In preview.'}</span></span><span class="go">Play</span></a>`;
+    if (farmVisible()) h += `<a class="farm-card" href="./farm.html"><span class="fe" aria-hidden="true">🌾</span><span class="ft"><b>Scobb Farm</b><span>Build a farm, raid your friends and take over the map.${FARM_LIVE ? ' The winner gets 25 ScobbBucks.' : ' In preview.'}</span></span><span class="go">Play</span></a>`;
     h += `<h2>Your activity</h2>${activityHTML()}`;
     return h;
   }
@@ -1567,8 +1580,9 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
       else if (ev.k === 'buy' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'trade' && (ev.a === uid || ev.to === uid)) rows.push(ev);
       else if (ev.k === 'mint' && ev.a === uid) rows.push(ev);
+      else if (ev.k === 'swap' && ev.a === uid) rows.push(ev);
     }
-    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy')) rows.push({ k: 'bad', e, t: e.t }); }
+    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap')) rows.push({ k: 'bad', e, t: e.t }); }
     rows.sort((a, b) => b.t - a.t);
     if (!rows.length) return `<p class="empty">Nothing here yet. Coins you send and get will show up here.</p>`;
     return `<div class="list">${rows.slice(0, 40).map(ev => {
@@ -1585,10 +1599,16 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         other = uid;
         t = `You minted ${bucks(sumC(ev.c))}`;
         more = evCoins(ev.c);
+      } else if (ev.k === 'swap') {
+        other = uid;
+        t = `You upgraded ${fmtInt(SWAP[ev.r] * ev.n)} ${RN[ev.r]} into ${fmtInt(ev.n)} ${RN[ev.r + 1]}`;
+        const g = z(), w = z(); g[ev.r] = SWAP[ev.r] * ev.n; w[ev.r + 1] = ev.n;
+        more = `<p class="s">You gave</p><div class="chips">${coinChips(g)}</div><p class="s" style="margin-top:4px">You got</p><div class="chips">${coinChips(w)}</div>`;
       } else if (ev.k === 'bad') {
         other = ev.e.to || uid;
-        t = ev.e.k === 'send' ? `Your send to <b>${esc(nameOf(ev.e.to))}</b> didn’t go through` : `Your ${esc((CAT[ev.e.it] || { name: 'item' }).name)} purchase didn’t go through`;
-        more = `<p class="s">${L.bad[uid + ':' + ev.e.i] === 'gone' ? 'That item had already left the shop, so nothing moved.' : 'You didn’t have enough coins when it reached everyone, so nothing moved.'}</p>`;
+        const why = L.bad[uid + ':' + ev.e.i];
+        t = ev.e.k === 'send' ? `Your send to <b>${esc(nameOf(ev.e.to))}</b> didn’t go through` : ev.e.k === 'swap' ? 'Your coin upgrade didn’t go through' : `Your ${esc((CAT[ev.e.it] || { name: 'item' }).name)} purchase didn’t go through`;
+        more = `<p class="s">${why === 'gone' ? 'That item had already left the shop, so nothing moved.' : why === 'vault' ? 'The bank’s vault ran out of that rarity, so nothing moved.' : 'You didn’t have enough coins when it reached everyone, so nothing moved.'}</p>`;
       }
       const note = ev.n ? `<p class="note">“${esc(ev.n)}”</p>` : '';
       return `<div class="ev">${headBubble(other, 40)}<div class="main"><div class="t">${t}</div>${note}${more}</div><span class="when">${ago(ev.t)}</span></div>`;
@@ -1727,6 +1747,9 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         hot = CAT[ev.it].r >= 4;
       } else if (ev.k === 'trade') {
         t = `<b>${esc(nameOf(ev.a))}</b> and <b>${esc(nameOf(ev.to))}</b> made a trade`;
+      } else if (ev.k === 'swap') {
+        t = `<b>${esc(nameOf(ev.a))}</b> upgraded ${fmtInt(SWAP[ev.r] * ev.n)} ${RN[ev.r]} into ${ev.n > 1 ? fmtInt(ev.n) + ' ' + RN[ev.r + 1] : (ev.r + 1 === 1 ? 'an ' : 'a ') + RN[ev.r + 1]}`;
+        hot = ev.r + 1 >= 4;
       } else if (ev.k === 'mint') {
         t = `<b>${esc(nameOf(ev.a))}</b> minted ${bucks(sumC(ev.c))}`;
         more = `<div class="chips">${coinChips(ev.c)}</div>`;
@@ -1814,6 +1837,27 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
   const readPicks = prefix => $$(`.ichip[data-p="${prefix}"][aria-pressed="true"]`).map(b => b.dataset.inst);
 
   /* send */
+  function openSwap() {
+    if (!guardWrite()) return;
+    const draw = () => {
+      const av = availOf(uid), vault = availOf(L.issuer);
+      if (ui.swapR == null) { const r0 = [0, 1, 2, 3, 4].find(r => av[r] >= SWAP[r]); ui.swapR = r0 == null ? 0 : r0; }
+      const r = ui.swapR, cost = SWAP[r];
+      const maxN = Math.max(0, Math.min(1000, Math.floor(av[r] / cost), vault[r + 1]));
+      const n = Math.max(1, Math.min(ui.swapN || 1, Math.max(1, maxN)));
+      ui.swapN = n;
+      let h = sheetHead('Upgrade coins', 'Trade lower coins to the bank’s vault for higher ones');
+      h += `<div class="list">${[0, 1, 2, 3, 4].map(k => `<button type="button" class="step" style="width:100%;text-align:left;border:2px solid ${k === r ? 'var(--grape)' : 'var(--line)'};border-radius:16px;padding:8px 10px;margin-bottom:8px;background:var(--card);font:inherit;color:inherit" data-act="swap-r" data-r="${k}" aria-pressed="${k === r}">${coinSVG(k, 26)}<span class="sn"><span><b>${SWAP[k]} <span class="rc${k}">${RN[k]}</span></b> → <b>1 <span class="rc${k + 1}">${RN[k + 1]}</span></b></span><span class="small">You have ${fmtInt(av[k])}. The vault has ${fmtInt(vault[k + 1])} ${RN[k + 1]}.</span></span>${coinSVG(k + 1, 26)}</button>`).join('')}</div>`;
+      h += `<div class="field"><span class="label">How many ${RN[r + 1]} do you want?</span><div class="step"><button type="button" class="sb" data-act="swap-n" data-d="-1" aria-label="One fewer">−</button><b class="sv" style="display:grid;place-items:center">${n}</b><button type="button" class="sb" data-act="swap-n" data-d="1" aria-label="One more">+</button><button type="button" class="qchip" data-act="swap-n" data-d="max">Max</button></div></div>`;
+      h += `<div class="price-row" style="font-size:20px;gap:6px;flex-wrap:nowrap;white-space:nowrap">${coinSVG(r, 26)}${fmtInt(cost * n)} ${RN[r]} <span aria-hidden="true">→</span> ${coinSVG(r + 1, 26)}${fmtInt(n)} ${RN[r + 1]}</div>`;
+      const why = av[r] < cost ? `You need at least ${cost} ${RN[r]} to upgrade.` : vault[r + 1] < 1 ? `The vault is out of ${RN[r + 1]} right now.` : '';
+      h += why ? `<p class="small err">${why}</p>` : `<p class="small soft">Your ${RN[r]} go to the bank’s vault, and you get ${RN[r + 1]} from it right away.</p>`;
+      h += `<button type="button" class="btn btn-grape btn-block mt" data-act="swap-go"${why || readOnly ? ' disabled' : ''}>Upgrade</button>`;
+      $('#sheet-body').innerHTML = h;
+    };
+    ui.swapR = null; ui.swapN = 1;
+    openSheet('swap', '', draw, { refresh: draw });
+  }
   function openSend(prefTo) {
     if (!guardWrite()) return;
     const owner = uid === L.issuer;
@@ -2187,6 +2231,23 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     'farm-equip': b => { if (!guardWrite()) return; meDoc.farmEquip = Object.assign({}, meDoc.farmEquip || {}); meDoc.farmEquip[b.dataset.b] = b.dataset.id || null; savePlayer(); recompute(); },
     'farm-use': b => { const it = CAT[b.dataset.id]; if (!it || !guardWrite()) return; meDoc.farmEquip = Object.assign({}, meDoc.farmEquip || {}); const on = meDoc.farmEquip[it.b] === it.id; meDoc.farmEquip[it.b] = on ? null : it.id; savePlayer(); recompute(); toast(on ? 'Back to the default look' : `Your ${it.bname.toLowerCase()} uses it now`); },
     'mint-more': () => openMintMore(),
+    'swap': () => openSwap(),
+    'swap-r': b => { ui.swapR = Number(b.dataset.r); ui.swapN = 1; if (sheet && sheet.refresh) sheet.refresh(); },
+    'swap-n': b => {
+      const av = availOf(uid), vault = availOf(L.issuer), r = ui.swapR;
+      const maxN = Math.max(1, Math.min(1000, Math.floor(av[r] / SWAP[r]), vault[r + 1]));
+      ui.swapN = b.dataset.d === 'max' ? maxN : Math.max(1, Math.min(maxN, (ui.swapN || 1) + Number(b.dataset.d)));
+      if (sheet && sheet.refresh) sheet.refresh();
+    },
+    'swap-go': () => {
+      const r = ui.swapR, n = ui.swapN || 1, av = availOf(uid), vault = availOf(L.issuer);
+      if (av[r] < SWAP[r] * n) return toast(`You need ${fmtInt(SWAP[r] * n)} ${RN[r]}.`);
+      if (vault[r + 1] < n) return toast(`The vault only has ${fmtInt(vault[r + 1])} ${RN[r + 1]}.`);
+      newEntry('swap', { r, n });
+      toast(`Upgraded ${fmtInt(SWAP[r] * n)} ${RN[r]} into ${fmtInt(n)} ${RN[r + 1]}`);
+      ui.swapN = 1;
+      if (sheet && sheet.refresh) sheet.refresh();
+    },
     'mm-q': b => { const el = $('#mm-amt'); if (el) el.value = b.dataset.v; },
     'step': b => {
       const el = $('#' + b.dataset.p + '-' + b.dataset.r);
