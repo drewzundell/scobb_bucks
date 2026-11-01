@@ -2691,9 +2691,9 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const s = lastSpin('plinko'), C = ui.cas, spinning = !!C.wait || !!C.anim;
     const W = 340, rowH = 22, top = 24;
     let pegs = '';
-    for (let row = 0; row < 12; row++) for (let k = 0; k <= row + 1; k++) pegs += `<circle cx="${W / 2 + (k - (row + 1) / 2) * 24}" cy="${top + row * rowH}" r="3.4" fill="url(#pk-peg)"/>`;
+    for (let row = 0; row < 12; row++) for (let k = 0; k <= row; k++) pegs += `<circle id="pk-p${row}-${k}" cx="${W / 2 + (k - row / 2) * 24}" cy="${top + row * rowH}" r="3.4" fill="url(#pk-peg)"/>`;
     const slots = PLINKO_M.map((m, k) => `<g transform="translate(${W / 2 + (k - 6) * 24 - 11} ${top + 12 * rowH})"><rect y="2" width="22" height="22" rx="5" fill="#000" opacity=".25"/><rect width="22" height="22" rx="5" fill="${m >= 3 ? '#E0457F' : m >= 1.1 ? '#E39424' : m >= 0.8 ? '#8F96A3' : '#5C6370'}"/><text x="11" y="15" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="'Source Sans 3',sans-serif">${m}</text></g>`).join('');
-    let h = `<div class="plinko"><svg viewBox="0 0 ${W} ${top + 12 * rowH + 30}" role="img" aria-label="Plinko board"><defs><radialGradient id="pk-peg" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#A9AFBC"/><stop offset="1" stop-color="#5C6370"/></radialGradient><radialGradient id="pk-ball" cx="32%" cy="28%" r="75%"><stop offset="0" stop-color="#E4DEFF"/><stop offset=".4" stop-color="#7C6CF0"/><stop offset="1" stop-color="#2F23A8"/></radialGradient><filter id="pk-sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-opacity=".35"/></filter></defs>${pegs}${slots}<circle id="pk-ball" cx="${s && !spinning ? W / 2 + (s.res.reduce((x, y) => x + y, 0) - 6) * 24 : W / 2}" cy="${s && !spinning ? top + 12 * rowH - 8 : 8}" r="7.5" fill="url(#pk-ball)" filter="url(#pk-sh)" style="transition:cx .11s cubic-bezier(.3,.6,.5,1), cy .11s cubic-bezier(.5,0,.8,.6)"/></svg></div>`;
+    let h = `<div class="plinko"><svg viewBox="0 0 ${W} ${top + 12 * rowH + 30}" role="img" aria-label="Plinko board"><defs><radialGradient id="pk-peg" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#A9AFBC"/><stop offset="1" stop-color="#5C6370"/></radialGradient><radialGradient id="pk-ballg" cx="32%" cy="28%" r="75%"><stop offset="0" stop-color="#E4DEFF"/><stop offset=".4" stop-color="#7C6CF0"/><stop offset="1" stop-color="#2F23A8"/></radialGradient><filter id="pk-sh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-opacity=".35"/></filter></defs>${pegs}${slots}<circle id="pk-ball" cx="${s && !spinning ? W / 2 + (s.res.reduce((x, y) => x + y, 0) - 6) * 24 : W / 2}" cy="${s && !spinning ? top + 12 * rowH - 8 : 8}" r="7.5" fill="url(#pk-ballg)" filter="url(#pk-sh)"/></svg></div>`;
     if (s && !spinning) h += spinResultLine(s);
     h += casBetPicker(PLINKO_M[0]) + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-spin" data-g="plinko"${spinning || casPending() ? ' disabled' : ''}>${spinning ? 'Dropping…' : `Drop for ${casAmt(ui.casR || 0, ui.casN || 1, C.practice)}`}</button>`;
     return h;
@@ -2721,18 +2721,68 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       setTimeout(() => { C.anim = null; C.landed = key; C.strip = null; drawCas(true); const s2 = $('#rl-strip'), w2 = s2 && s2.parentElement; if (s2) s2.style.transform = `translateX(${-(RL_ORDER.indexOf(res.res) * 52 + 24 - w2.clientWidth / 2)}px)`; }, 3400);
     } else {
       C.anim = 'land';
-      const ball = $('#pk-ball');
-      let x = 170, k = 0;
-      const step = () => {
-        if (!ui.cas || !ball) return;
-        if (k >= 12) { setTimeout(() => { C.anim = null; C.landed = key; drawCas(true); }, 400); return; }
-        x += res.res[k] ? 12 : -12;
-        ball.setAttribute('cx', x); ball.setAttribute('cy', 24 + k * 22 + (k === 11 ? 18 : 10));
-        k++;
-        setTimeout(step, 120);
-      };
-      step();
+      plinkoDrop(res.res, () => { C.anim = null; C.landed = key; drawCas(true); });
     }
+  }
+  // Plinko drop with real ballistic motion: the ball falls under gravity, hits the peg under it, bounces up and
+  // sideways onto the next peg (left or right, as decided by the server-time result), then rattles into its slot.
+  function plinkoDrop(path, done) {
+    const ball = $('#pk-ball');
+    if (!ball) return done();
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { done(); return; }
+    const W = 340, top = 24, rowH = 22, RB = 7.5, RP = 3.4, g = 1500;
+    const segs = [];
+    let x = W / 2 + (Math.random() - 0.5) * 2, y = 4, s = 0;
+    // First drop from the chute onto the top peg.
+    segs.push({ x0: x, y0: y, vx: (W / 2 - x) / 0.2, vy: 0, peg: [0, 0] });
+    let prevX = W / 2 + (path[0] ? 1 : -1) * (1.5 + Math.random() * 1.5), prevY = top - (RB + RP) * 0.94;
+    for (let i = 0; i < 12; i++) {
+      const right = path[i] === 1;
+      const cx = prevX, cy = prevY;
+      s += right ? 1 : 0;
+      const nx = i < 11 ? W / 2 + (s - (i + 1) / 2) * 24 + (Math.random() - 0.5) * 2 : W / 2 + (s - 6) * 24;
+      const ny = i < 11 ? top + (i + 1) * rowH - (RB + RP) * 0.94 : top + 12 * rowH + 6;
+      const up = -(70 + Math.random() * 70) * (i === 11 ? 1.2 : 1);
+      const dy = ny - cy;
+      const T = (-up + Math.sqrt(up * up + 2 * g * dy)) / g;
+      segs.push({ x0: cx, y0: cy, vx: (nx - cx) / T, vy: up, T, peg: i < 11 ? [i + 1, s] : null, last: i === 11 });
+      prevX = i < 11 ? nx + (path[i + 1] ? 1 : -1) * (1.5 + Math.random() * 1.5) : nx; prevY = ny;
+      if (i < 11) segs[segs.length - 1].vx = (prevX - cx) / T;
+    }
+    // Time for the first fall onto the top peg.
+    const firstDy = top - (RB + RP) * 0.94 - 4;
+    segs[0].T = Math.sqrt(2 * firstDy / g);
+    segs[0].vx = (segs[1].x0 - segs[0].x0) / segs[0].T;
+    let si = 0, t0 = performance.now();
+    const flash = (r, k) => { const pg = $(`#pk-p${r}-${k}`); if (!pg) return; pg.setAttribute('r', '5'); pg.style.fill = '#FFE38A'; setTimeout(() => { pg.setAttribute('r', '3.4'); pg.style.fill = ''; }, 160); };
+    flash(0, 0);
+    const settle = (sx, sy) => {
+      // A couple of shrinking hops in the slot.
+      const hops = [[-60, 0.75], [-30, 0.5]];
+      let h = 0, ht = performance.now();
+      const step2 = now => {
+        if (!ui.cas) return;
+        const [v0] = hops[h], T2 = 2 * -v0 / g, t = Math.min((now - ht) / 1000, T2);
+        ball.setAttribute('cx', sx.toFixed(2)); ball.setAttribute('cy', (sy + v0 * t + 0.5 * g * t * t).toFixed(2));
+        if (t >= T2) { h++; ht = now; if (h >= hops.length) { ball.setAttribute('cy', sy); return setTimeout(done, 350); } }
+        requestAnimationFrame(step2);
+      };
+      requestAnimationFrame(step2);
+    };
+    const step = now => {
+      if (!ui.cas) return;
+      const sg = segs[si];
+      const t = Math.min((now - t0) / 1000, sg.T);
+      const bx = sg.x0 + sg.vx * t, by = sg.y0 + sg.vy * t + 0.5 * g * t * t;
+      ball.setAttribute('cx', bx.toFixed(2)); ball.setAttribute('cy', by.toFixed(2));
+      if (t >= sg.T) {
+        if (sg.peg) flash(sg.peg[0], sg.peg[1]);
+        if (sg.last) return settle(bx, by);
+        si++; t0 = now;
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
   function casSpin(g) {
     if (ui.cas && ui.cas.practice) {
