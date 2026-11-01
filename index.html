@@ -164,6 +164,27 @@ input:focus { border-color: var(--grape); }
 .dm-compose input { flex: 1; min-width: 0; }
 .top-right { display: flex; gap: 8px; }
 a.icon-btn { text-decoration: none; font-size: 22px; }
+.press-top { display: flex; gap: 12px; align-items: center; }
+#arc-root { position: fixed; inset: 0; z-index: 70; background: var(--bg); color: var(--ink); overflow-y: auto; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+#arc-root > * { max-width: 640px; margin-left: auto; margin-right: auto; }
+.arc-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.crate { text-align: center; padding-top: 8vh; }
+.crate-win { position: relative; overflow: hidden; border-radius: 22px; border: 3px solid var(--line); background: var(--card); padding: 16px 0; margin-top: 18px; }
+.crate-strip { display: flex; gap: 8px; width: max-content; will-change: transform; }
+.crate-card { width: 116px; height: 124px; flex: none; border-radius: 16px; background: var(--bg); border: 2px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; font-size: 13px; padding: 6px; }
+.crate-card span { font-size: 46px; line-height: 1; }
+.crate-card.won { border-color: var(--grape); box-shadow: 0 0 0 4px var(--grape); }
+.crate-mark { position: absolute; top: 0; bottom: 0; left: 50%; width: 4px; margin-left: -2px; background: #E9453C; box-shadow: 0 0 12px #E9453C; }
+.crate-result { margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 24px; animation: wig .9s ease 1; }
+.arc-em { font-size: 32px; line-height: 1; }
+.crate-result .arc-em { font-size: 64px; }
+.arc-now { margin-top: 12px; padding: 12px; border-radius: 14px; background: var(--bg); border: 2px solid var(--line); }
+.arc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.arc-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 16px; border: 2px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-weight: 700; font-size: 13.5px; text-align: center; }
+.arc-tile.done { opacity: .55; }
+.arc-result { text-align: center; padding: 30px 10px; }
+.arc-result .ag-big { font-size: 64px; }
+.press-ic { font-size: 34px; line-height: 1; }
 .wiggle-in { animation: wig .9s ease 1; }
 @keyframes wig { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-3deg); } 40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(1deg); } }
 
@@ -915,6 +936,35 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
 
   // Upgrade coins with the vault: SWAP[r] coins of rarity r buy 1 coin of rarity r + 1.
   const SWAP = [3, 3, 3, 4, 5];
+  // Coin press: makes coins from the vault over time. Level 1 is free; upgrades are paid to the vault.
+  const PRESS = [
+    { rate: 3, cap: 9 },
+    { rate: 5, cap: 15, cost: [15, 0, 0, 0, 0, 0] },
+    { rate: 8, cap: 24, cost: [0, 10, 0, 0, 0, 0] },
+    { rate: 12, cap: 36, cost: [0, 0, 8, 0, 0, 0] },
+    { rate: 18, cap: 54, cost: [0, 0, 0, 5, 0, 0] }
+  ];
+  const DAY = 86400000;
+  function pressAt(pr, t) { const L0 = PRESS[pr.lvl - 1]; return Math.min(L0.cap, pr.acc + L0.rate * Math.max(0, t - pr.at) / DAY); }
+  // Arcade: one crate per game per day; beating the game pays ARC_PRIZE coins from the vault.
+  const ARC = [['tap', 'Coin pop', '🎯'], ['react', 'Quick draw', '⚡'], ['simon', 'Scobb says', '🎵'], ['bar', 'Stop the bar', '🛑'], ['catch', 'Coin catcher', '🧺'], ['dodge', 'Block dodge', '🧱'], ['math', 'Math sprint', '➗'], ['count', 'Quick count', '🔢'], ['odd', 'Odd one out', '🎨'], ['type', 'Speed typer', '⌨️'], ['flappy', 'Flappy scobb', '🐤'], ['whack', 'Whack-a-scobb', '🔨'], ['grid', 'Tile memory', '🧠'], ['stack', 'Stacker', '🏗️'], ['stroop', 'Color clash', '🌈'], ['hoop', 'Hoop shot', '🏀'], ['pairs', 'Card match', '🃏'], ['order', 'Number rush', '🔟']];
+  const ARC_IDS = ARC.map(a => a[0]), ARC_NAME = Object.fromEntries(ARC.map(a => [a[0], a]));
+  const ARC_PRIZE = 5, ARC_WINDOW = 30 * 60000;
+  const arcDay = t => Math.floor((t - WEEK0) / DAY);
+  function arcPick(a, d, spins) {
+    const left = ARC_IDS.filter(id => !spins.some(s => s.g === id));
+    return left.length ? left[hash32('arc:' + a + ':' + d + ':' + spins.length) % left.length] : null;
+  }
+  function seededDraw(n, pool, seed) {
+    const p = pool.slice(), out = z(), rnd = rng(hash32(seed));
+    for (let k = 0; k < n; k++) {
+      const tot = sumC(p);
+      if (!tot) break;
+      let x = rnd() * tot;
+      for (let r = 0; r < 6; r++) { if (x < p[r]) { out[r]++; p[r]--; break; } x -= p[r]; }
+    }
+    return out;
+  }
   function replay(cfg, pl) {
     const issuer = cfg.issuer;
     const bal = Object.create(null);
@@ -926,6 +976,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     const events = [];
     const bad = Object.create(null);
     const all = [];
+    const press = Object.create(null), funded = Object.create(null), arc = Object.create(null);
     for (const u of Object.keys(pl)) {
       const p = pl[u];
       if (!p || !Array.isArray(p.log)) continue;
@@ -948,6 +999,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         if (!okCoins(e.c) || sumC(e.c) < 1) { bad[key] = 'shape'; continue; }
         if (!has(a, e.c)) { bad[key] = 'funds'; continue; }
         move(a, e.to, e.c);
+        if (a === issuer) funded[e.to] = true;
         events.push({ k: 'send', key, a, to: e.to, c: e.c.slice(), n: str(e.n), t: e.t, drop: a === issuer });
       } else if (e.k === 'mint') {
         if (a !== issuer) { bad[key] = 'who'; continue; }
@@ -955,6 +1007,56 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         const b = get(issuer);
         e.c.forEach((n, r) => { b[r] += n; total[r] += n; });
         events.push({ k: 'mint', key, a, c: e.c.slice(), t: e.t });
+      } else if (e.k === 'press') {
+        if (a === issuer) { bad[key] = 'who'; continue; }
+        const pr = press[a];
+        if (e.op === 'start') {
+          if (pr) { bad[key] = 'already'; continue; }
+          if (!funded[a]) { bad[key] = 'unfunded'; continue; }
+          press[a] = { lvl: 1, acc: 0, at: e.t };
+          events.push({ k: 'press', op: 'start', key, a, t: e.t });
+        } else if (e.op === 'claim') {
+          if (!pr) { bad[key] = 'nopress'; continue; }
+          pr.acc = pressAt(pr, e.t); pr.at = e.t;
+          const want = Math.floor(pr.acc + 1e-9);
+          if (want < 1) { bad[key] = 'empty'; continue; }
+          const c = seededDraw(want, get(issuer), key);
+          const paid = sumC(c);
+          if (!paid) { bad[key] = 'vault'; continue; }
+          move(issuer, a, c);
+          pr.acc = Math.max(0, pr.acc - paid);
+          events.push({ k: 'press', op: 'claim', key, a, c, t: e.t });
+        } else if (e.op === 'up') {
+          if (!pr) { bad[key] = 'nopress'; continue; }
+          if (pr.lvl >= PRESS.length) { bad[key] = 'max'; continue; }
+          const cost = PRESS[pr.lvl].cost;
+          if (!has(a, cost)) { bad[key] = 'funds'; continue; }
+          move(a, issuer, cost);
+          pr.acc = pressAt(pr, e.t); pr.at = e.t;
+          pr.lvl += 1;
+          events.push({ k: 'press', op: 'up', key, a, lvl: pr.lvl, t: e.t });
+        } else { bad[key] = 'shape'; }
+      } else if (e.k === 'arc') {
+        if (a === issuer) { bad[key] = 'who'; continue; }
+        const A = arc[a] || (arc[a] = { days: {}, byKey: {} });
+        if (e.op === 'spin') {
+          if (!funded[a]) { bad[key] = 'unfunded'; continue; }
+          const d = arcDay(e.t), D = A.days[d] || (A.days[d] = []);
+          const g = arcPick(a, d, D);
+          if (!g) { bad[key] = 'none'; continue; }
+          const sp = { g, key, t: e.t, d, res: '' };
+          D.push(sp); A.byKey[key] = sp;
+        } else if (e.op === 'win' || e.op === 'lose') {
+          const sp = A.byKey[e.s];
+          if (!sp || sp.res) { bad[key] = 'closed'; continue; }
+          if (e.t - sp.t > ARC_WINDOW) { sp.res = 'late'; bad[key] = 'late'; continue; }
+          if (e.op === 'lose') { sp.res = 'lose'; continue; }
+          const c = seededDraw(ARC_PRIZE, get(issuer), key);
+          if (!sumC(c)) { sp.res = 'lose'; bad[key] = 'vault'; continue; }
+          move(issuer, a, c);
+          sp.res = 'win'; sp.c = c;
+          events.push({ k: 'arc', key, a, g: sp.g, c, t: e.t });
+        } else bad[key] = 'shape';
       } else if (e.k === 'swap') {
         if (a === issuer) { bad[key] = 'who'; continue; }
         const r = e.r, n = e.n;
@@ -1006,7 +1108,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         bad[key] = 'kind';
       }
     }
-    return { bal, items, offers, events, bad, maxT, issuer, total };
+    return { bal, items, offers, events, bad, maxT, issuer, total, press, funded, arc };
   }
 
   /* ================= state ================= */
@@ -1443,7 +1545,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     const t = ui.tab;
     const inp = $('#dm-input'), had = !!inp && document.activeElement === inp;
     if (inp) ui.dmDraft = inp.value;
-    app.innerHTML = t === 'shop' ? shopTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : walletTab();
+    app.innerHTML = t === 'shop' ? shopTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : walletTab();
     const ni = $('#dm-input');
     if (ni) { ni.value = ui.dmDraft || ''; if (had) { ni.focus(); ni.setSelectionRange(ni.value.length, ni.value.length); } }
     if (t === 'chats' && ui.dmWith) {
@@ -1559,6 +1661,8 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
       ${sumC(res) ? `<p class="small soft">${plural(sumC(res), 'coin is', 'coins are')} held for your open trade offers.</p>` : ''}
       ${owner ? `<p class="small soft">You’re the bank. ${fmtInt(out)} of ${fmtInt(supply)} are out with friends.</p>` : (sumC(bal) === 0 ? `<p class="small soft">Ask ${esc(nameOf(L.issuer))}, the bank, to send you some ScobbBucks.</p>` : '')}
       <div class="row2"><button type="button" class="btn btn-grape" data-act="send">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade">Trade</button></div>${owner ? '<button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="mint-more">Mint more ScobbBucks</button>' : '<button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="swap">⬆️ Upgrade coins</button>'}</section>`;
+    if (!owner) h += pressCard();
+    h += arcadeCard();
     if (un.count) {
       const from = [...new Set(un.list.map(ev => ev.a))].map(nameOf);
       h += `<button type="button" class="banner gift wiggle-in" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
@@ -1581,6 +1685,8 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
       else if (ev.k === 'trade' && (ev.a === uid || ev.to === uid)) rows.push(ev);
       else if (ev.k === 'mint' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'swap' && ev.a === uid) rows.push(ev);
+      else if (ev.k === 'press' && ev.a === uid && ev.op !== 'start') rows.push(ev);
+      else if (ev.k === 'arc' && ev.a === uid) rows.push(ev);
     }
     for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap')) rows.push({ k: 'bad', e, t: e.t }); }
     rows.sort((a, b) => b.t - a.t);
@@ -1599,6 +1705,14 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         other = uid;
         t = `You minted ${bucks(sumC(ev.c))}`;
         more = evCoins(ev.c);
+      } else if (ev.k === 'arc') {
+        other = uid;
+        t = `You beat ${ARC_NAME[ev.g][2]} ${ARC_NAME[ev.g][1]} and won ${bucks(sumC(ev.c))}`;
+        more = evCoins(ev.c);
+      } else if (ev.k === 'press') {
+        other = uid;
+        t = ev.op === 'claim' ? `Your coin press made you ${bucks(sumC(ev.c))}` : `You upgraded your coin press to level ${ev.lvl}`;
+        more = ev.op === 'claim' ? evCoins(ev.c) : `<div class="chips">${coinChips(PRESS[ev.lvl - 1].cost)}</div>`;
       } else if (ev.k === 'swap') {
         other = uid;
         t = `You upgraded ${fmtInt(SWAP[ev.r] * ev.n)} ${RN[ev.r]} into ${fmtInt(ev.n)} ${RN[ev.r + 1]}`;
@@ -1730,7 +1844,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     const list = Object.keys(players).filter(u => players[u] && players[u].username && players[u].avatar).sort((a, b) => (players[a].joinedAt || 0) - (players[b].joinedAt || 0));
     let h = `<header class="top"><h1>Feed</h1></header>`;
     h += `<h3 style="margin-top:0">Players</h3><div class="hscroll players">${list.map(u => `<button type="button" class="pl" data-act="profile" data-u="${esc(u)}">${headBubble(u, 58)}<span>${esc(nameOf(u))}</span></button>`).join('')}</div>`;
-    const evs = L.events.slice().sort((a, b) => b.t - a.t).slice(0, 80);
+    const evs = L.events.filter(ev => ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5]))).sort((a, b) => b.t - a.t).slice(0, 80);
     if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades and shop buys show up here.</p>';
     h += `<div class="list">${evs.map(ev => {
       let t = '', more = '', hot = false, face = ev.a;
@@ -1747,6 +1861,13 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         hot = CAT[ev.it].r >= 4;
       } else if (ev.k === 'trade') {
         t = `<b>${esc(nameOf(ev.a))}</b> and <b>${esc(nameOf(ev.to))}</b> made a trade`;
+      } else if (ev.k === 'arc') {
+        t = `<b>${esc(nameOf(ev.a))}</b> beat ${ARC_NAME[ev.g][2]} ${ARC_NAME[ev.g][1]} and won ${bucks(sumC(ev.c))}`;
+        hot = !!(ev.c[4] || ev.c[5]);
+      } else if (ev.k === 'press') {
+        if (ev.op === 'up') t = `<b>${esc(nameOf(ev.a))}</b> upgraded their coin press to level ${ev.lvl}`;
+        else if (ev.op === 'claim' && (ev.c[4] || ev.c[5])) { t = `<b>${esc(nameOf(ev.a))}</b>’s coin press made ${ev.c[5] ? 'a Mythic' : 'a Legendary'}!`; hot = true; }
+        else return '';
       } else if (ev.k === 'swap') {
         t = `<b>${esc(nameOf(ev.a))}</b> upgraded ${fmtInt(SWAP[ev.r] * ev.n)} ${RN[ev.r]} into ${ev.n > 1 ? fmtInt(ev.n) + ' ' + RN[ev.r + 1] : (ev.r + 1 === 1 ? 'an ' : 'a ') + RN[ev.r + 1]}`;
         hot = ev.r + 1 >= 4;
@@ -1837,6 +1958,130 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
   const readPicks = prefix => $$(`.ichip[data-p="${prefix}"][aria-pressed="true"]`).map(b => b.dataset.inst);
 
   /* send */
+  function pressCard() {
+    const pr = L.press[uid];
+    let h = `<section class="card mt press"><div class="press-top"><span class="press-ic" aria-hidden="true">🏭</span><div><b>Coin press</b><p class="small soft">Makes ScobbBucks for you while you’re away</p></div></div>`;
+    if (!pr) {
+      if (!L.funded[uid]) return h + `<p class="small soft mt">It unlocks once the bank sends you your first ScobbBucks.</p></section>`;
+      return h + `<p class="small mt">Level 1 makes ${PRESS[0].rate} coins a day and holds up to ${PRESS[0].cap}.</p><button type="button" class="btn btn-lime btn-block mt" data-act="press-start"${readOnly ? ' disabled' : ''}>Start my coin press</button></section>`;
+    }
+    const lv = PRESS[pr.lvl - 1], now = Date.now(), have = pressAt(pr, now), whole = Math.floor(have + 1e-9);
+    const full = have >= lv.cap - 1e-9;
+    const nextIn = full ? 0 : Math.ceil((1 - (have % 1)) * DAY / lv.rate);
+    h += `<p class="small mt">Level ${pr.lvl}: ${lv.rate} coins a day, holds up to ${lv.cap}.</p>`;
+    h += `<div class="bar" style="margin-top:8px"><i style="width:${Math.min(100, (have / lv.cap) * 100)}%;background:var(--lime)"></i></div>`;
+    h += `<p class="small ${full ? 'err' : 'soft'}" style="margin-top:6px" data-press="1">${full ? 'Full! Collect it so it keeps making coins.' : `${fmtInt(whole)} ready. Next coin in ${pressWait(nextIn)}.`}</p>`;
+    h += `<button type="button" class="btn btn-grape btn-block mt" data-act="press-claim"${whole < 1 || readOnly ? ' disabled' : ''}>${whole < 1 ? 'Nothing to collect yet' : `Collect ${plural(whole, 'coin', 'coins')}`}</button>`;
+    if (pr.lvl < PRESS.length) {
+      const nx = PRESS[pr.lvl], ok = availOf(uid).every((n, r) => n >= nx.cost[r]);
+      h += `<button type="button" class="btn btn-ghost btn-block mt" data-act="press-up"${!ok || readOnly ? ' disabled' : ''}><span>Upgrade to level ${pr.lvl + 1} (${nx.rate} a day)</span></button><div class="chips" style="justify-content:center;margin-top:6px">${coinChips(nx.cost)}</div>`;
+    } else h += `<p class="small soft mt">Max level. Nice.</p>`;
+    return h + `</section>`;
+  }
+  /* ---- arcade ---- */
+  let ARCADE = null;
+  async function loadArcade() {
+    if (ARCADE) return ARCADE;
+    try { ARCADE = await import('./arcade.js'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
+  }
+  function arcState() {
+    const now = Date.now(), A = L.arc[uid], today = arcDay(now);
+    const spins = (A && A.days[today]) || [];
+    let active = null;
+    if (A) for (const k in A.byKey) { const sp = A.byKey[k]; if (!sp.res && now - sp.t <= ARC_WINDOW && (!active || sp.t > active.t)) active = sp; }
+    return { spins, active, left: ARC_IDS.filter(id => !spins.some(s => s.g === id)), today };
+  }
+  const arcHearts = key => { try { const v = localStorage.getItem('arc-h-' + key); return v == null ? 3 : Math.max(0, Math.min(3, Number(v))); } catch (e) { return 3; } };
+  function arcadeCard() {
+    const owner = uid === L.issuer, st = arcState();
+    return `<section class="card mt"><div class="press-top"><span class="press-ic" aria-hidden="true">🎮</span><div><b>Arcade</b><p class="small soft">${owner ? 'Try out the minigames your friends play for coins' : `Beat a minigame to win ${ARC_PRIZE} ScobbBucks. ${st.left.length} of ${ARC_IDS.length} games left today.`}</p></div></div><button type="button" class="btn btn-lime btn-block mt" data-act="tab" data-tab="arcade">${st.active && !owner ? 'Finish your game' : 'Open the arcade'}</button></section>`;
+  }
+  function arcadeTab() {
+    const owner = uid === L.issuer, st = arcState(), now = Date.now(), reset = WEEK0 + (st.today + 1) * DAY;
+    let h = `<header class="top"><button type="button" class="icon-btn" data-act="tab" data-tab="wallet" aria-label="Back to wallet" style="font-size:26px;font-weight:800">‹</button><h1 style="flex:1;margin-left:10px">Arcade</h1></header>`;
+    h += `<section class="card"><p>${owner ? 'You’re the bank, so you can practice every game but you can’t win coins.' : `Open a crate to get a random minigame. Beat it to win <b>${ARC_PRIZE} ScobbBucks</b>. You get 3 hearts. Win or lose, that game is gone until the reset.`}</p><p class="small soft mt">${owner ? `${ARC_IDS.length} games in the pool.` : `${st.left.length} of ${ARC_IDS.length} games left today.`} New games at midnight, in ${pressWait(reset - now)}.</p>`;
+    if (!owner) {
+      if (!L.funded[uid]) h += `<p class="small soft mt">The arcade unlocks once the bank sends you your first ScobbBucks. You can still practice below.</p>`;
+      else if (st.active) { const g = ARC_NAME[st.active.g]; h += `<div class="arc-now"><span class="arc-em">${g[2]}</span> <b>${g[1]}</b> is waiting for you with ${plural(arcHearts(st.active.key), 'heart', 'hearts')} left. Play it within ${pressWait(st.active.t + ARC_WINDOW - now)} or it counts as a loss.</div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-play">Play ${g[1]}</button>`; }
+      else if (st.left.length) h += `<button type="button" class="btn btn-grape btn-block mt arc-open" data-act="arc-spin"${readOnly ? ' disabled' : ''}>🎁 Open a crate</button>`;
+      else h += `<p class="mt"><b>You played every game today.</b> Come back after midnight for a fresh set.</p>`;
+    }
+    h += `</section>`;
+    if (!owner && st.spins.length) {
+      h += `<h2>Today</h2><div class="list">${st.spins.slice().reverse().map(s => { const g = ARC_NAME[s.g]; const r = s.res === 'win' ? `<b style="color:#2F9E44">Won ${ARC_PRIZE}</b>` : s.res ? '<span class="soft">Lost</span>' : now - s.t > ARC_WINDOW ? '<span class="soft">Timed out</span>' : '<b>Ready to play</b>'; return `<div class="ev"><span class="arc-em" aria-hidden="true">${g[2]}</span><div class="main"><div class="t">${g[1]}</div></div><span class="small">${r}</span></div>`; }).join('')}</div>`;
+    }
+    h += `<h2>All games</h2><p class="small soft">Tap any game to practice. Practice never wins coins.</p><div class="arc-grid">${ARC.map(([id, name, em]) => { const done = !owner && st.spins.find(s => s.g === id); return `<button type="button" class="arc-tile${done ? ' done' : ''}" data-act="arc-practice" data-g="${id}"><span class="arc-em" aria-hidden="true">${em}</span><span>${name}</span>${done ? `<span class="small soft">${done.res === 'win' ? 'Won today' : 'Played today'}</span>` : ''}</button>`; }).join('')}</div>`;
+    return h;
+  }
+  function arcRoot() {
+    let r = $('#arc-root');
+    if (!r) { r = document.createElement('div'); r.id = 'arc-root'; r.hidden = true; r.setAttribute('role', 'dialog'); r.setAttribute('aria-modal', 'true'); document.body.appendChild(r); }
+    return r;
+  }
+  function arcOpen() { const r = arcRoot(); r.hidden = false; document.body.style.overflow = 'hidden'; return r; }
+  function arcClose() { const r = arcRoot(); if (ui.arcRun && ui.arcRun.ctl) { const run = ui.arcRun; ui.arcRun = null; run.ctl.quit(); } r.hidden = true; r.innerHTML = ''; document.body.style.overflow = ''; render(); }
+  async function arcSpin() {
+    if (!guardWrite() || uid === L.issuer || !L.funded[uid]) return;
+    const st = arcState();
+    if (st.active || !st.left.length) return render();
+    const mod = await loadArcade();
+    if (!mod) return;
+    const before = arcState();
+    const e = newEntry('arc', { op: 'spin' });
+    const key = uid + ':' + e.i, d = arcDay(e.t);
+    const prior = ((L.arc[uid] && L.arc[uid].days[d]) || []).filter(s => s.key !== key);
+    const g = arcPick(uid, d, prior);
+    if (!g) return;
+    const pool = before.left.length ? before.left : [g];
+    const N = 50, WIN = 42, CW = 124;
+    const strip = Array.from({ length: N }, (_, i) => (i === WIN ? g : pool[Math.floor(Math.random() * pool.length)]));
+    const root = arcOpen();
+    root.innerHTML = `<div class="crate"><h2 id="crate-h">Opening a crate…</h2><div class="crate-win"><div class="crate-strip">${strip.map(id => `<div class="crate-card"><span aria-hidden="true">${ARC_NAME[id][2]}</span><b>${ARC_NAME[id][1]}</b></div>`).join('')}</div><i class="crate-mark" aria-hidden="true"></i></div><div id="crate-out" aria-live="polite"></div></div>`;
+    const win = root.querySelector('.crate-win'), s = root.querySelector('.crate-strip');
+    const target = WIN * CW + 58 - win.clientWidth / 2 + (Math.random() * 64 - 32);
+    const done = () => {
+      s.children[WIN].classList.add('won');
+      $('#crate-h').textContent = 'You got…';
+      $('#crate-out').innerHTML = `<div class="crate-result"><span class="arc-em" aria-hidden="true">${ARC_NAME[g][2]}</span><b>${ARC_NAME[g][1]}</b></div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-play">Play now</button><button type="button" class="btn btn-ghost btn-block mt" data-act="arc-close">Later (you have 30 minutes)</button>`;
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { s.style.transform = `translateX(${-target}px)`; done(); return; }
+    s.addEventListener('transitionend', done, { once: true });
+    requestAnimationFrame(() => requestAnimationFrame(() => { s.style.transition = 'transform 5.5s cubic-bezier(.1,.7,.12,1)'; s.style.transform = `translateX(${-target}px)`; }));
+  }
+  async function arcPlay(practiceId) {
+    const mod = await loadArcade();
+    if (!mod) return;
+    const sp = practiceId ? null : arcState().active;
+    if (!practiceId && !sp) return render();
+    const id = practiceId || sp.g;
+    const root = arcOpen();
+    root.innerHTML = `<div class="arc-bar"><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="arc-quit">${practiceId ? 'Close' : 'Give up'}</button>${practiceId ? '<span class="small soft">Practice. No coins.</span>' : `<span class="small soft">Win ${ARC_PRIZE} ScobbBucks</span>`}</div><div id="arc-game"></div>`;
+    const hk = sp ? 'arc-h-' + sp.key : null;
+    ui.arcRun = { practice: !!practiceId, key: sp ? sp.key : null, g: id, ctl: null };
+    const run = ui.arcRun;
+    run.ctl = mod.play($('#arc-game'), id, {
+      onHeart: left => { if (hk) { try { localStorage.setItem(hk, String(left)); } catch (e) { /* storage off */ } } },
+      end: res => arcEnd(run, res)
+    }, sp ? arcHearts(sp.key) : 3);
+  }
+  function arcEnd(run, res) {
+    if (ui.arcRun === run) ui.arcRun = null;
+    const box = $('#arc-game');
+    if (run.practice) {
+      if (res === 'quit' || !box) return;
+      box.innerHTML = `<div class="arc-result"><div class="ag-big">${res === 'win' ? '🎉' : '💔'}</div><h2>${res === 'win' ? 'You beat it!' : 'Out of hearts'}</h2><p class="soft">That was practice, so no coins this time.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-practice" data-g="${run.g}">Try again</button><button type="button" class="btn btn-ghost btn-block mt" data-act="arc-close">Done</button></div>`;
+      return;
+    }
+    const e = newEntry('arc', { op: res === 'win' ? 'win' : 'lose', s: run.key });
+    try { localStorage.removeItem('arc-h-' + run.key); } catch (err) { /* storage off */ }
+    if (!box) return;
+    if (res === 'win') {
+      box.innerHTML = `<div class="arc-result"><div class="ag-big">🎉</div><h2>You won ${ARC_PRIZE} ScobbBucks!</h2><div class="chips" id="arc-coins" style="justify-content:center"></div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-close">Back to the arcade</button></div>`;
+      setTimeout(() => { const ev = L.events.find(x => x.key === uid + ':' + e.i); const el = $('#arc-coins'); if (el) el.innerHTML = ev ? coinChips(ev.c) : '<span class="small soft">The vault was empty, so no coins came out.</span>'; }, 400);
+    } else box.innerHTML = `<div class="arc-result"><div class="ag-big">💔</div><h2>${res === 'quit' ? 'You gave up' : 'Out of hearts'}</h2><p class="soft">${ARC_NAME[run.g][1]} is done for today. Open another crate to try a different game.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-close">Back to the arcade</button></div>`;
+  }
+  function pressWait(ms) { const m = Math.ceil(ms / 60000); return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`; }
   function openSwap() {
     if (!guardWrite()) return;
     const draw = () => {
@@ -2232,6 +2477,24 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     'farm-use': b => { const it = CAT[b.dataset.id]; if (!it || !guardWrite()) return; meDoc.farmEquip = Object.assign({}, meDoc.farmEquip || {}); const on = meDoc.farmEquip[it.b] === it.id; meDoc.farmEquip[it.b] = on ? null : it.id; savePlayer(); recompute(); toast(on ? 'Back to the default look' : `Your ${it.bname.toLowerCase()} uses it now`); },
     'mint-more': () => openMintMore(),
     'swap': () => openSwap(),
+    'arc-spin': () => arcSpin(),
+    'arc-play': () => arcPlay(null),
+    'arc-practice': b => arcPlay(b.dataset.g),
+    'arc-close': () => arcClose(),
+    'arc-quit': () => {
+      const run = ui.arcRun;
+      if (!run) return arcClose();
+      if (run.practice) return arcClose();
+      if (!window.confirm('Giving up counts as a loss, and this game will be gone until the reset. Give up?')) return;
+      run.ctl.quit();
+    },
+    'press-start': () => { if (!guardWrite()) return; newEntry('press', { op: 'start' }); toast('Your coin press is running'); },
+    'press-claim': () => {
+      if (!guardWrite()) return;
+      const e = newEntry('press', { op: 'claim' });
+      setTimeout(() => { const ev = L.events.find(x => x.key === uid + ':' + e.i); toast(ev ? `Collected ${bucks(sumC(ev.c))}` : 'Collecting…'); }, 300);
+    },
+    'press-up': () => { if (!guardWrite()) return; const pr = L.press[uid]; newEntry('press', { op: 'up' }); toast(`Coin press upgraded to level ${pr ? pr.lvl + 1 : 2}`); },
     'swap-r': b => { ui.swapR = Number(b.dataset.r); ui.swapN = 1; if (sheet && sheet.refresh) sheet.refresh(); },
     'swap-n': b => {
       const av = availOf(uid), vault = availOf(L.issuer), r = ui.swapR;
@@ -2288,7 +2551,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     }
   });
   $$('[data-icon]').forEach(el => { el.innerHTML = icon(el.dataset.icon); });
-  setInterval(() => { if (ui.screen === 'main' && !sheet && !document.hidden && (ui.tab === 'wallet' || ui.tab === 'feed')) render(); }, 60000);
+  setInterval(() => { if (ui.screen === 'main' && !sheet && !document.hidden && (ui.tab === 'wallet' || ui.tab === 'feed')) render(); }, 30000);
 
   /* ================= boot ================= */
   const FB_VERSION = '12.15.0';
