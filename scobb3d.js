@@ -127,11 +127,17 @@ function buildMeshes(gl) {
 
 export function create(canvas, W, H, opts) {
   opts = opts || {};
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  // Browsers (Safari especially) silently stop drawing to very large canvases, so cap the pixel count.
+  // On a big high-density screen this renders a little softer instead of going blank.
+  const MAX_PIX = 4.2e6;
+  const dpr0 = Math.min(2, window.devicePixelRatio || 1);
+  const dpr = Math.min(dpr0, Math.sqrt(MAX_PIX / Math.max(1, W * H)));
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
   canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-  const gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: false });
+  const big = canvas.width * canvas.height > MAX_PIX * 0.6;
+  const gl = canvas.getContext('webgl', { antialias: !big, alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: false });
   if (!gl) return null;
+  if (gl.drawingBufferWidth < canvas.width * 0.99) { canvas.width = gl.drawingBufferWidth; canvas.height = gl.drawingBufferHeight; }
   const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
   const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr)); gl.useProgram(pr);
   const U = {}; for (const k of ['uFogC', 'uFogD', 'uVP', 'uM', 'uNM', 'uMode', 'uBox', 'uRad', 'uColor', 'uColor2', 'uStripe', 'uEye', 'uL', 'uSky', 'uGround', 'uSpec', 'uShiny', 'uAlpha', 'uEmit']) U[k] = gl.getUniformLocation(pr, k);
