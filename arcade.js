@@ -63,10 +63,10 @@ export const GAMES = {
         b.className = 'ag-target'; b.textContent = 'S';
         b.style.left = R(4, el.clientWidth - s - 4) + 'px'; b.style.top = R(4, el.clientHeight - s - 4) + 'px';
         el.appendChild(b);
-        const life = Math.max(650, 1100 - hits * 35);
+        const life = Math.max(560, 950 - hits * 30);
         const t = T.t(() => { b.remove(); api.heart(); }, life);
         b.onpointerdown = e => { e.preventDefault(); clearTimeout(t); b.remove(); hits++; api.status(`${hits}/15`); if (hits >= 15) api.win(); };
-        T.t(spawn, Math.max(380, 750 - hits * 25));
+        T.t(spawn, Math.max(330, 650 - hits * 22));
       };
       const miss = e => { if (e.target === el) { e.preventDefault(); api.heart(); } };
       el.addEventListener('pointerdown', miss);
@@ -75,7 +75,7 @@ export const GAMES = {
     }
   },
   react: {
-    name: 'Quick draw', emoji: '⚡', how: 'Wait for the pad to turn green, then tap it fast. Tapping early, or taking longer than 0.38 seconds, costs a heart. Get 5.',
+    name: 'Quick draw', emoji: '⚡', how: 'Wait for the pad to turn green, then tap it fast. Tapping early, or taking longer than 0.33 seconds, costs a heart. Get 5.',
     start(el, api) {
       const T = timers(); let n = 0, state = 'x', go = 0;
       const pad = document.createElement('button'); pad.className = 'ag-pad'; el.appendChild(pad);
@@ -84,7 +84,7 @@ export const GAMES = {
         T.t(() => {
           if (state !== 'wait') return;
           state = 'go'; go = performance.now(); pad.style.background = '#2F9E44'; pad.textContent = 'TAP!';
-          T.t(() => { if (state === 'go') { state = 'x'; pad.style.background = '#6B6280'; pad.textContent = 'Too slow!'; if (api.heart()) T.t(round, 800); } }, 380);
+          T.t(() => { if (state === 'go') { state = 'x'; pad.style.background = '#6B6280'; pad.textContent = 'Too slow!'; if (api.heart()) T.t(round, 800); } }, 330);
         }, R(1200, 3400));
       };
       pad.onpointerdown = e => {
@@ -103,7 +103,7 @@ export const GAMES = {
       const box = document.createElement('div'); box.className = 'ag-simon'; el.appendChild(box);
       const pads = [0, 1, 2, 3].map(i => { const b = document.createElement('button'); b.style.background = COLS[i]; box.appendChild(b); return b; });
       const flash = (i, ms) => { pads[i].classList.add('lit'); T.t(() => pads[i].classList.remove('lit'), ms); };
-      const show = () => { input = false; pos = 0; seq.forEach((v, k) => T.t(() => flash(v, 260), 500 + k * 400)); T.t(() => { input = true; }, 500 + seq.length * 400); };
+      const show = () => { input = false; pos = 0; seq.forEach((v, k) => T.t(() => flash(v, 220), 450 + k * 340)); T.t(() => { input = true; }, 450 + seq.length * 340); };
       const fresh = () => { seq = Array.from({ length: len }, () => RI(0, 3)); show(); };
       pads.forEach((b, i) => { b.onpointerdown = e => {
         e.preventDefault();
@@ -123,8 +123,8 @@ export const GAMES = {
       const wrap = document.createElement('div'); wrap.className = 'ag-bar'; wrap.innerHTML = '<i class="z"></i><i class="m"></i>'; el.appendChild(wrap);
       const tap = document.createElement('button'); tap.className = 'btn btn-grape ag-tapbtn'; tap.textContent = 'Stop!'; el.appendChild(tap);
       const z = wrap.querySelector('.z'), m = wrap.querySelector('.m');
-      let n = 0, x = 0, dir = 1, zs = 0, zw = 0, sp = 0.95, pause = 0;
-      const setZone = () => { zw = Math.max(0.06, 0.17 - n * 0.022); zs = R(0.04, 0.96 - zw); z.style.left = zs * 100 + '%'; z.style.width = zw * 100 + '%'; };
+      let n = 0, x = 0, dir = 1, zs = 0, zw = 0, sp = 1.1, pause = 0;
+      const setZone = () => { zw = Math.max(0.055, 0.15 - n * 0.02); zs = R(0.04, 0.96 - zw); z.style.left = zs * 100 + '%'; z.style.width = zw * 100 + '%'; };
       setZone();
       const stop = loop(dt => { if (pause > 0) { pause -= dt; return; } x += dir * sp * dt; if (x > 1) { x = 1; dir = -1; } if (x < 0) { x = 0; dir = 1; } m.style.left = `calc(${x * 100}% - 3px)`; });
       const hit = () => { if (pause > 0) return; pause = 0.5; if (x >= zs && x <= zs + zw) { n++; api.status(`${n}/6`); if (n >= 6) return api.win(); sp += 0.22; setZone(); } else if (api.heart()) setZone(); };
@@ -145,7 +145,7 @@ export const GAMES = {
         next -= dt;
         if (s.keys.ArrowLeft) bx = Math.max(30, bx - 460 * dt);
         if (s.keys.ArrowRight) bx = Math.min(W - 30, bx + 460 * dt);
-        if (next <= 0) { coins.push({ x: R(20, W - 20), y: -12, v: 215 + got * 14 + R(0, 50) }); next = Math.max(0.42, 0.85 - got * 0.03); }
+        if (next <= 0) { coins.push({ x: R(20, W - 20), y: -12, v: 245 + got * 16 + R(0, 60) }); next = Math.max(0.38, 0.75 - got * 0.03); }
         x.clearRect(0, 0, W, H);
         for (const k of coins.slice()) {
           k.y += k.v * dt;
@@ -167,7 +167,7 @@ export const GAMES = {
         t += dt; inv -= dt; next -= dt;
         if (s.keys.ArrowLeft) px = Math.max(20, px - 360 * dt);
         if (s.keys.ArrowRight) px = Math.min(W - 20, px + 360 * dt);
-        if (next <= 0) { blocks.push({ x: R(0, W - 50), y: -30, w: R(34, 70), v: 250 + t * 14 }); next = Math.max(0.17, 0.48 - t * 0.02); }
+        if (next <= 0) { blocks.push({ x: R(0, W - 50), y: -30, w: R(34, 70), v: 280 + t * 16 }); next = Math.max(0.15, 0.42 - t * 0.02); }
         x.clearRect(0, 0, W, H);
         for (const b of blocks) b.y += b.v * dt;
         blocks = blocks.filter(b => b.y < H + 40);
@@ -192,8 +192,8 @@ export const GAMES = {
       const GOAL = 30, PW = 56, BOUNCE = -640, GRAV = 1550;
       let plats = [], nextY = H - 30, id = 0, camY = 0, best = 0, tx = W / 2;
       const addPlat = () => {
-        const gap = Math.min(100, 62 + id * 1.5);
-        plats.push({ id, x: id === 0 ? W / 2 - PW / 2 : R(4, W - PW - 4), y: nextY, vx: id > 6 && Math.random() < 0.45 ? PICK([-1, 1]) * R(60, 100 + id * 3) : 0 });
+        const gap = Math.min(108, 66 + id * 1.7);
+        plats.push({ id, x: id === 0 ? W / 2 - PW / 2 : R(4, W - PW - 4), y: nextY, vx: id > 4 && Math.random() < 0.55 ? PICK([-1, 1]) * R(70, 115 + id * 3.5) : 0 });
         id++; nextY -= gap;
       };
       while (nextY > -H) addPlat();
@@ -243,7 +243,7 @@ export const GAMES = {
       const T = timers(); let n = 0;
       const round = () => {
         el.innerHTML = '';
-        const want = RI(9 + n * 2, 14 + n * 2), W = el.clientWidth, H = el.clientHeight, pts = [];
+        const want = RI(11 + n * 2, 16 + n * 2), W = el.clientWidth, H = el.clientHeight, pts = [];
         let tries = 0;
         while (pts.length < want && tries++ < 3000) { const p = { x: R(18, W - 18), y: R(18, H - 18) }; if (pts.every(q => Math.hypot(q.x - p.x, q.y - p.y) > 30)) pts.push(p); }
         pts.forEach(p => { const d = document.createElement('i'); d.className = 'ag-dot'; d.style.left = p.x - 10 + 'px'; d.style.top = p.y - 10 + 'px'; d.style.background = PICK(COLS); el.appendChild(d); });
@@ -253,19 +253,19 @@ export const GAMES = {
           const set = new Set([real]); while (set.size < 4) set.add(Math.max(1, real + PICK([-1, 1]) * RI(1, 3)));
           const box = panel(el, `<div class="ag-q">How many?</div><div class="ag-opts">${SHUF([...set]).map(o => `<button class="btn btn-ghost" data-v="${o}">${o}</button>`).join('')}</div>`);
           box.querySelectorAll('[data-v]').forEach(b => { b.onclick = () => { if (Number(b.dataset.v) === real) { n++; api.status(`${n}/5`); if (n >= 5) return api.win(); round(); } else { b.classList.add('ag-wrong'); if (api.heart()) T.t(round, 600); } }; });
-        }, 900);
+        }, 750);
       };
       api.status('0/5'); round();
       return () => T.clear();
     }
   },
   odd: {
-    name: 'Odd one out', emoji: '🎨', how: 'One square is a slightly different color. Tap it within 5 seconds. Get 7. A wrong tap or running out of time costs a heart.',
+    name: 'Odd one out', emoji: '🎨', how: 'One square is a slightly different color. Tap it within 4 seconds. Get 7. A wrong tap or running out of time costs a heart.',
     start(el, api) {
       const T = timers(); let n = 0, tm = 0;
       const round = () => {
         el.innerHTML = ''; clearTimeout(tm);
-        const size = Math.min(6, 3 + Math.floor(n / 2)), hue = RI(0, 359), d = Math.max(5, 17 - n * 2.2), odd = RI(0, size * size - 1);
+        const size = Math.min(6, 3 + Math.floor(n / 2)), hue = RI(0, 359), d = Math.max(4, 14 - n * 2), odd = RI(0, size * size - 1);
         const g = document.createElement('div'); g.className = 'ag-grid ag-sq'; g.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
         for (let i = 0; i < size * size; i++) {
           const b = document.createElement('button');
@@ -274,7 +274,7 @@ export const GAMES = {
           g.appendChild(b);
         }
         el.appendChild(g);
-        tm = T.t(() => { if (api.heart()) round(); }, 5000);
+        tm = T.t(() => { if (api.heart()) round(); }, 4000);
       };
       api.status('0/7'); round();
       return () => T.clear();
@@ -286,7 +286,7 @@ export const GAMES = {
       const T = timers(); let n = 0, word = '', stopT = null;
       const box = panel(el, `<div class="ag-q" id="ag-w"></div><div class="ag-timer"><i></i></div><input class="ag-input" id="ag-in" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Type the word">`);
       const inp = box.querySelector('#ag-in'), wEl = box.querySelector('#ag-w'), bar = box.querySelector('.ag-timer i');
-      const next = () => { if (stopT) stopT(); word = PICK(WORDS); wEl.textContent = word; inp.value = ''; stopT = countdown(T, bar, Math.max(3.2, 5 - n * 0.35), () => { if (api.heart()) next(); }); inp.focus(); };
+      const next = () => { if (stopT) stopT(); word = PICK(WORDS); wEl.textContent = word; inp.value = ''; stopT = countdown(T, bar, Math.max(2.8, 4.3 - n * 0.3), () => { if (api.heart()) next(); }); inp.focus(); };
       inp.oninput = () => { if (inp.value.trim().toLowerCase() === word) { stopT(); n++; api.status(`${n}/6`); if (n >= 6) return api.win(); next(); } };
       api.status('0/6'); next();
       return () => T.clear();
@@ -296,7 +296,7 @@ export const GAMES = {
     name: 'Flappy scobb', emoji: '🐤', how: 'Tap or press space to flap. Fly through 8 gaps. Hitting a pipe, the ground or the sky costs a heart.',
     start(el, api) {
       const { c, x, W, H } = canvas(el);
-      const GAP = Math.max(112, H * 0.26), SPD = 190, PX = 70;
+      const GAP = Math.max(104, H * 0.24), SPD = 210, PX = 70;
       let y = H / 2, v = 0, pipes = [], passed = 0, grace = 1.2;
       const add = px => pipes.push({ x: px, gy: R(50, H - 50 - GAP), done: false });
       add(W + 40); add(W + 240);
@@ -337,12 +337,12 @@ export const GAMES = {
       const pop = () => {
         const free = holes.filter(b => !b.dataset.k);
         if (free.length) {
-          const b = PICK(free), bomb = Math.random() < 0.33;
+          const b = PICK(free), bomb = Math.random() < 0.36;
           b.dataset.k = bomb ? 'bomb' : 'scobb';
           b.innerHTML = bomb ? '<span class="ag-bomb">💣</span>' : '<i class="ag-sc"></i>';
-          b._t = T.t(() => { const k = b.dataset.k; clear(b); if (k === 'scobb') api.heart(); }, Math.max(520, 880 - n * 22));
+          b._t = T.t(() => { const k = b.dataset.k; clear(b); if (k === 'scobb') api.heart(); }, Math.max(460, 780 - n * 20));
         }
-        T.t(pop, Math.max(330, 620 - n * 16));
+        T.t(pop, Math.max(290, 560 - n * 15));
       };
       holes.forEach(b => { b.onpointerdown = e => { e.preventDefault(); const k = b.dataset.k; if (!k) return; clearTimeout(b._t); clear(b); if (k === 'bomb') api.heart(); else { n++; api.status(`${n}/15`); if (n >= 15) api.win(); } }; });
       api.status('0/15'); pop();
@@ -359,7 +359,7 @@ export const GAMES = {
         input = false; got = new Set();
         const k = 4 + n; want = new Set(SHUF([...Array(16).keys()]).slice(0, k));
         tiles.forEach((b, i) => { b.className = want.has(i) ? 'lit' : ''; });
-        T.t(() => { tiles.forEach(b => { b.className = ''; }); input = true; }, 850 + k * 90);
+        T.t(() => { tiles.forEach(b => { b.className = ''; }); input = true; }, 700 + k * 75);
       };
       tiles.forEach((b, i) => { b.onpointerdown = e => {
         e.preventDefault();
@@ -376,8 +376,8 @@ export const GAMES = {
     start(el, api) {
       const { c, x, W, H } = canvas(el); const BH = Math.min(28, (H - 20) / 12);
       const base = Math.min(150, W * 0.45);
-      let stack = [{ x: W / 2 - base / 2, w: base }], cur, dir = 1, sp = 180, pause = 0;
-      const newBlock = () => { const top = stack[stack.length - 1]; cur = { x: 0, w: top.w }; dir = 1; sp = 180 + stack.length * 22; };
+      let stack = [{ x: W / 2 - base / 2, w: base }], cur, dir = 1, sp = 210, pause = 0;
+      const newBlock = () => { const top = stack[stack.length - 1]; cur = { x: 0, w: top.w }; dir = 1; sp = 210 + stack.length * 26; };
       newBlock();
       const drop = e => {
         if (e) e.preventDefault();
@@ -414,7 +414,7 @@ export const GAMES = {
         const word = PICK(INKS), ink = PICK(INKS.filter(c => c !== word));
         const opts = SHUF([ink, ...SHUF(INKS.filter(c => c !== ink)).slice(0, 3)]);
         box.innerHTML = `<div class="ag-q ag-word" style="color:${ink[1]}">${word[0].toUpperCase()}</div><div class="ag-timer"><i></i></div><div class="ag-opts">${opts.map(o => `<button class="btn btn-ghost" data-v="${o[0]}">${o[0]}</button>`).join('')}</div>`;
-        stopT = countdown(T, box.querySelector('.ag-timer i'), Math.max(1.5, 2.2 - n * 0.07), () => { if (api.heart()) q(); });
+        stopT = countdown(T, box.querySelector('.ag-timer i'), Math.max(1.3, 1.9 - n * 0.06), () => { if (api.heart()) q(); });
         box.querySelectorAll('[data-v]').forEach(b => { b.onclick = () => { stopT(); if (b.dataset.v === ink[0]) { n++; api.status(`${n}/10`); if (n >= 10) return api.win(); q(); } else { b.classList.add('ag-wrong'); if (api.heart()) T.t(q, 400); } }; });
       };
       api.status('0/10'); q();
@@ -429,8 +429,8 @@ export const GAMES = {
       el.appendChild(wrap);
       const tap = document.createElement('button'); tap.className = 'btn btn-grape ag-tapbtn'; tap.textContent = 'Shoot!'; el.appendChild(tap);
       const z = wrap.querySelector('.z'), m = wrap.querySelector('.m'), ball = wrap.querySelector('.ag-ball'), say = wrap.querySelector('.ag-say');
-      let n = 0, y = 0, dir = 1, sp = 1.1, zs = 0, zw = 0, pause = 0;
-      const setZone = () => { zw = Math.max(0.07, 0.15 - n * 0.02); zs = R(0.45, 0.92 - zw); z.style.bottom = zs * 100 + '%'; z.style.height = zw * 100 + '%'; };
+      let n = 0, y = 0, dir = 1, sp = 1.3, zs = 0, zw = 0, pause = 0;
+      const setZone = () => { zw = Math.max(0.06, 0.13 - n * 0.017); zs = R(0.45, 0.92 - zw); z.style.bottom = zs * 100 + '%'; z.style.height = zw * 100 + '%'; };
       setZone();
       const stop = loop(dt => { if (pause > 0) { pause -= dt; if (pause <= 0) { ball.className = 'ag-ball'; say.textContent = ''; } return; } y += dir * sp * dt; if (y > 1) { y = 1; dir = -1; } if (y < 0) { y = 0; dir = 1; } m.style.bottom = `calc(${y * 100}% - 3px)`; });
       const shoot = () => {
@@ -455,7 +455,7 @@ export const GAMES = {
       const deck = SHUF(SHUF(CARDS).slice(0, 6).flatMap(c => [c, c]));
       const g = document.createElement('div'); g.className = 'ag-grid ag-cards'; g.style.gridTemplateColumns = 'repeat(4, 1fr)'; el.appendChild(g);
       const cards = deck.map(face => { const b = document.createElement('button'); b.dataset.f = face; b.textContent = face; b.className = 'up'; g.appendChild(b); return b; });
-      T.t(() => { cards.forEach(b => { b.className = ''; b.textContent = ''; }); lock = false; }, 2000);
+      T.t(() => { cards.forEach(b => { b.className = ''; b.textContent = ''; }); lock = false; }, 1600);
       cards.forEach(b => { b.onpointerdown = e => {
         e.preventDefault();
         if (lock || b.className) return;
@@ -470,7 +470,7 @@ export const GAMES = {
     }
   },
   order: {
-    name: 'Number rush', emoji: '🔟', how: 'Tap the numbers from 1 to 16 in order within 13 seconds. A wrong tap costs a heart. Running out of time costs a heart and reshuffles.',
+    name: 'Number rush', emoji: '🔟', how: 'Tap the numbers from 1 to 16 in order within 11 seconds. A wrong tap costs a heart. Running out of time costs a heart and reshuffles.',
     start(el, api) {
       const T = timers(); let next = 1, stopT = null;
       const box = panel(el, '<div class="ag-timer"><i></i></div><div class="ag-grid ag-nums" style="grid-template-columns:repeat(4,1fr)"></div>');
@@ -485,7 +485,7 @@ export const GAMES = {
           if (Number(b.dataset.v) === next) { b.classList.add('good'); api.status(`${next}/16`); next++; if (next > 16) { stopT(); api.win(); } }
           else { b.classList.add('ag-wrong'); T.t(() => b.classList.remove('ag-wrong'), 300); api.heart(); }
         }; });
-        stopT = countdown(T, bar, 13, () => { if (api.heart()) deal(); });
+        stopT = countdown(T, bar, 11, () => { if (api.heart()) deal(); });
       };
       deal();
       return () => T.clear();
