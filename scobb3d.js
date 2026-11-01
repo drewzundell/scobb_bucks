@@ -20,7 +20,7 @@ precision highp float;
 precision highp int;
 varying vec3 vP; varying vec3 vN; varying vec2 vUV;
 uniform vec3 uColor; uniform vec3 uEye; uniform vec3 uL; uniform vec3 uSky; uniform vec3 uGround;
-uniform float uSpec; uniform float uShiny; uniform float uAlpha; uniform int uMode; uniform float uEmit; uniform float uStripe; uniform vec3 uColor2;
+uniform float uSpec; uniform float uShiny; uniform float uAlpha; uniform int uMode; uniform float uEmit; uniform float uStripe; uniform vec3 uColor2; uniform vec3 uFogC; uniform float uFogD;
 void main(){
   if (uMode == 2) { float d = length(vUV); float a = smoothstep(1.0, 0.0, d); gl_FragColor = vec4(0.0, 0.0, 0.0, a * a * uAlpha); return; }
   vec3 n = normalize(vN); vec3 v = normalize(uEye - vP);
@@ -37,6 +37,7 @@ void main(){
   col += sp * vec3(1.0, 0.98, 0.95);
   col += fres * mix(uSky, vec3(1.0), 0.5) * (0.18 + uSpec * 0.25);
   col = mix(col, base * 1.15, uEmit);
+  float fd = length(uEye - vP); col = mix(col, uFogC, (1.0 - exp(-fd * uFogD)) * (1.0 - uEmit * 0.6));
   col = col / (col + vec3(0.62)) * 1.62;
   col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, 1.18);
   gl_FragColor = vec4(pow(clamp(col, 0.0, 1.0), vec3(0.95)), uAlpha);
@@ -133,7 +134,7 @@ export function create(canvas, W, H, opts) {
   if (!gl) return null;
   const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
   const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr)); gl.useProgram(pr);
-  const U = {}; for (const k of ['uVP', 'uM', 'uNM', 'uMode', 'uBox', 'uRad', 'uColor', 'uColor2', 'uStripe', 'uEye', 'uL', 'uSky', 'uGround', 'uSpec', 'uShiny', 'uAlpha', 'uEmit']) U[k] = gl.getUniformLocation(pr, k);
+  const U = {}; for (const k of ['uFogC', 'uFogD', 'uVP', 'uM', 'uNM', 'uMode', 'uBox', 'uRad', 'uColor', 'uColor2', 'uStripe', 'uEye', 'uL', 'uSky', 'uGround', 'uSpec', 'uShiny', 'uAlpha', 'uEmit']) U[k] = gl.getUniformLocation(pr, k);
   const aP = gl.getAttribLocation(pr, 'aP'), aN = gl.getAttribLocation(pr, 'aN');
   gl.enableVertexAttribArray(aP); gl.enableVertexAttribArray(aN);
   const meshes = buildMeshes(gl);
@@ -158,7 +159,8 @@ export function create(canvas, W, H, opts) {
     return m;
   };
   // Game coordinates (pixels, y down) to world coordinates (y up).
-  const wx = px => px - W / 2, wy = py => H / 2 - py;
+  const wx = opts.free ? (v => v) : (px => px - W / 2), wy = opts.free ? (v => v) : (py => H / 2 - py);
+  gl.uniform1f(U.uFogD, 0); gl.uniform3fv(U.uFogC, [1, 1, 1]);
   function draw(mname, o, mode) {
     const m = bind(mname);
     const mm = model(wx(o.x), wy(o.y), o.z || 0, o.rx || 0, o.ry || 0, o.rz || 0, o.sx, o.sy, o.sz);
@@ -204,6 +206,20 @@ export function create(canvas, W, H, opts) {
       api.cyl(x, y, z, r, r * 0.13, '#F2B531', Object.assign({ rx: Math.PI / 2, ry: 0, rz: 0, spec: 1.3, shiny: 70 }, o, { ry: spin }));
       api.torus(x, y, z, r * 0.78, '#FFD86B', Object.assign({ rx: Math.PI / 2, tube: r * 0.09, spec: 1.2, shiny: 70 }, o, { ry: spin }));
     },
+    // Free camera for first person: eye position, yaw (left/right) and pitch (up/down) in radians.
+    view(e, yaw, pitch, fovDeg, near, far) {
+      const f = [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
+      const P = persp((fovDeg || 75) * Math.PI / 180, W / H, near || 0.05, far || 400);
+      api.P = P; api.fwd = f;
+      gl.uniformMatrix4fv(U.uVP, false, mul(P, lookAt(e, [e[0] + f[0], e[1] + f[1], e[2] + f[2]], [0, 1, 0])));
+      gl.uniform3fv(U.uEye, e);
+    },
+    fog(color, density) { gl.uniform3fv(U.uFogC, hex(color)); gl.uniform1f(U.uFogD, density); },
+    // Draws in camera space (x right, y up, -z forward) on top of the world, for a held weapon.
+    viewmodel() { gl.clear(gl.DEPTH_BUFFER_BIT); gl.uniformMatrix4fv(U.uVP, false, api.P); gl.uniform3fv(U.uEye, [0, 0, 0]); gl.uniform1f(U.uFogD, 0); },
+    blob(x, y, z, r, a) { gl.depthMask(false); draw('quad', { x, y, z, rx: -Math.PI / 2, sx: r, sy: r, sz: 1, a: a == null ? 0.35 : a }, 2); gl.depthMask(true); },
+    light(dir) { gl.uniform3fv(U.uL, norm(dir)); },
+    setSky(sky, ground) { gl.uniform3fv(U.uSky, hex(sky)); gl.uniform3fv(U.uGround, hex(ground)); },
     project(px, py, pz) { const x = wx(px), y = wy(py), z = pz || 0; const s = D / (D - z); return [W / 2 + x * s, H / 2 - y * s]; },
     destroy() { const ext = gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); }
   };
