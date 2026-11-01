@@ -1,6 +1,31 @@
 // ScobbBucks Arcade: 18 quick skill games. Each one gets 2 hearts.
 export const HEARTS = 2;
 // index.html keeps the same list of ids for the daily crate and payouts.
+import { create as create3d } from './scobb3d.js';
+
+// 3D stage: a WebGL canvas where 1 world unit is 1 screen pixel, so game logic stays in pixels.
+function stage3d(el, bg, opts) {
+  el.style.background = bg;
+  const c = document.createElement('canvas'); c.className = 'ag-3d'; el.appendChild(c);
+  const W = el.clientWidth, H = el.clientHeight;
+  const G = create3d(c, W, H, opts);
+  return { c, G, W, H };
+}
+function sparks3d(el) {
+  const ps = [];
+  return {
+    burst(x, y, col, n, sp) { for (let i = 0; i < (n || 14); i++) { const a = Math.random() * Math.PI * 2, v = (sp || 170) * (0.4 + Math.random() * 0.8); ps.push({ x, y, z: 30, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, vz: (Math.random() - 0.5) * 160, life: 0.55 + Math.random() * 0.35, t: 0, col, r: 2.5 + Math.random() * 3 }); } },
+    text(x, y, str, col) { const d = document.createElement('div'); d.className = 'ag-float'; d.textContent = str; d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.color = col || '#fff'; el.appendChild(d); setTimeout(() => d.remove(), 850); },
+    draw(G, dt) {
+      for (let i = ps.length - 1; i >= 0; i--) {
+        const p = ps[i]; p.t += dt; if (p.t >= p.life) { ps.splice(i, 1); continue; }
+        p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.vy += 520 * dt;
+        const k = 1 - p.t / p.life;
+        G.sphere(p.x, p.y, p.z, p.r * (0.4 + 0.6 * k), p.col, { emit: 0.55, spec: 0.6, a: Math.min(1, k * 1.6) });
+      }
+    }
+  };
+}
 
 const R = (a, b) => a + Math.random() * (b - a);
 const RI = (a, b) => Math.floor(R(a, b + 1));
@@ -202,75 +227,71 @@ export const GAMES = {
   catch: {
     name: 'Coin catcher', emoji: '🧺', how: 'Slide your finger or mouse (or use the arrow keys) to move the basket. Catch the falling coins. Each one you miss costs a heart. Catch 15.',
     start(el, api) {
-      const { c, x, W, H } = canvas(el); let bx = W / 2, coins = [], next = 0.4, got = 0, clock = 0;
-      const fx = sparks();
-      const s = steer(c, W, v => { bx = v; });
+      const { c, G, W, H } = stage3d(el, 'radial-gradient(130% 100% at 50% 0%, #343A7A 0%, #181A3C 55%, #0D0E22 100%)', { sky: '#9AA8FF', ground: '#2B2547', fov: 34 });
+      let bx = W / 2, coins = [], next = 0.4, got = 0, clock = 0;
+      const fx = sparks3d(el), s = steer(c, W, v => { bx = v; });
       api.status('0/15');
       const stop = loop(dt => {
-        next -= dt;
+        clock += dt; next -= dt;
         if (s.keys.ArrowLeft) bx = Math.max(30, bx - 460 * dt);
         if (s.keys.ArrowRight) bx = Math.min(W - 30, bx + 460 * dt);
-        clock += dt;
-        if (next <= 0) { coins.push({ x: R(20, W - 20), y: -12, v: 245 + got * 16 + R(0, 60), ph: R(0, 6), spin: R(5, 9) }); next = Math.max(0.38, 0.75 - got * 0.03); }
-        sky(x, W, H, '#1D2140', '#3B3F78');
-        for (let i = 0; i < 24; i++) { x.fillStyle = 'rgba(255,255,255,' + (0.2 + 0.2 * Math.sin(clock * 2 + i)) + ')'; x.fillRect((i * 97) % W, (i * 53) % (H * 0.7), 2, 2); }
+        if (next <= 0) { coins.push({ x: R(20, W - 20), y: -16, v: 245 + got * 16 + R(0, 60), ph: R(0, 6), spin: R(4, 8) }); next = Math.max(0.38, 0.75 - got * 0.03); }
+        G.begin();
+        for (let i = 0; i < 22; i++) G.sphere((i * 97) % W, (i * 53) % (H * 0.75), -160, 1.8, '#FFFFFF', { emit: 1, a: 0.35 + 0.3 * Math.sin(clock * 2 + i) });
         for (const k of coins.slice()) {
           k.y += k.v * dt; k.ph += k.spin * dt;
-          if (k.y > H - 48 && k.y < H - 18 && Math.abs(k.x - bx) < 34) { coins.splice(coins.indexOf(k), 1); got++; fx.burst(k.x, H - 40, '#FFD34D', 12); fx.text(k.x, H - 56, '+1', '#FFE38A'); api.status(`${got}/15`); if (got >= 15) return api.win(); }
-          else if (k.y > H + 12) { coins.splice(coins.indexOf(k), 1); fx.burst(k.x, H - 6, '#E9453C', 10, 120); if (!api.heart()) return; }
+          if (k.y > H - 52 && k.y < H - 18 && Math.abs(k.x - bx) < 34) { coins.splice(coins.indexOf(k), 1); got++; fx.burst(k.x, H - 44, '#FFD34D', 14); fx.text(k.x, H - 80, '+1', '#FFE38A'); api.status(`${got}/15`); if (got >= 15) return api.win(); }
+          else if (k.y > H + 16) { coins.splice(coins.indexOf(k), 1); fx.burst(k.x, H - 8, '#FF5A5F', 12, 140); if (!api.heart()) return; }
         }
-        for (const k of coins) drawCoin(x, k.x, k.y, 13, k.ph);
-        const bg = x.createLinearGradient(0, H - 36, 0, H - 8);
-        bg.addColorStop(0, '#C9894A'); bg.addColorStop(1, '#6B3F1C');
-        x.fillStyle = 'rgba(0,0,0,.25)'; x.beginPath(); x.ellipse(bx, H - 6, 38, 6, 0, 0, 7); x.fill();
-        x.fillStyle = bg; x.beginPath(); x.moveTo(bx - 36, H - 34); x.lineTo(bx + 36, H - 34); x.lineTo(bx + 28, H - 9); x.lineTo(bx - 28, H - 9); x.closePath(); x.fill();
-        x.strokeStyle = 'rgba(255,255,255,.18)'; x.lineWidth = 1; for (let k = -24; k <= 24; k += 8) { x.beginPath(); x.moveTo(bx + k, H - 33); x.lineTo(bx + k * 0.8, H - 10); x.stroke(); }
-        x.fillStyle = '#E8B57A'; x.beginPath(); x.ellipse(bx, H - 34, 37, 5, 0, 0, 7); x.fill();
-        x.fillStyle = '#3A2410'; x.beginPath(); x.ellipse(bx, H - 34, 32, 3, 0, 0, 7); x.fill();
-        fx.draw(x, dt);
+        for (const k of coins) { G.shadow(k.x, k.y, 17, 17, 0.25); G.coin(k.x, k.y, 0, 14, k.ph); }
+        const by = H - 30;
+        G.shadow(bx, by + 6, 48, 18, 0.4);
+        G.cyl(bx, by, 0, 34, 15, '#C58A4E', { spec: 0.35, stripe: 0.22, c2: '#9C6534' });
+        G.sphere(bx, by - 15, 0, 30, '#3A2412', { ky: 0.12, spec: 0.1 });
+        G.torus(bx, by - 15, 0, 35, '#E9BE85', { tube: 6, spec: 0.6 });
+        fx.draw(G, dt);
       });
-      return () => { stop(); s.off(); };
+      return () => { stop(); s.off(); G.destroy(); };
     }
   },
   dodge: {
     name: 'Block dodge', emoji: '🧱', how: 'Move your scobb left and right (finger, mouse or arrow keys) to dodge falling blocks. Survive 20 seconds. Each hit costs a heart.',
     start(el, api) {
-      const { c, x, W, H } = canvas(el); let px = W / 2, blocks = [], t = 0, next = 0, inv = 0;
-      const fx = sparks();
-      const s = steer(c, W, v => { px = v; });
+      const { c, G, W, H } = stage3d(el, 'linear-gradient(#F4F5FB, #C9CFE4)', { sky: '#FFFFFF', ground: '#8E97B8' });
+      let px = W / 2, blocks = [], t = 0, next = 0, inv = 0;
+      const fx = sparks3d(el), s = steer(c, W, v => { px = v; });
       const stop = loop(dt => {
         t += dt; inv -= dt; next -= dt;
         if (s.keys.ArrowLeft) px = Math.max(20, px - 360 * dt);
         if (s.keys.ArrowRight) px = Math.min(W - 20, px + 360 * dt);
-        if (next <= 0) { blocks.push({ x: R(0, W - 50), y: -30, w: R(34, 70), v: 280 + t * 16 }); next = Math.max(0.15, 0.42 - t * 0.02); }
-        sky(x, W, H, '#EEF0F8', '#D5DAEA');
-        x.strokeStyle = 'rgba(80,90,140,.12)'; x.lineWidth = 1;
-        for (let gy = (t * 60) % 40; gy < H; gy += 40) { x.beginPath(); x.moveTo(0, gy); x.lineTo(W, gy); x.stroke(); }
-        for (const b of blocks) b.y += b.v * dt;
+        if (next <= 0) { blocks.push({ x: R(0, W - 50), y: -30, w: R(34, 70), v: 280 + t * 16, rot: R(-0.5, 0.5), spin: R(-2, 2) }); next = Math.max(0.15, 0.42 - t * 0.02); }
+        for (const b of blocks) { b.y += b.v * dt; b.rot += b.spin * dt; }
         blocks = blocks.filter(b => b.y < H + 40);
         const py = H - 30;
         if (inv <= 0 && blocks.some(b => px + 14 > b.x && px - 14 < b.x + b.w && py + 14 > b.y && py - 14 < b.y + 26)) {
           inv = 1.1;
-          fx.burst(px, py, '#FF6B6F', 18, 200);
+          fx.burst(px, py, '#FF6B6F', 20, 220);
           if (!api.heart()) return;
           blocks = blocks.filter(b => b.y < H - 160);
         }
         api.status(`${Math.max(0, Math.ceil(20 - t))}s left`);
         if (t >= 20) return api.win();
-        for (const b of blocks) drawBlock(x, b.x, b.y, b.w, 26, '#7C4DEB');
-        if (inv <= 0 || Math.floor(inv * 10) % 2) drawScobb(x, px, py, 14, '#3EC1FF');
-        fx.draw(x, dt);
+        G.begin();
+        for (const b of blocks) { G.shadow(b.x + b.w / 2, b.y + 13, b.w * 0.6, 18, 0.22); G.box(b.x + b.w / 2, b.y + 13, 0, b.w / 2, 13, 14, 6, '#7C4DEB', { ry: b.rot, rx: 0.35, spec: 0.7 }); }
+        G.shadow(px, py, 20, 18, 0.3);
+        if (inv <= 0 || Math.floor(inv * 10) % 2) G.scobb(px, py, 10, 15, '#3EC1FF');
+        fx.draw(G, dt);
       });
-      return () => { stop(); s.off(); };
+      return () => { stop(); s.off(); G.destroy(); };
     }
   },
   jump: {
     name: 'Scobb jump', emoji: '🦘', how: 'Your scobb bounces on its own. Steer left and right (finger, mouse or arrow keys) to land on platforms and climb. Some platforms move. Reach platform 30. Falling off the bottom costs a heart.',
     start(el, api) {
-      const { c, x, W, H } = canvas(el);
+      const { c, G, W, H } = stage3d(el, 'linear-gradient(#8FCBFF, #EAF5FF)', { sky: '#FFFFFF', ground: '#7FA3C9' });
       const GOAL = 30, PW = 56, BOUNCE = -640, GRAV = 1550;
       let plats = [], nextY = H - 30, id = 0, camY = 0, best = 0, tx = W / 2, squash = 0;
-      const fx = sparks();
+      const fx = sparks3d(el);
       const addPlat = () => {
         const gap = Math.min(108, 66 + id * 1.7);
         plats.push({ id, x: id === 0 ? W / 2 - PW / 2 : R(4, W - PW - 4), y: nextY, vx: id > 4 && Math.random() < 0.55 ? PICK([-1, 1]) * R(70, 115 + id * 3.5) : 0 });
@@ -290,7 +311,7 @@ export const GAMES = {
         for (const p of plats) if (p.vx) { p.x += p.vx * dt; if (p.x < 0) { p.x = 0; p.vx *= -1; } if (p.x + PW > W) { p.x = W - PW; p.vx *= -1; } }
         if (pl.vy > 0) for (const p of plats) {
           if (prevY + 14 <= p.y + 1 && pl.y + 14 >= p.y && pl.x > p.x - 8 && pl.x < p.x + PW + 8) {
-            pl.vy = BOUNCE; pl.y = p.y - 14; last = p; squash = 1; fx.burst(pl.x, p.y - camY, p.vx ? '#7CD3FF' : '#7EE0A2', 8, 90);
+            pl.vy = BOUNCE; pl.y = p.y - 14; last = p; squash = 1; fx.burst(pl.x, p.y - camY, p.vx ? '#7CD3FF' : '#7EE0A2', 10, 110);
             if (p.id > best) { best = p.id; api.status(`${Math.min(best, GOAL)}/${GOAL}`); if (best >= GOAL) return api.win(); }
             break;
           }
@@ -304,19 +325,22 @@ export const GAMES = {
           camY = last.y - H * 0.62;
         }
         squash = Math.max(0, squash - dt * 5);
-        sky(x, W, H, '#BFE3FF', '#F3F8FF');
-        for (let i = 0; i < 6; i++) { const cyy = ((i * 170 - camY * 0.3) % (H + 120) + H + 120) % (H + 120) - 60; x.fillStyle = 'rgba(255,255,255,.75)'; x.beginPath(); x.ellipse((i * 131) % W, cyy, 34, 12, 0, 0, 7); x.ellipse((i * 131) % W + 22, cyy - 6, 22, 11, 0, 0, 7); x.fill(); }
+        G.begin();
+        for (let i = 0; i < 6; i++) { const cy = ((i * 170 - camY * 0.3) % (H + 140) + H + 140) % (H + 140) - 70, cx = (i * 131) % W; for (const [ox, oy, rr] of [[0, 0, 26], [24, -8, 20], [-22, 4, 18]]) G.sphere(cx + ox, cy + oy, -120, rr, '#FFFFFF', { spec: 0.1, ky: 0.75 }); }
         for (const p of plats) {
           const sy = p.y - camY;
-          if (sy < -20 || sy > H + 20) continue;
-          drawBlock(x, p.x, sy, PW, 9, p.id === GOAL ? '#E3B341' : p.vx ? '#3EA2FF' : '#3FBF77', 7);
-          if (p.id === GOAL) { x.fillStyle = '#5B3A1C'; x.fillRect(p.x + PW / 2, sy - 30, 2, 30); x.fillStyle = '#E5484D'; x.beginPath(); x.moveTo(p.x + PW / 2 + 2, sy - 30); x.lineTo(p.x + PW / 2 + 20, sy - 25); x.lineTo(p.x + PW / 2 + 2, sy - 20); x.fill(); }
+          if (sy < -30 || sy > H + 30) continue;
+          const col = p.id === GOAL ? '#F2B531' : p.vx ? '#3E9BFF' : '#3FBF77';
+          G.shadow(p.x + PW / 2, sy + 6, PW * 0.6, 10, 0.22);
+          G.box(p.x + PW / 2, sy + 5, 0, PW / 2, 5, 16, 4, col, { spec: 0.6, rx: 0.5 });
+          if (p.id === GOAL) { G.cyl(p.x + PW / 2, sy - 18, 0, 2, 22, '#6B4426'); G.box(p.x + PW / 2 + 12, sy - 32, 0, 11, 7, 1.5, 1.5, '#E5484D', { ry: 0.3 }); }
         }
         const stretch = pl.vy < 0 ? Math.min(0.18, -pl.vy / 4000) : 0;
-        drawScobb(x, pl.x, pl.y - camY, 14, '#B98BFF', 1 + squash * 0.25 - stretch, 1 - squash * 0.22 + stretch);
-        fx.draw(x, dt);
+        G.shadow(pl.x, pl.y - camY, 18, 16, 0.25);
+        G.scobb(pl.x, pl.y - camY, 14, 15, '#B98BFF', { kx: 1 + squash * 0.25 - stretch, ky: 1 - squash * 0.22 + stretch });
+        fx.draw(G, dt);
       });
-      return () => { stop(); s.off(); };
+      return () => { stop(); s.off(); G.destroy(); };
     }
   },
   count: {
@@ -377,10 +401,10 @@ export const GAMES = {
   flappy: {
     name: 'Flappy scobb', emoji: '🐤', how: 'Tap or press space to flap. Fly through 8 gaps. Hitting a pipe, the ground or the sky costs a heart.',
     start(el, api) {
-      const { c, x, W, H } = canvas(el);
+      const { c, G, W, H } = stage3d(el, 'linear-gradient(#7CC8FF, #E6F6FF)', { sky: '#FFFFFF', ground: '#6E9F7A' });
       const GAP = Math.max(104, H * 0.24), SPD = 210, PX = 70;
       let y = H / 2, v = 0, pipes = [], passed = 0, grace = 1.2, scroll = 0;
-      const fx = sparks();
+      const fx = sparks3d(el);
       const add = px => pipes.push({ x: px, gy: R(50, H - 50 - GAP), done: false });
       add(W + 40); add(W + 240);
       const flap = e => { if (e) e.preventDefault(); v = -300; };
@@ -389,40 +413,34 @@ export const GAMES = {
       document.addEventListener('keydown', key);
       api.status('0/8');
       const stop = loop(dt => {
-        grace -= dt;
+        grace -= dt; scroll += SPD * dt;
         v += 900 * dt; y += v * dt;
-        scroll += SPD * dt;
-        for (const p of pipes) { p.x -= SPD * dt; if (!p.done && p.x + 52 < PX - 13) { p.done = true; passed++; fx.burst(PX + 10, y, '#FFE38A', 10, 120); api.status(`${passed}/8`); if (passed >= 8) return api.win(); } }
+        for (const p of pipes) { p.x -= SPD * dt; if (!p.done && p.x + 52 < PX - 13) { p.done = true; passed++; fx.burst(PX + 10, y, '#FFE38A', 12, 130); api.status(`${passed}/8`); if (passed >= 8) return api.win(); } }
         if (pipes.length && pipes[0].x < -60) pipes.shift();
         if (!pipes.length || pipes[pipes.length - 1].x < W - 190) add(pipes.length ? pipes[pipes.length - 1].x + 200 : W + 40);
         let hit = y > H - 13 || y < 13;
         for (const p of pipes) if (PX + 12 > p.x && PX - 12 < p.x + 52 && (y - 12 < p.gy || y + 12 > p.gy + GAP)) hit = true;
         if (grace > 0) { y = Math.min(Math.max(y, 20), H - 20); }
         else if (hit) {
-          fx.burst(PX, y, '#FF6B6F', 18, 200);
+          fx.burst(PX, y, '#FF6B6F', 20, 220);
           if (!api.heart()) return;
           y = H / 2; v = 0; grace = 1.2;
           pipes = pipes.filter(p => p.x > PX + 40);
         }
-        sky(x, W, H, '#8FD3FF', '#E6F6FF');
-        for (const [sp, col, hgt] of [[0.2, '#B9E3C6', 70], [0.5, '#8ACB9B', 42]]) {
-          x.fillStyle = col; x.beginPath(); x.moveTo(0, H);
-          for (let hx2 = 0; hx2 <= W + 20; hx2 += 20) x.lineTo(hx2, H - hgt - Math.sin((hx2 + scroll * sp) / 60) * 14);
-          x.lineTo(W, H); x.fill();
+        G.begin();
+        for (let i = 0; i < 5; i++) { const hx = ((i * 160 - scroll * 0.25) % (W + 320) + W + 320) % (W + 320) - 160; G.sphere(hx, H + 30, -160, 95, i % 2 ? '#9ED7A9' : '#86C995', { spec: 0.1, ky: 0.6 }); }
+        for (const p of pipes) {
+          const cx = p.x + 26;
+          G.cyl(cx, p.gy / 2, 0, 24, p.gy / 2, '#43A853', { spec: 0.8, shiny: 30 });
+          G.cyl(cx, p.gy - 8, 0, 29, 8, '#5BC36A', { spec: 0.9, shiny: 30 });
+          const bh = H - p.gy - GAP;
+          G.cyl(cx, p.gy + GAP + bh / 2, 0, 24, bh / 2, '#43A853', { spec: 0.8, shiny: 30 });
+          G.cyl(cx, p.gy + GAP + 8, 0, 29, 8, '#5BC36A', { spec: 0.9, shiny: 30 });
         }
-        for (const p of pipes) for (const [py, ph] of [[0, p.gy], [p.gy + GAP, H - p.gy - GAP]]) {
-          const g = x.createLinearGradient(p.x, 0, p.x + 52, 0);
-          g.addColorStop(0, '#2E7D32'); g.addColorStop(0.35, '#7BD67F'); g.addColorStop(1, '#1F5E24');
-          x.fillStyle = g; x.fillRect(p.x, py, 52, ph);
-          const capY = py === 0 ? p.gy - 14 : py;
-          const g2 = x.createLinearGradient(p.x - 5, 0, p.x + 57, 0);
-          g2.addColorStop(0, '#2E7D32'); g2.addColorStop(0.35, '#8FE493'); g2.addColorStop(1, '#1F5E24');
-          x.fillStyle = g2; x.fillRect(p.x - 5, capY, 62, 14);
-        }
-        if (grace <= 0 || Math.floor(grace * 10) % 2) { x.save(); x.translate(PX, y); x.rotate(Math.max(-0.5, Math.min(0.8, v / 600))); drawScobb(x, 0, 0, 14, '#FFC233'); x.restore(); }
-        fx.draw(x, dt);
+        if (grace <= 0 || Math.floor(grace * 10) % 2) G.scobb(PX, y, 20, 15, '#FFC233', { rz: -Math.max(-0.5, Math.min(0.8, v / 600)), face: 0.6 });
+        fx.draw(G, dt);
       });
-      return () => { stop(); document.removeEventListener('keydown', key); };
+      return () => { stop(); document.removeEventListener('keydown', key); G.destroy(); };
     }
   },
   whack: {
@@ -472,10 +490,10 @@ export const GAMES = {
   stack: {
     name: 'Stacker', emoji: '🏗️', how: 'Tap (or press space) to drop the sliding block on the tower. Only the part that lands stays. Missing the tower costs a heart. Stack 10.',
     start(el, api) {
-      const { c, x, W, H } = canvas(el); const BH = Math.min(28, (H - 20) / 12);
-      const base = Math.min(150, W * 0.45);
+      const { c, G, W, H } = stage3d(el, 'radial-gradient(120% 90% at 50% 0%, #FFFFFF 0%, #E4DEFA 60%, #CFC6F3 100%)', { sky: '#FFFFFF', ground: '#9C92C9' });
+      const BH = Math.min(28, (H - 20) / 12), base = Math.min(150, W * 0.45);
       let stack = [{ x: W / 2 - base / 2, w: base }], cur, dir = 1, sp = 210, pause = 0, debris = [];
-      const fx = sparks();
+      const fx = sparks3d(el);
       const newBlock = () => { const top = stack[stack.length - 1]; cur = { x: 0, w: top.w }; dir = 1; sp = 210 + stack.length * 26; };
       newBlock();
       const drop = e => {
@@ -483,12 +501,12 @@ export const GAMES = {
         if (pause > 0) return;
         const top = stack[stack.length - 1], l = Math.max(cur.x, top.x), r = Math.min(cur.x + cur.w, top.x + top.w);
         pause = 0.25;
-        const yy = H - (stack.length + 1) * BH;
-        if (r - l <= 3) { debris.push({ x: cur.x, y: yy, w: cur.w, vy: 0, rot: 0, col: COLS[stack.length % COLS.length] }); if (!api.heart()) return; newBlock(); return; }
-        if (cur.x < l) debris.push({ x: cur.x, y: yy, w: l - cur.x, vy: 0, rot: 0, col: COLS[stack.length % COLS.length] });
-        if (cur.x + cur.w > r) debris.push({ x: r, y: yy, w: cur.x + cur.w - r, vy: 0, rot: 0, col: COLS[stack.length % COLS.length] });
-        if (r - l > top.w - 4) fx.text(l + (r - l) / 2, yy - 6, 'Perfect!', '#7C4DEB');
-        fx.burst(l + (r - l) / 2, yy + BH / 2, '#ffffff', 8, 80);
+        const yy = H - (stack.length + 1) * BH, col = COLS[stack.length % COLS.length];
+        if (r - l <= 3) { debris.push({ x: cur.x, y: yy, w: cur.w, vy: 0, rot: 0, col }); if (!api.heart()) return; newBlock(); return; }
+        if (cur.x < l) debris.push({ x: cur.x, y: yy, w: l - cur.x, vy: 0, rot: 0, col });
+        if (cur.x + cur.w > r) debris.push({ x: r, y: yy, w: cur.x + cur.w - r, vy: 0, rot: 0, col });
+        if (r - l > top.w - 4) fx.text(l + (r - l) / 2, yy - 24, 'Perfect!', '#6B3FD9');
+        fx.burst(l + (r - l) / 2, yy + BH / 2, '#FFFFFF', 10, 90);
         stack.push({ x: l, w: r - l }); api.status(`${stack.length - 1}/10`);
         if (stack.length - 1 >= 10) return api.win();
         newBlock();
@@ -497,17 +515,19 @@ export const GAMES = {
       const key = e => { if (e.code === 'Space') drop(e); };
       document.addEventListener('keydown', key);
       api.status('0/10');
+      const blk = (x, y, w, col, o) => G.box(x + w / 2, y + (BH - 2) / 2, 0, w / 2, (BH - 2) / 2, 24, 4, col, Object.assign({ rx: 0.42, spec: 0.55 }, o));
       const stop = loop(dt => {
         pause -= dt;
         cur.x += dir * sp * dt;
         if (cur.x + cur.w > W) { cur.x = W - cur.w; dir = -1; } if (cur.x < 0) { cur.x = 0; dir = 1; }
-        sky(x, W, H, '#F4F1FF', '#DCD6F7');
-        stack.forEach((b, i) => drawBlock(x, b.x, H - (i + 1) * BH, b.w, BH - 2, COLS[i % COLS.length], 8));
-        drawBlock(x, cur.x, H - (stack.length + 1) * BH, cur.w, BH - 2, COLS[stack.length % COLS.length], 8);
-        for (let i = debris.length - 1; i >= 0; i--) { const d = debris[i]; d.vy += 900 * dt; d.y += d.vy * dt; d.rot += dt * 2; if (d.y > H + 40) { debris.splice(i, 1); continue; } x.save(); x.translate(d.x + d.w / 2, d.y + BH / 2); x.rotate(d.rot * (d.x < W / 2 ? -1 : 1)); drawBlock(x, -d.w / 2, -BH / 2, d.w, BH - 2, d.col, 6); x.restore(); }
-        fx.draw(x, dt);
+        G.begin();
+        G.shadow(W / 2, H - 4, base * 0.7, 18, 0.25);
+        stack.forEach((b, i) => blk(b.x, H - (i + 1) * BH, b.w, COLS[i % COLS.length]));
+        blk(cur.x, H - (stack.length + 1) * BH, cur.w, COLS[stack.length % COLS.length]);
+        for (let i = debris.length - 1; i >= 0; i--) { const d = debris[i]; d.vy += 900 * dt; d.y += d.vy * dt; d.rot += dt * 2.4; if (d.y > H + 50) { debris.splice(i, 1); continue; } blk(d.x, d.y, d.w, d.col, { rz: d.rot * (d.x < W / 2 ? 1 : -1) }); }
+        fx.draw(G, dt);
       });
-      return () => { stop(); document.removeEventListener('keydown', key); };
+      return () => { stop(); document.removeEventListener('keydown', key); G.destroy(); };
     }
   },
   stroop: {
@@ -701,6 +721,9 @@ export const CSS = `
 .ag-say { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 34px; font-weight: 800; color: #1F2A14; }
 @media (prefers-reduced-motion: reduce) { .ag-hurt, .ag-target, .ag-sc, .ag-bomb { animation: none; } }
 /* ===== 3D polish ===== */
+.ag-3d { display: block; touch-action: none; }
+.ag-float { position: absolute; transform: translate(-50%, 0); font-weight: 800; font-size: 20px; pointer-events: none; text-shadow: 0 2px 0 rgba(0,0,0,.25), 0 6px 14px rgba(0,0,0,.25); animation: ag-floatup .85s ease-out forwards; }
+@keyframes ag-floatup { from { opacity: 0; transform: translate(-50%, 6px) scale(.7); } 20% { opacity: 1; transform: translate(-50%, 0) scale(1.1); } to { opacity: 0; transform: translate(-50%, -34px) scale(1); } }
 .ag-hearts span { display: inline-block; transition: transform .2s; }
 .ag-hearts .on { text-shadow: 0 2px 0 #A8264F, 0 4px 8px rgba(224,69,127,.35); }
 .ag-hearts .pop { animation: ag-heart .5s ease-out; }
