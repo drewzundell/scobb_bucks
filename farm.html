@@ -465,8 +465,11 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     const S = { phase: 'lobby', startAt: 0, endAt: 0, players: {}, order: [], offers: {}, reports: [], marchMap: {}, marches: [], log: [], winner: null, reason: '', bad: {}, standings: [] };
     const mv = moves.slice().sort((x, y) => (x.t - y.t) || (x.a < y.a ? -1 : x.a > y.a ? 1 : 0) || ((x.q || 0) - (y.q || 0)));
     let startAt = round.t + round.lobbyMs;
-    for (const m of mv) if (m.k === 'start' && m.a === round.by && m.t >= round.t && m.t < startAt) { startAt = m.t; break; }
+    const joinedBefore = t => new Set(mv.filter(m => m.k === 'join' && m.t >= round.t && m.t < t).map(m => m.a)).size;
+    for (const m of mv) if (m.k === 'start' && m.a === round.by && m.t >= round.t && m.t < startAt && joinedBefore(m.t) >= 2) { startAt = m.t; break; }
     let endAt = startAt + round.matchMs;
+    // A round needs at least 2 real players by the time it starts. Otherwise it never starts.
+    if (now >= startAt && joinedBefore(startAt) < 2) { endAt = startAt; S.cancelled = true; S.short = true; }
     const P = S.players, ev = [];
     let tok = 0;
     const pushEv = e => { let i = ev.length; while (i > 0 && ev[i - 1].t > e.t) i--; ev.splice(i, 0, e); };
@@ -515,7 +518,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
         return;
       }
       if (m.k === 'end') {
-        if (m.a !== round.by) return bad('shape');
+        if (m.a !== round.by && !(players[m.a] && players[m.a].username === BANK)) return bad('shape');
         endAt = t; S.cancelled = true;
         return;
       }
@@ -785,6 +788,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     S.endAt = endAt;
     S.phase = S.winner || now >= endAt ? 'over' : now < startAt ? 'lobby' : 'live';
     S.standings = Object.values(P).sort((a, b) => (farmsOf(b) - farmsOf(a)) || ((b.j + b.c) - (a.j + a.c)));
+    if (S.short) S.phase = now >= startAt ? 'over' : S.phase;
     if (S.phase === 'over' && !S.winner && !S.cancelled && S.standings.length) { S.winner = S.standings[0].uid; S.reason = 'time'; }
     S.marches = S.phase === 'live' ? Object.values(S.marchMap).filter(x => x.state === 'out' || x.state === 'back') : [];
     return S;
@@ -846,13 +850,14 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     FB.setDoc(FB.doc(fs, ENV + 'Chat/' + id), { a: uid, i, rd: curId, text, ct: Date.now(), st: FB.serverTimestamp() }).catch(() => { delete chatDocs[id]; renderChatList(); toast('Your message didn’t send.'); });
   }
   async function openRound(lobbyMin) {
+    if (S && round() && (S.phase === 'lobby' || S.phase === 'live')) { toast('A round is already going. Join that one instead.'); return; }
     const n = Object.keys(rounds).length + 1;
     const id = 'r' + Date.now().toString(36) + rid().slice(0, 4);
     try {
       await FB.setDoc(FB.doc(fs, ENV + 'Rounds/' + id), { n, by: uid, lobbyMs: lobbyMin * 60000, matchMs: G.MATCH_MS, st: FB.serverTimestamp() });
       toast(`Round ${n} is open. Players can join now.`);
     } catch (e) {
-      toast(e && e.code === 'permission-denied' ? 'Only the bank can open rounds. Check the Firestore rules step in the README.' : 'That didn’t work. Try again.');
+      toast(e && e.code === 'permission-denied' ? 'The database blocked that. The bank needs to publish the newest Firestore rules.' : 'That didn’t work. Try again.');
     }
   }
 
@@ -896,7 +901,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     if (!r || !S) return h;
     const label = S.phase === 'lobby' ? 'Starts in' : S.phase === 'live' ? 'Time left' : 'Round over';
     h += `<div class="status mt"><span>Round ${r.n}</span><span>${label} <b data-live="timer">${S.phase === 'over' ? '' : clock((S.phase === 'lobby' ? S.startAt : S.endAt) - now())}</b></span></div>`;
-    if (isBank() && r.by === uid && S.phase !== 'over') h += `<button type="button" class="btn btn-danger btn-sm btn-block" style="margin-top:8px" data-act="end-ask">End this round</button>`;
+    if ((isBank() || r.by === uid) && S.phase !== 'over') h += `<button type="button" class="btn btn-danger btn-sm btn-block" style="margin-top:8px" data-act="end-ask">End this round</button>`;
     const p = me();
     if (p && S.phase === 'live') {
       h += `<div class="res"><div><span>Jelly</span><b data-res="j">${fmt(p.j)}</b></div><div><span>Gold</span><b data-res="c">${fmt(p.c)}</b></div><div><span>Idle villagers</span><b>${p.idle}</b></div><div><span>Army</span><b>${fmt(sumObj(p.army))}</b></div><div><span>Farms</span><b>${farmsOf(p)}</b></div><div><span>Age</span><b style="font-size:14px">${AGES[p.age - 1]}</b></div></div>`;
@@ -932,11 +937,11 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
   function noRoundView() {
     let h = `<h2>No round right now</h2>`;
     h += howTo();
-    h += isBank() ? bankOpen() : `<p class="soft mt">Waiting for the bank to open a round.</p>`;
+    h += bankOpen();
     return h;
   }
   function bankOpen() {
-    return `<div class="card mt"><h3 style="margin-top:0">Open a round</h3><p class="small soft">Players get a lobby to join, then the 15-minute match starts. You can also start early.</p><div class="chips" id="lobby-len">${[1, 2, 5].map(n => `<button type="button" class="chip" data-act="lobby-len" data-v="${n}" aria-pressed="${n === lobbyLen}">${n} min lobby</button>`).join('')}</div><button type="button" class="btn btn-grape btn-block mt" data-act="open-round">Open a new round</button></div>`;
+    return `<div class="card mt"><h3 style="margin-top:0">Start a round</h3><p class="small soft">Anyone can start one. Players get a lobby to join, then the 15-minute match begins. It needs at least 2 real players, or it won’t start and you’ll come back here.</p><div class="chips" id="lobby-len">${[1, 2, 5].map(n => `<button type="button" class="chip" data-act="lobby-len" data-v="${n}" aria-pressed="${n === lobbyLen}">${n} min lobby</button>`).join('')}</div><button type="button" class="btn btn-grape btn-block mt" data-act="open-round">Open a new round</button></div>`;
   }
   function howTo() {
     return `<div class="card mt"><h3 style="margin-top:0">How to play</h3>
@@ -950,7 +955,8 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     const joined = S.order;
     let h = `<h2>Lobby</h2><div class="card"><p class="small soft">${joined.length ? 'In this round:' : 'Nobody has joined yet.'}</p><div class="plist">${joined.map(u => `<div class="pcard">${hb(u, 36)}<div class="main"><div class="t">${esc(nameOf(u))}</div></div></div>`).join('')}</div>`;
     h += S.players[uid] ? `<p class="small mt" style="margin-top:10px">You’re in. Get ready!</p>` : `<button type="button" class="btn btn-lime btn-block mt" data-act="join">Join round ${r.n}</button>`;
-    if (isBank() && r.by === uid) h += `<button type="button" class="btn btn-ghost btn-block mt" data-act="start"${joined.length < 1 ? ' disabled' : ''}>Start now</button>`;
+    h += joined.length < 2 ? `<p class="small soft mt">Waiting for at least one more player. If nobody else joins before the timer ends, the round won’t start.</p>` : '';
+    if (r.by === uid) h += `<button type="button" class="btn btn-ghost btn-block mt" data-act="start"${joined.length < 2 ? ' disabled' : ''}>Start now</button>`;
     h += `</div>` + howTo();
     return h;
   }
@@ -965,12 +971,13 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
   }
   function overView() {
     const w = S.winner;
-    if (S.cancelled) return `<h2>Round ended</h2><p class="small soft">The bank ended this round early, so nobody wins and there’s no prize.</p>` + (isBank() ? bankOpen() : `<p class="soft mt">Waiting for the bank to open the next round.</p>`);
+    if (S.short) return `<h2>Not enough players</h2><p class="small soft">Round ${round().n} needed at least 2 real players, so it didn’t start. Start a new one and get a friend to join.</p>` + bankOpen();
+    if (S.cancelled) return `<h2>Round ended</h2><p class="small soft">This round was ended early, so nobody wins and there’s no prize.</p>` + bankOpen();
     let h = `<h2>${w ? `${esc(nameOf(w))} wins!` : 'Round over'}</h2>`;
     h += w ? `<p class="small soft">${S.reason === 'monopoly' ? 'They took over half of all the farms. Scobb monopoly!' : 'They owned the most farms when time ran out.'}</p>` : '';
     h += `<div class="podium">${S.standings.slice(0, 10).map((p, i) => `<div class="pcard"><span class="place">${['🥇', '🥈', '🥉'][i] || i + 1}</span>${hb(p.uid, 36)}<div class="main"><div class="t">${esc(nameOf(p.uid))}</div><div class="s">${plural(farmsOf(p), 'farm', 'farms')}${i < PRIZES.length ? `. Prize: ${PRIZES[i]}${LIVE ? '' : ' pretend'} ScobbBucks` : ''}</div></div></div>`).join('')}</div>`;
     h += LIVE ? `<p class="small soft mt">The winner gets ${PRIZES[0]} real ScobbBucks from the bank’s vault. ${isBank() ? 'They go out automatically the next time you open ScobbBucks.' : 'They show up in the winner’s wallet once the bank opens the app.'}</p>` : `<p class="small soft mt">In preview, prizes are pretend. Once Scobb Farm goes live, the winner gets ${PRIZES[0]} real ScobbBucks from the bank.</p>`;
-    h += isBank() ? bankOpen() : `<p class="soft mt">Waiting for the bank to open the next round.</p>`;
+    h += bankOpen();
     return h;
   }
 
@@ -1398,12 +1405,31 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
   const wroteResult = new Set();
   function writeResult() {
     const r = round();
-    if (!LIVE || !S || S.phase !== 'over' || S.cancelled || !S.winner || !isBank() || !r || r.by !== uid || wroteResult.has(curId)) return;
+    if (!LIVE || !S || S.phase !== 'over' || S.cancelled || !S.winner || !isBank() || !r || wroteResult.has(curId)) return;
     wroteResult.add(curId);
     FB.setDoc(FB.doc(fs, 'farmResults/' + curId), { by: uid, rd: curId, n: r.n, reason: S.reason || '', places: S.standings.slice(0, 3).map(p => p.uid), st: FB.serverTimestamp() }).catch(() => {});
   }
+  let backfilled = false;
+  async function backfillResults() {
+    if (backfilled || !LIVE || !isBank() || !FB.getDocs) return;
+    backfilled = true;
+    try {
+      const have = new Set();
+      (await FB.getDocs(FB.collection(fs, 'farmResults'))).forEach(d => have.add(d.id));
+      const ended = Object.values(rounds).filter(r => r.id !== curId && !have.has(r.id) && now() > r.t + r.lobbyMs + G.MATCH_MS + 5000).sort((a, b) => b.t - a.t).slice(0, 15);
+      for (const r of ended) {
+        const qs = await FB.getDocs(FB.query(FB.collection(fs, ENV + 'Moves'), FB.where('rd', '==', r.id)));
+        const mv = [];
+        qs.forEach(d => { const x = d.data(); if (x && typeof x.a === 'string' && typeof x.i === 'string') { const e = Object.assign({}, x, { t: tOf(x.st, x.ct) }); delete e.st; mv.push(e); } });
+        const R = simulate(r, mv, now());
+        if (R.phase !== 'over' || R.cancelled || !R.winner) continue;
+        await FB.setDoc(FB.doc(fs, 'farmResults/' + r.id), { by: uid, rd: r.id, n: r.n, reason: R.reason || '', places: R.standings.slice(0, 3).map(p => p.uid), st: FB.serverTimestamp() }).catch(() => {});
+      }
+    } catch (e) { /* try again next visit */ }
+  }
   function refresh(force) {
     if (route() !== 'game') { render(); return; }
+    backfillResults();
     sim();
     writeResult();
     reportBad();
