@@ -7,30 +7,31 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💸</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap">
 <style>
 :root {
   color-scheme: light;
-  --bg: #F3EEFF;
+  --bg: #EEF0F3;
   --card: #FFFFFF;
-  --card-2: #F6F1FF;
-  --ink: #24113F;
-  --soft: #6A5A86;
-  --line: #E2D7F6;
-  --grape: #6C2BD9;
-  --grape-deep: #4A16A6;
-  --grape-tint: #EBE1FF;
+  --card-2: #F2F3F6;
+  --ink: #15171C;
+  --soft: #676D78;
+  --line: #E1E4E9;
+  --grape: #4A3AE0;
+  --grape-deep: #3527B8;
+  --grape-tint: #ECEAFD;
   --on-grape: #FFFFFF;
-  --lime: #9BE33A;
-  --lime-deep: #5C9A12;
-  --on-lime: #1E3205;
-  --tomato: #E9453C;
-  --tomato-deep: #A52A23;
-  --shadow: rgba(52, 22, 107, .16);
-  --scrim: rgba(28, 10, 56, .46);
-  --rt0: #5C6878; --rt1: #167F40; --rt2: #1C60C8; --rt3: #7429DB; --rt4: #A85B00; --rt5: #C8105A;
-  --rb0: #C9D0DA; --rb1: #84DBA4; --rb2: #92BCFF; --rb3: #CDA8FF; --rb4: #FFC66B; --rb5: #FF8DB8;
-  --font: "Baloo 2", "Trebuchet MS", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --lime: #4A3AE0;
+  --lime-deep: #3527B8;
+  --on-lime: #FFFFFF;
+  --tomato: #E5484D;
+  --tomato-deep: #B8353A;
+  --shadow: rgba(21, 23, 28, .14);
+  --scrim: rgba(15, 17, 21, .45);
+  --rt0: #6B7280; --rt1: #1D8F60; --rt2: #2563D9; --rt3: #7445DB; --rt4: #B86E0A; --rt5: #D23A73;
+  --rb0: #E1E4E9; --rb1: #CDEBDD; --rb2: #D3E1FB; --rb3: #E2D7FA; --rb4: #F6E0BD; --rb5: #F7CFDD;
+  --rs0: #8F96A3; --rs1: #23A26F; --rs2: #2F74E8; --rs3: #7C4DEB; --rs4: #E39424; --rs5: #E0457F;
+  --font: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -38,24 +39,24 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #150A29; --card: #22133F; --card-2: #2B1A4F; --ink: #F3ECFF; --soft: #B6A6D6; --line: #3B2868;
-    --grape: #8C58FF; --grape-deep: #5A2FD0; --grape-tint: #33205E; --on-grape: #FFFFFF;
-    --lime: #A6EC47; --lime-deep: #5C9A12; --on-lime: #1E3205;
-    --tomato: #FF6A60; --tomato-deep: #B3332B;
-    --shadow: rgba(0, 0, 0, .45); --scrim: rgba(0, 0, 0, .62);
-    --rt0: #B9C2CE; --rt1: #5BD98A; --rt2: #6EAAFF; --rt3: #C18FFF; --rt4: #FFBE57; --rt5: #FF72A6;
-    --rb0: #5A6472; --rb1: #2E8F55; --rb2: #2F64B8; --rb3: #6B3BB8; --rb4: #A86C12; --rb5: #B8326A;
+    --bg: #0F1115; --card: #181B21; --card-2: #20242B; --ink: #F2F4F7; --soft: #9AA1AD; --line: #2A2F37;
+    --grape: #8E83FF; --grape-deep: #6A5EE8; --grape-tint: #26233F; --on-grape: #FFFFFF;
+    --lime: #8E83FF; --lime-deep: #6A5EE8; --on-lime: #FFFFFF;
+    --tomato: #FF6B6F; --tomato-deep: #C9474B;
+    --shadow: rgba(0, 0, 0, .5); --scrim: rgba(0, 0, 0, .6);
+    --rt0: #AEB4BE; --rt1: #4FCB96; --rt2: #6EA2FF; --rt3: #A98BFF; --rt4: #F2B356; --rt5: #F27AA6;
+    --rb0: #2A2F37; --rb1: #1E4A38; --rb2: #23385E; --rb3: #372A5C; --rb4: #4E3816; --rb5: #4E2235;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #150A29; --card: #22133F; --card-2: #2B1A4F; --ink: #F3ECFF; --soft: #B6A6D6; --line: #3B2868;
-  --grape: #8C58FF; --grape-deep: #5A2FD0; --grape-tint: #33205E; --on-grape: #FFFFFF;
-  --lime: #A6EC47; --lime-deep: #5C9A12; --on-lime: #1E3205;
-  --tomato: #FF6A60; --tomato-deep: #B3332B;
-  --shadow: rgba(0, 0, 0, .45); --scrim: rgba(0, 0, 0, .62);
-  --rt0: #B9C2CE; --rt1: #5BD98A; --rt2: #6EAAFF; --rt3: #C18FFF; --rt4: #FFBE57; --rt5: #FF72A6;
-  --rb0: #5A6472; --rb1: #2E8F55; --rb2: #2F64B8; --rb3: #6B3BB8; --rb4: #A86C12; --rb5: #B8326A;
+  --bg: #0F1115; --card: #181B21; --card-2: #20242B; --ink: #F2F4F7; --soft: #9AA1AD; --line: #2A2F37;
+  --grape: #8E83FF; --grape-deep: #6A5EE8; --grape-tint: #26233F; --on-grape: #FFFFFF;
+  --lime: #8E83FF; --lime-deep: #6A5EE8; --on-lime: #FFFFFF;
+  --tomato: #FF6B6F; --tomato-deep: #C9474B;
+  --shadow: rgba(0, 0, 0, .5); --scrim: rgba(0, 0, 0, .6);
+  --rt0: #AEB4BE; --rt1: #4FCB96; --rt2: #6EA2FF; --rt3: #A98BFF; --rt4: #F2B356; --rt5: #F27AA6;
+  --rb0: #2A2F37; --rb1: #1E4A38; --rb2: #23385E; --rb3: #372A5C; --rb4: #4E3816; --rb5: #4E2235;
 }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
 *, *::before, *::after { box-sizing: inherit; }
@@ -407,6 +408,134 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
 @keyframes fx-wl { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-9deg); } }
 @keyframes fx-wr { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(9deg); } }
 
+/* ===== sleek theme ===== */
+body { font: 400 16px/1.45 var(--font); letter-spacing: -0.005em; }
+h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: 18px; font-weight: 700; margin: 28px 0 10px; letter-spacing: -0.01em; }
+h3 { font-size: 15px; font-weight: 700; }
+b, strong { font-weight: 600; }
+.card { border: 1px solid var(--line); border-radius: 20px; }
+.link { color: var(--grape); font-weight: 600; text-decoration: none; }
+.btn { border-radius: 14px; height: 48px; font: 600 16px/1 var(--font); margin-bottom: 0; box-shadow: none !important; transition: transform .08s ease, background-color .15s ease; }
+.btn:active:not(:disabled) { transform: scale(.98); }
+.btn-grape { background: var(--ink); color: var(--bg); }
+.btn-lime { background: var(--grape); color: #fff; }
+.btn-ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+.btn-danger { background: var(--tomato); color: #fff; }
+.btn-sm { height: 38px; font-size: 14.5px; border-radius: 11px; }
+.row2 { gap: 8px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); }
+.icon-btn .ic { width: 20px; height: 20px; }
+.me-chip { border: 0; background: none; padding: 0; font-weight: 600; gap: 10px; }
+input[type="text"], input[type="tel"], input[type="password"] { height: 48px; border-radius: 12px; border: 1px solid var(--line); font-weight: 500; font-size: 16px; }
+input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint); }
+.field > label, .field > .label { font-weight: 600; font-size: 14px; color: var(--soft); }
+.err { font-weight: 600; }
+.odds, .odds div, .tbl, .tbl div, .step { border-width: 1px; }
+.odds div, .tbl div { font-weight: 500; }
+.ev { border-bottom: 1px solid var(--line); }
+.ev .t { font-weight: 500; }
+.ev .t b { font-weight: 600; }
+.ev.hot { background: linear-gradient(90deg, var(--grape-tint), transparent 70%); }
+.cc, .it-tag { background: var(--card-2); font-weight: 600; }
+.banner { border: 1px solid var(--line); border-radius: 16px; font-weight: 500; }
+.banner.gift { background: var(--grape-tint); border-color: transparent; }
+.banner .pill { box-shadow: none; background: var(--grape); color: #fff; font-weight: 600; border-radius: 10px; }
+.cat, .echip, .qchip { border: 1px solid var(--line); font-weight: 600; }
+.cat.on, .echip.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.scard { border: 1px solid var(--line); border-radius: 18px; }
+.rb0, .rb1, .rb2, .rb3, .rb4 { border-width: 1px; }
+.rb5 { border: 1px solid var(--rb5); background: var(--card); }
+.scard .thumb { border-radius: 12px; }
+.scard .nm, .scard .pr { font-weight: 600; }
+.scard .own { background: var(--ink); color: var(--bg); font-weight: 600; }
+.play { background: var(--ink); color: var(--bg); }
+.wchip, .ichip, .opt { border: 1px solid var(--line); font-weight: 500; }
+.wchip.on, .opt.on, .ichip[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: var(--card); }
+.sw.on { box-shadow: 0 0 0 3px var(--ink); }
+.sheet { border-radius: 24px 24px 0 0; }
+.sheet-head h2 { font-size: 22px; font-weight: 700; }
+.x { border: 1px solid var(--line); border-radius: 12px; }
+.sb, .sv { border: 1px solid var(--line); }
+.sv { font: 600 18px/1 var(--font); }
+.sb { font-weight: 500; }
+.step { border-bottom: 1px solid var(--line); }
+.step .sn { font-weight: 600; }
+.picked { border: 1px solid var(--ink); }
+.side-card, .dm-row { border: 1px solid var(--line); }
+.offer-cols .lbl, .status { font-weight: 600; }
+.status.done { background: #E3F4EC; color: #147A52; }
+.bub.them { border: 1px solid var(--line); }
+.bub.me { background: var(--ink); color: var(--bg); }
+.price-row { font-weight: 700; }
+.tabs { background: color-mix(in srgb, var(--card) 92%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding-top: 8px; }
+.tab { font-weight: 500; font-size: 11.5px; gap: 2px; }
+.tab .ib { width: auto; height: 26px; background: none !important; }
+.tab .ic { width: 22px; height: 22px; stroke-width: 1.75; }
+.tab[aria-current="page"] { color: var(--ink); font-weight: 600; }
+.tab[aria-current="page"]::before { content: ""; position: absolute; top: -8px; left: 50%; width: 22px; margin-left: -11px; height: 2px; border-radius: 2px; background: var(--ink); }
+.badge { font-weight: 700; }
+.toast { font-weight: 500; border-radius: 14px; }
+.ic { stroke-width: 1.85; }
+
+/* wallet */
+.w-lab { font-size: 14px; color: var(--soft); margin-top: 10px; }
+.w-big { font-size: 64px; font-weight: 800; letter-spacing: -0.045em; line-height: 1; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.w-big small { font-size: 20px; font-weight: 500; letter-spacing: 0; color: var(--soft); margin-left: 6px; }
+.spec { display: flex; height: 10px; border-radius: 5px; overflow: hidden; gap: 2px; margin-top: 18px; background: var(--line); }
+.leg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 10px; margin-top: 14px; }
+.leg div { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.leg span { display: flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 13px; color: var(--soft); }
+.leg b { color: var(--ink); font-weight: 600; font-size: 17px; padding-left: 15px; font-variant-numeric: tabular-nums; }
+.rdot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+.w-note { font-size: 13.5px; color: var(--soft); margin-top: 12px; }
+.acts { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 8px; margin-top: 20px; }
+.acts .btn { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 0 8px; font-size: 15px; }
+.acts .btn .ic { width: 18px; height: 18px; }
+.lpanel { background: var(--card); border: 1px solid var(--line); border-radius: 20px; margin-top: 16px; overflow: hidden; }
+.lrow { display: flex; align-items: center; gap: 12px; padding: 12px 14px; width: 100%; text-align: left; background: none; border: 0; border-radius: 0; color: var(--ink); font: inherit; text-decoration: none; }
+.lrow + .lrow { border-top: 1px solid var(--line); }
+.lrow .sq { width: 38px; height: 38px; border-radius: 11px; background: var(--card-2); display: grid; place-items: center; flex: none; }
+.lrow .sq .ic { width: 20px; height: 20px; }
+.lrow .lt { flex: 1; min-width: 0; background: none; border: 0; padding: 0; text-align: left; color: inherit; font: inherit; }
+.lrow .lt b { display: block; font-weight: 600; font-size: 15.5px; }
+.lrow .lt span { display: block; font-size: 13px; color: var(--soft); }
+.chipbtn { flex: none; font-size: 13.5px; font-weight: 600; padding: 8px 12px; border-radius: 10px; background: var(--card-2); color: var(--ink); border: 0; }
+.chipbtn.go { background: var(--grape); color: #fff; }
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; background: var(--line); border-radius: 12px; padding: 3px; margin: -4px 0 10px; }
+.seg2 button { height: 36px; border: 0; border-radius: 10px; background: none; font-weight: 600; font-size: 14.5px; color: var(--soft); }
+.seg2 button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px var(--shadow); }
+
+/* arcade */
+.arc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.arc-stats div { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+.arc-stats b { display: block; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.arc-stats span { font-size: 12.5px; color: var(--soft); }
+.arc-panel { margin-top: 12px; background: #15171C; color: #fff; border-radius: 24px; padding: 18px; }
+.arc-panel p { color: #A9AEB8; font-size: 14.5px; }
+.arc-panel .btn-grape, .arc-panel .btn-lime { background: #fff; color: #15171C; }
+.arc-panel .arc-now { background: #22252C; border: 1px solid #2E323A; color: #E6E8EC; }
+.arc-gi { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--card-2); flex: none; }
+.arc-gi .ic { width: 22px; height: 22px; }
+.ev .arc-gi { margin-top: -2px; }
+.arc-tile { border: 1px solid var(--line); font-weight: 600; gap: 8px; padding: 14px 6px; }
+.arc-tile.done { opacity: .5; }
+.crate { padding-top: 10vh; }
+.crate h2 { font-size: 22px; }
+.crate-win { background: #15171C; border: 0; border-radius: 24px; padding: 18px 0; }
+.crate-card { background: #22252C; border: 1px solid #2E323A; color: #E6E8EC; align-items: flex-start; justify-content: space-between; padding: 12px; font-size: 13.5px; font-weight: 600; text-align: left; }
+.crate-card .ic { width: 30px; height: 30px; color: #CBD0D8; }
+.crate-card.won { background: #fff; border-color: #fff; color: #15171C; box-shadow: none; }
+.crate-card.won .ic { color: var(--grape); }
+.crate-mark { width: 2px; margin-left: -1px; background: #fff; box-shadow: none; top: 8px; bottom: 8px; }
+.crate-mark::before, .crate-mark::after { content: ""; position: absolute; left: -5px; border: 6px solid transparent; }
+.crate-mark::before { top: -2px; border-top-color: #fff; }
+.crate-mark::after { bottom: -2px; border-bottom-color: #fff; }
+.crate-result { font-size: 22px; font-weight: 700; animation: none; }
+.crate-result .arc-gi { width: 64px; height: 64px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+.crate-result .arc-gi .ic { width: 34px; height: 34px; color: var(--grape); }
+.arc-result h2 { font-size: 24px; }
+
 @media (max-width: 360px) {
   #app { padding-left: 14px; padding-right: 14px; }
   .hscroll { margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
@@ -492,6 +621,13 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2.5 12h3M18.5 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/>',
     close: '<path d="M6 6l12 12M18 6 6 18"/>',
     play: '<path d="M8 5.5 19 12 8 18.5V5.5Z" fill="currentColor"/>',
+    send: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>',
+    sprout: '<path d="M12 21V10"/><path d="M12 13c-3.3 0-5.5-2.2-5.5-5.5 3.3 0 5.5 2.2 5.5 5.5Z"/><path d="M12 11c0-3.3 2.2-5.5 5.5-5.5 0 3.3-2.2 5.5-5.5 5.5Z"/><path d="M6 21h12"/>',
+    press: '<rect x="4" y="9" width="16" height="11" rx="2"/><path d="M8 9V5.5h8V9M9 14.5h6"/>',
+    game: '<rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3M15.5 11.5h.01M17.5 13.5h.01"/>',
     gift: '<path d="M4 11h16v9H4zM3 7.5h18V11H3zM12 7.5V20"/><path d="M12 7.5C10.5 4 7 4 7.2 6.3 7.4 8 10 7.5 12 7.5ZM12 7.5c1.5-3.5 5-3.5 4.8-1.2-.2 1.7-2.8 1.2-4.8 1.2Z"/>'
   };
   const icon = n => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
@@ -526,12 +662,13 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
   const bucks = n => plural(n, 'ScobbBuck', 'ScobbBucks');
 
   /* ================= coins ================= */
+  const RFLAT = ['#8F96A3', '#23A26F', '#2F74E8', '#7C4DEB', '#E39424', '#E0457F'];
   function coinSVG(r, s) {
     const d = RDEEP[r];
-    return `<svg class="tok${r === 5 ? ' tok-my' : ''}" viewBox="0 0 40 40" width="${s}" height="${s}" aria-hidden="true"><circle cx="20" cy="22" r="17.5" fill="${d}"/><circle cx="20" cy="19.5" r="17.5" fill="url(#tk${r})"/><circle cx="20" cy="19.5" r="13" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2"/><text x="20" y="26" text-anchor="middle" font-family="'Baloo 2', system-ui, sans-serif" font-weight="800" font-size="19" fill="#fff" stroke="${d}" stroke-width="2.4" paint-order="stroke">S</text><ellipse cx="13" cy="11" rx="4" ry="2.4" fill="#fff" fill-opacity=".6" transform="rotate(-30 13 11)"/></svg>`;
+    return `<svg class="tok" viewBox="0 0 40 40" width="${s}" height="${s}" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="${RFLAT[r]}"/><circle cx="20" cy="20" r="13.5" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="1.6"/><text x="20" y="25.6" text-anchor="middle" font-family="'Source Sans 3', system-ui, sans-serif" font-weight="700" font-size="16" fill="#fff">S</text></svg>`;
   }
   function mysterySVG() {
-    return `<svg class="tok" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="22" r="17.5" fill="#4A16A6"/><circle cx="20" cy="19.5" r="17.5" fill="url(#tkq)"/><circle cx="20" cy="19.5" r="13" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2" stroke-dasharray="3 3"/><text x="20" y="26.5" text-anchor="middle" font-family="'Baloo 2', system-ui, sans-serif" font-weight="800" font-size="20" fill="#fff">?</text></svg>`;
+    return `<svg class="tok" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#15171C"/><circle cx="20" cy="20" r="13.5" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.6" stroke-dasharray="3 3"/><text x="20" y="26" text-anchor="middle" font-family="'Source Sans 3', system-ui, sans-serif" font-weight="700" font-size="17" fill="#fff">?</text></svg>`;
   }
   function coinChips(c) {
     return c.map((n, r) => (n ? `<span class="cc" title="${RN[r]}">${coinSVG(r, 22)}<span>${fmtInt(n)}</span><span class="rc${r}">${RN[r]}</span></span>` : '')).join('');
@@ -949,6 +1086,27 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
   // Arcade: one crate per game per day; beating the game pays ARC_PRIZE coins from the vault.
   const ARC = [['tap', 'Coin pop', '🎯'], ['react', 'Quick draw', '⚡'], ['simon', 'Scobb says', '🎵'], ['bar', 'Stop the bar', '🛑'], ['catch', 'Coin catcher', '🧺'], ['dodge', 'Block dodge', '🧱'], ['jump', 'Scobb jump', '🦘'], ['count', 'Quick count', '🔢'], ['odd', 'Odd one out', '🎨'], ['type', 'Speed typer', '⌨️'], ['flappy', 'Flappy scobb', '🐤'], ['whack', 'Whack-a-scobb', '🔨'], ['grid', 'Tile memory', '🧠'], ['stack', 'Stacker', '🏗️'], ['stroop', 'Color clash', '🌈'], ['hoop', 'Hoop shot', '🏀'], ['pairs', 'Card match', '🃏'], ['order', 'Number rush', '🔟']];
   const ARC_IDS = ARC.map(a => a[0]), ARC_NAME = Object.fromEntries(ARC.map(a => [a[0], a]));
+  const ARC_ICON = {
+    tap: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+    react: '<path d="M13 3 5 14h6l-1 7 8-11h-6z"/>',
+    simon: '<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
+    bar: '<rect x="3" y="10" width="18" height="4" rx="2"/><path d="M14 6v12"/>',
+    catch: '<path d="M4 10h16l-2 9H6z"/><path d="M8 10l2-5M16 10l-2-5"/>',
+    dodge: '<rect x="4" y="3" width="6" height="6" rx="1"/><rect x="14" y="7" width="6" height="6" rx="1"/><circle cx="12" cy="19" r="2"/>',
+    jump: '<path d="M4 20h6M14 14h6M7 9h6"/><circle cx="16" cy="6" r="2.5"/>',
+    count: '<path d="M9 4 7 20M17 4l-2 16M4 9h16M3 15h16"/>',
+    odd: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><circle cx="16.5" cy="16.5" r="3.5"/>',
+    type: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/>',
+    flappy: '<path d="M4 13c3-5 8-6 13-4l3-2-1 4c-2 5-8 7-15 2z"/><path d="M15 10h.01"/>',
+    whack: '<path d="M13 4l7 7-3 3-7-7z"/><path d="M10.5 9.5 4 16l3 3 6.5-6.5"/>',
+    grid: '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9.3 4v16M14.7 4v16M4 9.3h16M4 14.7h16"/>',
+    stack: '<path d="M5 19h14M7 15h10M9 11h6M11 7h2"/>',
+    stroop: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+    hoop: '<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4v16M6.3 6.3c3 2.5 3 8.9 0 11.4M17.7 6.3c-3 2.5-3 8.9 0 11.4"/>',
+    pairs: '<rect x="3" y="6" width="10" height="14" rx="2"/><path d="M11 4h8a2 2 0 0 1 2 2v12"/>',
+    order: '<path d="M10 6h10M10 12h10M10 18h10M4 5h1v4M4 15h2.5l-2.5 3h2.5"/>'
+  };
+  const arcIcon = id => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ARC_ICON[id] || ''}</svg>`;
   const ARC_PRIZE = 5, ARC_WINDOW = 30 * 60000;
   const arcDay = t => Math.floor((t - WEEK0) / DAY);
   function arcPick(a, d, spins) {
@@ -1655,22 +1813,44 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     const out = supply - sumC(balOf(L.issuer));
     const un = unopened();
     const inc = incomingOpen();
-    let h = `<header class="top"><button type="button" class="me-chip" data-act="tab" data-tab="closet" aria-label="Open your closet">${headBubble(uid, 40)}<span>@${esc(meDoc.username)}</span></button><span class="top-right">${farmVisible() ? '<a class="icon-btn" href="./farm.html" aria-label="Play Scobb Farm">🌾</a>' : ''}<button type="button" class="icon-btn" data-act="settings" aria-label="Settings">${icon('gear')}</button></span></header>`;
-    h += `<section class="card bal"><div class="bal-label">${owner ? 'In your vault' : 'Your ScobbBucks'}</div><div class="bal-num">${coinSVG(5, 44)}${fmtInt(sumC(bal))}</div>
-      <div class="rgrid">${RN.map((n, r) => `<div class="rcell">${coinSVG(r, 24)}<div class="rval">${fmtInt(bal[r])}</div><div class="rn rc${r}">${n}</div></div>`).join('')}</div>
-      ${sumC(res) ? `<p class="small soft">${plural(sumC(res), 'coin is', 'coins are')} held for your open trade offers.</p>` : ''}
-      ${owner ? `<p class="small soft">You’re the bank. ${fmtInt(out)} of ${fmtInt(supply)} are out with friends.</p>` : (sumC(bal) === 0 ? `<p class="small soft">Ask ${esc(nameOf(L.issuer))}, the bank, to send you some ScobbBucks.</p>` : '')}
-      <div class="row2"><button type="button" class="btn btn-grape" data-act="send">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade">Trade</button></div>${owner ? '<button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="mint-more">Mint more ScobbBucks</button>' : '<button type="button" class="btn btn-ghost btn-block" style="margin-top:12px" data-act="swap">⬆️ Upgrade coins</button>'}</section>`;
-    if (!owner) h += pressCard();
-    h += arcadeCard();
+    const tot = sumC(bal);
+    let h = `<header class="top"><button type="button" class="me-chip" data-act="tab" data-tab="closet" aria-label="Open your closet">${headBubble(uid, 38)}<span>@${esc(meDoc.username)}</span></button><span class="top-right">${farmVisible() ? `<a class="icon-btn" href="./farm.html" aria-label="Play Scobb Farm">${icon('sprout')}</a>` : ''}<button type="button" class="icon-btn" data-act="settings" aria-label="Settings">${icon('gear')}</button></span></header>`;
+    h += `<p class="w-lab">${owner ? 'In your vault' : 'Your ScobbBucks'}</p><div class="w-big">${fmtInt(tot)}<small>${tot === 1 ? 'coin' : 'coins'}</small></div>`;
+    h += `<div class="spec" aria-hidden="true">${bal.map((n, r) => (n ? `<i style="flex:${n};background:var(--rs${r})"></i>` : '')).join('')}</div>`;
+    h += `<div class="leg">${RN.map((n, r) => `<div><span><i class="rdot" style="background:var(--rs${r})"></i>${n}</span><b>${fmtInt(bal[r])}</b></div>`).join('')}</div>`;
+    if (sumC(res)) h += `<p class="w-note">${plural(sumC(res), 'coin is', 'coins are')} held for your open trade offers.</p>`;
+    if (owner) h += `<p class="w-note">You’re the bank. ${fmtInt(out)} of ${fmtInt(supply)} are out with friends.</p>`;
+    else if (tot === 0) h += `<p class="w-note">Ask ${esc(nameOf(L.issuer))}, the bank, to send you some ScobbBucks.</p>`;
+    h += `<div class="acts"><button type="button" class="btn btn-grape" data-act="send">${icon('send')}Send</button><button type="button" class="btn btn-ghost" data-act="new-trade">${icon('trades')}Trade</button>${owner ? `<button type="button" class="btn btn-ghost" data-act="mint-more">${icon('plus')}Mint</button>` : `<button type="button" class="btn btn-ghost" data-act="swap">${icon('up')}Upgrade</button>`}</div>`;
     if (un.count) {
       const from = [...new Set(un.list.map(ev => ev.a))].map(nameOf);
-      h += `<button type="button" class="banner gift wiggle-in" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
+      h += `<button type="button" class="banner gift" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
     }
     if (inc.length) h += `<button type="button" class="banner" data-act="tab" data-tab="trades">${headBubble(inc[0].from, 34)}<span class="bt">${inc.length === 1 ? `${esc(nameOf(inc[0].from))} sent you a trade offer` : `${inc.length} trade offers are waiting on you`}</span><span class="pill">View</span></button>`;
-    if (farmVisible()) h += `<a class="farm-card" href="./farm.html"><span class="fe" aria-hidden="true">🌾</span><span class="ft"><b>Scobb Farm</b><span>Build a farm, raid your friends and take over the map.${FARM_LIVE ? ' The winner gets 25 ScobbBucks.' : ' In preview.'}</span></span><span class="go">Play</span></a>`;
-    h += `<h2>Your activity</h2>${activityHTML()}`;
+    h += `<div class="lpanel">${owner ? '' : pressRow()}${arcadeRow()}${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
+    h += `<h2>Activity</h2>${activityHTML()}`;
     return h;
+  }
+  function pressRow() {
+    const pr = L.press[uid];
+    const sq = `<span class="sq">${icon('press')}</span>`;
+    if (!pr) {
+      if (!L.funded[uid]) return `<div class="lrow">${sq}<span class="lt"><b>Coin press</b><span>Unlocks after your first ScobbBucks from the bank</span></span></div>`;
+      return `<div class="lrow">${sq}<button type="button" class="lt" data-act="press-open"><b>Coin press</b><span>Makes ${PRESS[0].rate} coins a day for you</span></button><button type="button" class="chipbtn go" data-act="press-start"${readOnly ? ' disabled' : ''}>Start</button></div>`;
+    }
+    const lv = PRESS[pr.lvl - 1], have = pressAt(pr, Date.now()), whole = Math.floor(have + 1e-9), full = have >= lv.cap - 1e-9;
+    const nextIn = full ? 0 : Math.ceil((1 - (have % 1)) * DAY / lv.rate);
+    const sub = full ? 'Full. Collect so it keeps going' : `${fmtInt(whole)} ready. Next in ${pressWait(nextIn)}`;
+    return `<div class="lrow">${sq}<button type="button" class="lt" data-act="press-open"><b>Coin press</b><span>${sub}</span></button>${whole >= 1 ? `<button type="button" class="chipbtn go" data-act="press-claim"${readOnly ? ' disabled' : ''}>Collect</button>` : `<button type="button" class="chipbtn" data-act="press-open">Level ${pr.lvl}</button>`}</div>`;
+  }
+  function arcadeRow() {
+    const owner = uid === L.issuer, st = arcState();
+    const sub = owner ? 'Practice the minigames' : !L.funded[uid] ? 'Unlocks after your first ScobbBucks' : st.active ? `${ARC_NAME[st.active.g][1]} is waiting for you` : `${st.left.length} of ${ARC_IDS.length} games left today`;
+    return `<button type="button" class="lrow" data-act="tab" data-tab="arcade"><span class="sq">${icon('game')}</span><span class="lt"><b>Arcade</b><span>${sub}</span></span><span class="chipbtn${st.active && !owner ? ' go' : ''}">${st.active && !owner ? 'Resume' : 'Play'}</span></button>`;
+  }
+  function openPress() {
+    const draw = () => { $('#sheet-body').innerHTML = sheetHead('Coin press', 'Makes ScobbBucks for you while you’re away') + pressCard(); };
+    openSheet('press', '', draw, { refresh: draw });
   }
 
   function evCoins(c) { return `<div class="chips">${coinChips(c)}</div>`; }
@@ -1707,7 +1887,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
         more = evCoins(ev.c);
       } else if (ev.k === 'arc') {
         other = uid;
-        t = `You beat ${ARC_NAME[ev.g][2]} ${ARC_NAME[ev.g][1]} and won ${bucks(sumC(ev.c))}`;
+        t = `You beat ${ARC_NAME[ev.g][1]} and won ${bucks(sumC(ev.c))}`;
         more = evCoins(ev.c);
       } else if (ev.k === 'press') {
         other = uid;
@@ -1735,7 +1915,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     const now = Date.now();
     const mode = farmVisible() && ui.shopMode === 'farm' ? 'farm' : 'avatar';
     let h = `<header class="top"><h1>Shop</h1><div class="mini-bal">${coinChipsCompact(av) || '<span class="small soft">No coins yet</span>'}</div></header>`;
-    if (farmVisible()) h += `<div class="hscroll" style="margin-top:-6px">${[['avatar', 'Avatar shop'], ['farm', 'Farm shop']].map(([k, l]) => `<button type="button" class="cat${mode === k ? ' on' : ''}" data-act="shop-mode" data-m="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</div>`;
+    if (farmVisible()) h += `<div class="seg2" role="group" aria-label="Shop">${[['avatar', 'Avatar'], ['farm', 'Farm']].map(([k, l]) => `<button type="button" data-act="shop-mode" data-m="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</div>`;
     if (mode === 'farm') {
       const d = FSK.dayOf(now), ids = FSK.farmShopFor(d, config.salt);
       h += `<p class="small soft" style="margin:2px 0 10px">Today’s farm skins, one for each building. New ones in ${timeLeft(FSK.DAY0 + (d + 1) * FSK.DAY_MS - now)}.</p>`;
@@ -1862,7 +2042,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
       } else if (ev.k === 'trade') {
         t = `<b>${esc(nameOf(ev.a))}</b> and <b>${esc(nameOf(ev.to))}</b> made a trade`;
       } else if (ev.k === 'arc') {
-        t = `<b>${esc(nameOf(ev.a))}</b> beat ${ARC_NAME[ev.g][2]} ${ARC_NAME[ev.g][1]} and won ${bucks(sumC(ev.c))}`;
+        t = `<b>${esc(nameOf(ev.a))}</b> beat ${ARC_NAME[ev.g][1]} and won ${bucks(sumC(ev.c))}`;
         hot = !!(ev.c[4] || ev.c[5]);
       } else if (ev.k === 'press') {
         if (ev.op === 'up') t = `<b>${esc(nameOf(ev.a))}</b> upgraded their coin press to level ${ev.lvl}`;
@@ -2000,19 +2180,20 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
   }
   function arcadeTab() {
     const owner = uid === L.issuer, st = arcState(), now = Date.now(), reset = WEEK0 + (st.today + 1) * DAY;
-    let h = `<header class="top"><button type="button" class="icon-btn" data-act="tab" data-tab="wallet" aria-label="Back to wallet" style="font-size:26px;font-weight:800">‹</button><h1 style="flex:1;margin-left:10px">Arcade</h1></header>`;
-    h += `<section class="card"><p>${owner ? 'You’re the bank, so you can practice every game but you can’t win coins.' : `Open a crate to get a random minigame. Beat it to win <b>${ARC_PRIZE} ScobbBucks</b>. You get ${ARC_HEARTS} hearts. Win or lose, that game is gone until the reset.`}</p><p class="small soft mt">${owner ? `${ARC_IDS.length} games in the pool.` : `${st.left.length} of ${ARC_IDS.length} games left today.`} New games at midnight, in ${pressWait(reset - now)}.</p>`;
-    if (!owner) {
-      if (!L.funded[uid]) h += `<p class="small soft mt">The arcade unlocks once the bank sends you your first ScobbBucks. You can still practice below.</p>`;
-      else if (st.active) { const g = ARC_NAME[st.active.g]; h += `<div class="arc-now"><span class="arc-em">${g[2]}</span> <b>${g[1]}</b> is waiting for you with ${plural(arcHearts(st.active.key), 'heart', 'hearts')} left. Play it within ${pressWait(st.active.t + ARC_WINDOW - now)} or it counts as a loss.</div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-play">Play ${g[1]}</button>`; }
-      else if (st.left.length) h += `<button type="button" class="btn btn-grape btn-block mt arc-open" data-act="arc-spin"${readOnly ? ' disabled' : ''}>🎁 Open a crate</button>`;
-      else h += `<p class="mt"><b>You played every game today.</b> Come back after midnight for a fresh set.</p>`;
-    }
-    h += `</section>`;
+    const won = st.spins.filter(x => x.res === 'win').length * ARC_PRIZE;
+    let h = `<header class="top" style="justify-content:flex-start"><button type="button" class="icon-btn" data-act="tab" data-tab="wallet" aria-label="Back to wallet">${icon('back')}</button><h1>Arcade</h1></header>`;
+    h += `<div class="arc-stats"><div><b>${owner ? ARC_IDS.length : st.left.length}</b><span>${owner ? 'Games' : 'Games left'}</span></div><div><b>${owner ? '0' : '+' + won}</b><span>Won today</span></div><div><b>${pressWait(reset - now).replace(/ \d+m$/, '')}</b><span>Until reset</span></div></div>`;
+    h += `<div class="arc-panel">`;
+    if (owner) h += `<p>You’re the bank, so you can practice every game below but you can’t win coins.</p>`;
+    else if (!L.funded[uid]) h += `<p>The arcade unlocks once the bank sends you your first ScobbBucks. You can still practice below.</p>`;
+    else if (st.active) { const g = ARC_NAME[st.active.g]; h += `<p>Your game</p><div class="lrow" style="padding:12px 0;color:#fff"><span class="arc-gi" style="background:#22252C;color:#fff">${arcIcon(st.active.g)}</span><span class="lt"><b>${g[1]}</b><span style="color:#A9AEB8">${plural(arcHearts(st.active.key), 'heart', 'hearts')} left. Play within ${pressWait(st.active.t + ARC_WINDOW - now)} or it counts as a loss</span></span></div><button type="button" class="btn btn-grape btn-block" data-act="arc-play">Play ${g[1]}</button>`; }
+    else if (st.left.length) h += `<p>Open a crate to get a random minigame. Beat it to win ${ARC_PRIZE} ScobbBucks. You get ${ARC_HEARTS} hearts, and win or lose, that game is gone until the reset.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-spin"${readOnly ? ' disabled' : ''}>Open a crate</button>`;
+    else h += `<p>You played every game today. A fresh set opens at midnight.</p>`;
+    h += `</div>`;
     if (!owner && st.spins.length) {
-      h += `<h2>Today</h2><div class="list">${st.spins.slice().reverse().map(s => { const g = ARC_NAME[s.g]; const r = s.res === 'win' ? `<b style="color:#2F9E44">Won ${ARC_PRIZE}</b>` : s.res ? '<span class="soft">Lost</span>' : now - s.t > ARC_WINDOW ? '<span class="soft">Timed out</span>' : '<b>Ready to play</b>'; return `<div class="ev"><span class="arc-em" aria-hidden="true">${g[2]}</span><div class="main"><div class="t">${g[1]}</div></div><span class="small">${r}</span></div>`; }).join('')}</div>`;
+      h += `<h2>Today</h2><div class="list">${st.spins.slice().reverse().map(x => { const g = ARC_NAME[x.g]; const r = x.res === 'win' ? `<span class="status done">Won ${ARC_PRIZE}</span>` : x.res ? '<span class="status">Lost</span>' : now - x.t > ARC_WINDOW ? '<span class="status">Timed out</span>' : '<span class="status">Ready</span>'; return `<div class="ev"><span class="arc-gi">${arcIcon(x.g)}</span><div class="main"><div class="t"><b>${g[1]}</b></div></div>${r}</div>`; }).join('')}</div>`;
     }
-    h += `<h2>All games</h2><p class="small soft">Tap any game to practice. Practice never wins coins.</p><div class="arc-grid">${ARC.map(([id, name, em]) => { const done = !owner && st.spins.find(s => s.g === id); return `<button type="button" class="arc-tile${done ? ' done' : ''}" data-act="arc-practice" data-g="${id}"><span class="arc-em" aria-hidden="true">${em}</span><span>${name}</span>${done ? `<span class="small soft">${done.res === 'win' ? 'Won today' : 'Played today'}</span>` : ''}</button>`; }).join('')}</div>`;
+    h += `<h2>All games</h2><p class="small soft">Tap any game to practice. Practice never wins coins.</p><div class="arc-grid">${ARC.map(([id, name]) => { const done = !owner && st.spins.find(x => x.g === id); return `<button type="button" class="arc-tile${done ? ' done' : ''}" data-act="arc-practice" data-g="${id}"><span class="arc-gi">${arcIcon(id)}</span><span>${name}</span>${done ? `<span class="small soft">${done.res === 'win' ? 'Won today' : 'Played today'}</span>` : ''}</button>`; }).join('')}</div>`;
     return h;
   }
   function arcRoot() {
@@ -2038,13 +2219,13 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     const N = 50, WIN = 42, CW = 124;
     const strip = Array.from({ length: N }, (_, i) => (i === WIN ? g : pool[Math.floor(Math.random() * pool.length)]));
     const root = arcOpen();
-    root.innerHTML = `<div class="crate"><h2 id="crate-h">Opening a crate…</h2><div class="crate-win"><div class="crate-strip">${strip.map(id => `<div class="crate-card"><span aria-hidden="true">${ARC_NAME[id][2]}</span><b>${ARC_NAME[id][1]}</b></div>`).join('')}</div><i class="crate-mark" aria-hidden="true"></i></div><div id="crate-out" aria-live="polite"></div></div>`;
+    root.innerHTML = `<div class="crate"><h2 id="crate-h">Opening a crate…</h2><div class="crate-win"><div class="crate-strip">${strip.map(id => `<div class="crate-card">${arcIcon(id)}<b>${ARC_NAME[id][1]}</b></div>`).join('')}</div><i class="crate-mark" aria-hidden="true"></i></div><div id="crate-out" aria-live="polite"></div></div>`;
     const win = root.querySelector('.crate-win'), s = root.querySelector('.crate-strip');
     const target = WIN * CW + 58 - win.clientWidth / 2 + (Math.random() * 64 - 32);
     const done = () => {
       s.children[WIN].classList.add('won');
       $('#crate-h').textContent = 'You got…';
-      $('#crate-out').innerHTML = `<div class="crate-result"><span class="arc-em" aria-hidden="true">${ARC_NAME[g][2]}</span><b>${ARC_NAME[g][1]}</b></div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-play">Play now</button><button type="button" class="btn btn-ghost btn-block mt" data-act="arc-close">Later (you have 30 minutes)</button>`;
+      $('#crate-out').innerHTML = `<div class="crate-result"><span class="arc-gi">${arcIcon(g)}</span><b>${ARC_NAME[g][1]}</b></div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-play">Play now</button><button type="button" class="btn btn-ghost btn-block mt" data-act="arc-close">Later (you have 30 minutes)</button>`;
     };
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { s.style.transform = `translateX(${-target}px)`; done(); return; }
     s.addEventListener('transitionend', done, { once: true });
@@ -2063,7 +2244,9 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     const run = ui.arcRun;
     run.ctl = mod.play($('#arc-game'), id, {
       onHeart: left => { if (hk) { try { localStorage.setItem(hk, String(left)); } catch (e) { /* storage off */ } } },
-      end: res => arcEnd(run, res)
+      end: res => arcEnd(run, res),
+      icon: `<span class="arc-gi" style="width:30px;height:30px;border-radius:9px">${arcIcon(id)}</span>`,
+      iconBig: `<span class="arc-gi" style="width:72px;height:72px;border-radius:20px;margin:0 auto">${arcIcon(id)}</span>`
     }, sp ? arcHearts(sp.key) : ARC_HEARTS);
   }
   function arcEnd(run, res) {
@@ -2071,16 +2254,16 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     const box = $('#arc-game');
     if (run.practice) {
       if (res === 'quit' || !box) return;
-      box.innerHTML = `<div class="arc-result"><div class="ag-big">${res === 'win' ? '🎉' : '💔'}</div><h2>${res === 'win' ? 'You beat it!' : 'Out of hearts'}</h2><p class="soft">That was practice, so no coins this time.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-practice" data-g="${run.g}">Try again</button><button type="button" class="btn btn-ghost btn-block mt" data-act="arc-close">Done</button></div>`;
+      box.innerHTML = `<div class="arc-result"><h2>${res === 'win' ? 'You beat it!' : 'Out of hearts'}</h2><p class="soft">That was practice, so no coins this time.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-practice" data-g="${run.g}">Try again</button><button type="button" class="btn btn-ghost btn-block mt" data-act="arc-close">Done</button></div>`;
       return;
     }
     const e = newEntry('arc', { op: res === 'win' ? 'win' : 'lose', s: run.key });
     try { localStorage.removeItem('arc-h-' + run.key); } catch (err) { /* storage off */ }
     if (!box) return;
     if (res === 'win') {
-      box.innerHTML = `<div class="arc-result"><div class="ag-big">🎉</div><h2>You won ${ARC_PRIZE} ScobbBucks!</h2><div class="chips" id="arc-coins" style="justify-content:center"></div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-close">Back to the arcade</button></div>`;
+      box.innerHTML = `<div class="arc-result"><h2>You won ${ARC_PRIZE} ScobbBucks!</h2><div class="chips" id="arc-coins" style="justify-content:center"></div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-close">Back to the arcade</button></div>`;
       setTimeout(() => { const ev = L.events.find(x => x.key === uid + ':' + e.i); const el = $('#arc-coins'); if (el) el.innerHTML = ev ? coinChips(ev.c) : '<span class="small soft">The vault was empty, so no coins came out.</span>'; }, 400);
-    } else box.innerHTML = `<div class="arc-result"><div class="ag-big">💔</div><h2>${res === 'quit' ? 'You gave up' : 'Out of hearts'}</h2><p class="soft">${ARC_NAME[run.g][1]} is done for today. Open another crate to try a different game.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-close">Back to the arcade</button></div>`;
+    } else box.innerHTML = `<div class="arc-result"><h2>${res === 'quit' ? 'You gave up' : 'Out of hearts'}</h2><p class="soft">${ARC_NAME[run.g][1]} is done for today. Open another crate to try a different game.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-close">Back to the arcade</button></div>`;
   }
   function pressWait(ms) { const m = Math.ceil(ms / 60000); return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`; }
   function openSwap() {
@@ -2489,6 +2672,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
       if (!window.confirm('Giving up counts as a loss, and this game will be gone until the reset. Give up?')) return;
       run.ctl.quit();
     },
+    'press-open': () => openPress(),
     'press-start': () => { if (!guardWrite()) return; newEntry('press', { op: 'start' }); toast('Your coin press is running'); },
     'press-claim': () => {
       if (!guardWrite()) return;

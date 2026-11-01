@@ -498,7 +498,7 @@ export const IDS = Object.keys(GAMES);
 export function play(root, id, cb, startHearts) {
   const G = GAMES[id];
   let hearts = startHearts == null ? HEARTS : Math.min(HEARTS, startHearts), done = false, cleanup = null;
-  root.innerHTML = `<div class="ag-top"><b class="ag-name">${G.emoji} ${G.name}</b><span class="ag-hearts" aria-live="polite"></span><span class="ag-status"></span></div><div class="ag-stage"></div>`;
+  root.innerHTML = `<div class="ag-top"><b class="ag-name">${cb.icon || G.emoji} ${G.name}</b><span class="ag-hearts" aria-live="polite"></span><span class="ag-status"></span></div><div class="ag-stage"></div>`;
   const stage = root.querySelector('.ag-stage'), hEl = root.querySelector('.ag-hearts'), sEl = root.querySelector('.ag-status');
   const drawHearts = () => { hEl.innerHTML = Array.from({ length: HEARTS }, (_, i) => i).map(i => `<span class="${i < hearts ? 'on' : 'off'}">♥</span>`).join(''); hEl.setAttribute('aria-label', `${hearts} hearts left`); };
   drawHearts();
@@ -516,19 +516,19 @@ export function play(root, id, cb, startHearts) {
     status(t) { sEl.textContent = t; }
   };
   if (hearts <= 0) { end('lose'); return { quit() {} }; }
-  stage.innerHTML = `<div class="ag-intro"><div class="ag-big">${G.emoji}</div><p>${G.how}</p><button type="button" class="btn btn-grape" id="ag-go">Start</button></div>`;
+  stage.innerHTML = `<div class="ag-intro"><div class="ag-big">${cb.iconBig || G.emoji}</div><p>${G.how}</p><button type="button" class="btn btn-grape" id="ag-go">Start</button></div>`;
   stage.querySelector('#ag-go').onclick = () => { stage.innerHTML = ''; cleanup = G.start(stage, api) || null; };
   return { quit() { end('quit'); } };
 }
 
 export const CSS = `
 .ag-top { display: flex; align-items: center; gap: 10px; padding: 4px 0 10px; }
-.ag-name { font-size: 18px; flex: 1; min-width: 0; }
+.ag-name { font-size: 18px; font-weight: 700; flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; }
 .ag-hearts { font-size: 24px; letter-spacing: 2px; }
-.ag-hearts .on { color: #E9453C; }
+.ag-hearts .on { color: #E0457F; }
 .ag-hearts .off { color: var(--line); }
 .ag-status { font-weight: 800; min-width: 54px; text-align: right; }
-.ag-stage { container-type: size; position: relative; width: 100%; height: min(62vh, 520px); border-radius: 22px; background: var(--card); border: 2px solid var(--line); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+.ag-stage { container-type: size; position: relative; width: 100%; height: min(62vh, 520px); border-radius: 22px; background: var(--card); border: 1px solid var(--line); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 .ag-stage canvas { display: block; }
 .ag-hurt { animation: ag-hurt .35s ease; }
 @keyframes ag-hurt { 0%, 100% { transform: none; } 25% { transform: translateX(-8px); box-shadow: 0 0 0 4px #E9453C inset; } 75% { transform: translateX(8px); } }
@@ -536,13 +536,13 @@ export const CSS = `
 .ag-intro p { font-size: 17px; line-height: 1.4; max-width: 420px; margin: 0 auto; }
 .ag-big { font-size: 64px; line-height: 1; }
 .ag-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; }
-.ag-q { font-size: 40px; font-weight: 800; text-align: center; }
+.ag-q { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; text-align: center; }
 .ag-word { font-size: 52px; letter-spacing: 2px; }
 .ag-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: min(100%, 360px); }
 .ag-opts .btn { width: 100%; font-size: 20px; }
 .ag-timer { width: min(100%, 360px); height: 10px; border-radius: 6px; background: var(--line); overflow: hidden; }
 .ag-timer i { display: block; height: 100%; width: 100%; background: var(--grape); }
-.ag-input { width: min(100%, 360px); font-size: 24px; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); text-align: center; }
+.ag-input { width: min(100%, 360px); font-size: 24px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); text-align: center; }
 .ag-wrong { animation: ag-hurt .3s ease; background: #E9453C !important; color: #fff !important; }
 .ag-target { position: absolute; width: 50px; height: 50px; border-radius: 50%; border: 0; background: radial-gradient(circle at 35% 30%, #FFF1A8, #F2C14E 60%, #B8860B); color: #7A5200; font-weight: 800; font-size: 24px; box-shadow: 0 4px 0 #9A6B00; animation: ag-pop .18s ease-out; }
 @keyframes ag-pop { from { transform: scale(.3); } to { transform: scale(1); } }
