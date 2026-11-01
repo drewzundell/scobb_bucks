@@ -2475,9 +2475,83 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   const casName = u => (u.startsWith('cpu') ? `CPU ${u.slice(3)}` : nameOf(u));
   const coinsAmt = (r, n) => `${fmtInt(n)} ${RN[r]}`;
   let casTimer = 0;
+  // Practice mode (for the bank): same games and odds, played locally with practice chips. Nothing touches the ledger.
+  const casPrac = { spins: {}, tables: {} };
+  const rndEnt = () => { const a = new Uint32Array(4); crypto.getRandomValues(a); return Array.from(a).join('.'); };
+  const casSpinOf = k => (k ? casPrac.spins[k] || (L && L.cas.spins[k]) : null);
+  const casTableOf = id => (id ? casPrac.tables[id] || (L && L.cas.tables[id]) : null);
+  const casAmt = (r, n, prac) => (prac ? `${fmtInt(n)} practice ${n === 1 ? 'chip' : 'chips'}` : coinsAmt(r, n));
+  function pBjDealer(T) {
+    const ent = rndEnt();
+    T.dealer.push(cardOf(ent, 'hole'));
+    for (let k = 0; bjVal(T.dealer) < 17; k++) T.dealer.push(cardOf(ent, 'dd' + k));
+    const dv = bjVal(T.dealer), dBJ = bjNatural(T.dealer);
+    for (const s of T.seats) {
+      const pv = bjVal(s.cards), pBJ = bjNatural(s.cards) && !s.dbl, b = s.cpu ? 1 : s.bet;
+      let ret;
+      if (pv > 21) ret = 0; else if (dBJ) ret = pBJ ? b : (s.dbl ? T.n : 0); else if (pBJ) ret = Math.floor(b * 2.5); else if (dv > 21 || pv > dv) ret = 2 * b; else if (pv === dv) ret = b; else ret = 0;
+      s.out = ret > b ? 'win' : ret === b ? 'push' : 'lose';
+      if (!s.cpu) s.ret = ret;
+    }
+    T.phase = 'done';
+  }
+  function pStart(T) {
+    const ent = rndEnt();
+    if (T.g === 'blackjack') {
+      T.seats.push({ u: 'cpu1', cpu: true, bet: 0, cards: [], done: false }, { u: 'cpu2', cpu: true, bet: 0, cards: [], done: false });
+      T.seats.forEach((s, i) => { s.cards = [cardOf(ent, 'c' + i + 'a'), cardOf(ent, 'c' + i + 'b')]; if (!s.cpu && bjNatural(s.cards)) s.done = true; });
+      T.dealer = [cardOf(ent, 'up')];
+      T.seats.forEach((s, i) => { if (!s.cpu) return; for (let k = 0; bjVal(s.cards) < 17; k++) s.cards.push(cardOf(ent, 'cpu' + i + '_' + k)); s.done = true; });
+      T.phase = 'play';
+      if (T.seats.every(s => s.cpu || s.done)) pBjDealer(T);
+      return;
+    }
+    for (let i = 1; i <= 3; i++) T.seats.push({ u: 'cpu' + i, cpu: true, in: T.n, hole: [], fold: false, acted: false });
+    const deck = shuffled(DECK, ent, 'deck');
+    T.seats.forEach((s, i) => { s.hole = [deck[2 * i], deck[2 * i + 1]]; });
+    T.rest = deck.slice(2 * T.seats.length);
+    T.phase = 'pre';
+  }
+  function pPkFinish(T) {
+    const pot = T.seats.reduce((x, s) => x + s.in, 0), rake = Math.floor(pot * CAS_RAKE), live = T.seats.filter(s => !s.fold);
+    let winners = live;
+    if (live.length > 1) { live.forEach(s => { s.score = best7(s.hole.concat(T.board)); }); const top = Math.max(...live.map(s => s.score)); winners = live.filter(s => s.score === top); }
+    const share = winners.length ? Math.floor((pot - rake) / winners.length) : 0;
+    T.seats.forEach(s => { s.ret = winners.includes(s) ? share : 0; });
+    T.winners = winners.map(s => s.u); T.pot = pot; T.rake = rake; T.phase = 'done';
+  }
+  function pPkStreet(T) {
+    const ent = rndEnt();
+    T.seats.forEach((s, i) => { if (s.cpu && !s.fold) { if (cpuCalls(s.hole, T.board, ent, 'cpu' + i + T.phase)) s.in += T.n; else s.fold = true; } });
+    T.seats.forEach(s => { s.acted = false; });
+    if (T.seats.filter(s => !s.fold).length <= 1) return pPkFinish(T);
+    const d = shuffled(T.rest, ent, T.phase);
+    if (T.phase === 'pre') { T.board = d.slice(0, 3); T.rest = d.slice(3); T.phase = 'flop'; return; }
+    T.board = T.board.concat(d.slice(0, 2)); T.rest = d.slice(2);
+    pPkFinish(T);
+  }
+  function pAct(T, op) {
+    const S = T.seats.find(x => x.u === uid);
+    if (!S || T.phase === 'done') return;
+    if (T.g === 'blackjack') {
+      if (S.done) return;
+      if (op === 'hit') { S.cards.push(cardOf(rndEnt(), 'h')); if (bjVal(S.cards) >= 21) S.done = true; }
+      else if (op === 'stand') S.done = true;
+      else if (op === 'double' && S.cards.length === 2) { S.bet += T.n; S.dbl = true; S.cards.push(cardOf(rndEnt(), 'dbl')); S.done = true; }
+      if (T.seats.every(x => x.cpu || x.done)) pBjDealer(T);
+      return;
+    }
+    if (S.fold || S.acted) return;
+    if (op === 'call') { S.in += T.n; S.acted = true; } else { S.fold = true; S.acted = true; }
+    pPkStreet(T);
+  }
   function casMyTable() { if (!L || !L.cas) return null; let best = null; for (const id in L.cas.tables) { const T = L.cas.tables[id]; if (T.seats.some(s => s.u === uid) && (T.phase !== 'done' || (ui.cas && ui.cas.tb === id))) if (!best || T.t0 > best.t0) best = T; } return best; }
   function casPending() { for (const [, e] of pendingEntries) if (e.k === 'cas') return true; for (const k in entriesSnap) { const e = entriesSnap[k]; if (e.a === uid && e.k === 'cas' && !e.sn) return true; } return false; }
   function casBetPicker(maxRet) {
+    if (ui.cas && ui.cas.practice) {
+      ui.casN = Math.max(1, Math.min(ui.casN || 1, CAS_MAXBET));
+      return `<div class="cas-bet"><p class="small soft">Practice mode. You play with free practice chips, so nothing is won or lost.</p><div class="cas-amt"><span class="small soft">Bet</span><button type="button" class="sb" data-act="cas-n" data-d="-1" aria-label="Bet less">−</button><b class="sv" style="display:grid;place-items:center">${ui.casN}</b><button type="button" class="sb" data-act="cas-n" data-d="1" data-max="${CAS_MAXBET}" aria-label="Bet more">+</button><button type="button" class="qchip" data-act="cas-n" data-d="max" data-max="${CAS_MAXBET}">Max</button><span class="small soft">chips</span></div></div>`;
+    }
     const av = availOf(uid);
     const owned = RN.map((_, r) => r).filter(r => av[r] > 0);
     if (!owned.length) return `<p class="small soft">You need ScobbBucks to play. Ask the bank or win some in the arcade.</p>`;
@@ -2491,13 +2565,13 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   }
   function casinoRow() {
     const T = casMyTable();
-    const sub = uid === L.issuer ? 'You’re the house. Watch the tables' : T && T.phase !== 'done' ? `You’re at a ${CAS_GAMES[T.g].name} table` : 'Slots, roulette, blackjack and more';
+    const sub = uid === L.issuer ? 'You’re the house. Practice any game for free' : T && T.phase !== 'done' ? `You’re at a ${CAS_GAMES[T.g].name} table` : 'Slots, roulette, blackjack and more';
     return `<button type="button" class="lrow" data-act="tab" data-tab="casino"><span class="sq">${icon('dice')}</span><span class="lt"><b>Scobbsino</b><span>${sub}</span></span><span class="chipbtn${T && T.phase !== 'done' ? ' go' : ''}">${T && T.phase !== 'done' ? 'Return' : 'Enter'}</span></button>`;
   }
   function casinoTab() {
     const owner = uid === L.issuer, now = Date.now();
     let h = `<header class="top" style="justify-content:flex-start"><button type="button" class="icon-btn" data-act="tab" data-tab="wallet" aria-label="Back to wallet">${icon('back')}</button><h1>Scobbsino</h1></header>`;
-    h += `<div class="arc-panel"><p>${owner ? 'You’re the house. The vault covers every bet and takes the house edge, so you can watch but not play.' : 'Real ScobbBucks, real risk. Every game has a house edge like a real casino, so over time the vault comes out ahead. Only bet what you’re fine losing.'}</p></div>`;
+    h += `<div class="arc-panel"><p>${owner ? 'You’re the house. The vault covers every bet and takes the house edge. You can play any game in practice mode with free chips to test it out.' : 'Real ScobbBucks, real risk. Every game has a house edge like a real casino, so over time the vault comes out ahead. Only bet what you’re fine losing.'}</p></div>`;
     const mine = casMyTable();
     if (mine && mine.phase !== 'done') h += `<button type="button" class="banner gift" data-act="cas-table" data-tb="${esc(mine.id)}">${icon('dice')}<span class="bt">You’re at a ${CAS_GAMES[mine.g].name} table for ${coinsAmt(mine.r, mine.n)}</span><span class="pill">Return</span></button>`;
     const open = Object.values(L.cas.tables).filter(T => T.phase === 'lobby' && now < T.deadline && !T.seats.some(s => s.u === uid) && T.seats.length < CAS_GAMES[T.g].seats).sort((a, b) => b.t0 - a.t0);
@@ -2509,7 +2583,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     h += `<h2>Games</h2><div class="lpanel" style="margin-top:0">`;
     for (const g of ['slots', 'roulette', 'plinko', 'blackjack', 'poker']) {
       const G = CAS_GAMES[g];
-      h += `<button type="button" class="lrow" data-act="cas-open" data-g="${g}"><span class="sq">${icon(G.solo ? 'dice' : 'cards')}</span><span class="lt"><b>${G.name}</b><span>${G.blurb}${G.solo ? '' : ` Up to ${G.seats} players. CPUs fill empty seats.`}</span></span><span class="chipbtn">Play</span></button>`;
+      h += `<button type="button" class="lrow" data-act="cas-open" data-g="${g}"><span class="sq">${icon(G.solo ? 'dice' : 'cards')}</span><span class="lt"><b>${G.name}</b><span>${G.blurb}${G.solo ? '' : ` Up to ${G.seats} players. CPUs fill empty seats.`}</span></span><span class="chipbtn">${owner ? 'Practice' : 'Play'}</span></button>`;
     }
     h += `</div>`;
     const mineEv = L.events.filter(ev => ev.k === 'cas' && ev.a === uid).sort((a, b) => b.t - a.t).slice(0, 8);
@@ -2542,12 +2616,12 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     if (!ui.cas || !L) return;
     const C = ui.cas, now = Date.now();
     $$('#cas-root [data-cd]').forEach(el => { el.textContent = secsLeft(Number(el.dataset.cd) - now); });
-    if (C.view === 'table') {
+    if (C.view === 'table' && !C.practice) {
       const T = L.cas.tables[C.tb];
       if (T && T.phase !== 'done' && now > T.deadline + 400 && C.ticked !== T.id + ':' + T.deadline && !casPending()) { C.ticked = T.id + ':' + T.deadline; newEntry('cas', { op: 'tick', tb: T.id }); }
     }
     if (C.wait) {
-      const res = L.cas.spins[C.wait], badWhy = L.bad[C.wait];
+      const res = casSpinOf(C.wait), badWhy = L.bad[C.wait];
       if ((res && now - C.t0 > 900) || badWhy) { const key = C.wait; C.wait = null; casLand(key, res, badWhy); }
     }
     drawCas(false);
@@ -2568,7 +2642,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   function casSig() {
     const C = ui.cas;
     if (!C) return '';
-    if (C.view === 'table') { const T = L.cas.tables[C.tb]; return T ? JSON.stringify([T.phase, T.seats, T.dealer, T.board, T.deadline]) + casPending() : 'none'; }
+    if (C.view === 'table') { const T = casTableOf(C.tb); return T ? JSON.stringify([T.phase, T.seats, T.dealer, T.board, T.deadline]) + casPending() : 'none'; }
     return [C.view, C.wait || '', C.landed || '', ui.casR, ui.casN, C.x || '', JSON.stringify(availOf(uid))].join('|');
   }
   function drawCas(force) {
@@ -2579,21 +2653,21 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     if (!force && sig === C.sig) return;
     C.sig = sig;
     const r = casRoot();
-    const back = `<div class="arc-bar"><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="cas-close">${C.view === 'table' ? 'Leave' : 'Back'}</button><b style="font-size:18px">${C.view === 'table' ? (L.cas.tables[C.tb] ? CAS_GAMES[L.cas.tables[C.tb].g].name : 'Table') : C.view === 'setup' ? CAS_GAMES[C.g].name : CAS_GAMES[C.view].name}</b></div>`;
+    const back = `<div class="arc-bar"><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="cas-close">${C.view === 'table' ? 'Leave' : 'Back'}</button><b style="font-size:18px">${C.view === 'table' ? (casTableOf(C.tb) ? CAS_GAMES[casTableOf(C.tb).g].name : 'Table') : C.view === 'setup' ? CAS_GAMES[C.g].name : CAS_GAMES[C.view].name}${C.practice ? ' <span class="status">Practice</span>' : ''}</b></div>`;
     r.innerHTML = back + (C.view === 'slots' ? slotsView() : C.view === 'roulette' ? rouletteView() : C.view === 'plinko' ? plinkoView() : C.view === 'setup' ? setupView() : tableView());
   }
-  const lastSpin = g => { const k = ui.cas && ui.cas.landed; const s = k && L.cas.spins[k]; return s && s.g === g ? s : null; };
+  const lastSpin = g => { const k = ui.cas && ui.cas.landed; const s = casSpinOf(k); return s && s.g === g ? s : null; };
   function spinResultLine(s) {
     if (!s) return '';
     const d = s.ret - s.n;
-    return `<p class="cas-out ${d > 0 ? 'won' : ''}">${d > 0 ? `You won ${coinsAmt(s.r, s.ret)}!` : d === 0 ? 'You got your bet back.' : `You lost ${coinsAmt(s.r, s.n)}.`}</p>`;
+    return `<p class="cas-out ${d > 0 ? 'won' : ''}">${d > 0 ? `You won ${casAmt(s.r, s.ret, s.prac)}!` : d === 0 ? 'You got your bet back.' : `You lost ${casAmt(s.r, s.n, s.prac)}.`}</p>`;
   }
   function slotsView() {
     const s = lastSpin('slots'), C = ui.cas, spinning = !!C.wait || !!C.anim;
     const reels = s && !spinning ? s.res : (C.reels || [5, 5, 5]);
     let h = `<div class="slots"><div class="reels">${reels.map((k, i) => `<div class="reel" id="reel${i}">${slotSym(k, 64)}</div>`).join('')}</div>${spinResultLine(!spinning && s)}</div>`;
     h += `<div class="paytable">${[5, 4, 3, 2, 1, 0].map(k => `<span>${slotSym(k, 18)}${slotSym(k, 18)}${slotSym(k, 18)} <b>${SLOT_P3[k]}×</b></span>`).join('')}<span>${slotSym(0, 18)}${slotSym(0, 18)} any <b>2×</b></span></div>`;
-    h += casBetPicker(SLOT_P3[5]) + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-spin" data-g="slots"${spinning || casPending() ? ' disabled' : ''}>${spinning ? 'Spinning…' : `Spin for ${coinsAmt(ui.casR || 0, ui.casN || 1)}`}</button>`;
+    h += casBetPicker(SLOT_P3[5]) + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-spin" data-g="slots"${spinning || casPending() ? ' disabled' : ''}>${spinning ? 'Spinning…' : `Spin for ${casAmt(ui.casR || 0, ui.casN || 1, ui.cas.practice)}`}</button>`;
     return h;
   }
   function rouletteView() {
@@ -2605,7 +2679,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     if (s && !spinning) h += `<p class="cas-res">The ball landed on <b class="rl-n ${col(s.res)}" style="display:inline-grid">${s.res}</b></p>` + spinResultLine(s);
     h += `<h3>Your bet</h3><div class="seg" style="display:flex;flex-wrap:wrap;gap:6px">${Object.keys(RL_LABEL).map(k => `<button type="button" class="qchip${C.x === k ? ' on' : ''}" data-act="cas-x" data-x="${k}" aria-pressed="${C.x === k}">${RL_LABEL[k]} <span class="soft">${RL_RET[k] - 1}:1</span></button>`).join('')}<button type="button" class="qchip${C.x[0] === 'n' ? ' on' : ''}" data-act="cas-x" data-x="n${num}" aria-pressed="${C.x[0] === 'n'}">Number <span class="soft">35:1</span></button></div>`;
     if (C.x[0] === 'n') h += `<div class="cas-amt" style="margin-top:10px"><span class="small soft">Number</span><button type="button" class="sb" data-act="cas-num" data-d="-1" aria-label="Lower number">−</button><b class="sv" style="display:grid;place-items:center">${num}</b><button type="button" class="sb" data-act="cas-num" data-d="1" aria-label="Higher number">+</button></div>`;
-    h += casBetPicker(rlRet(C.x)) + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-spin" data-g="roulette"${spinning || casPending() ? ' disabled' : ''}>${spinning ? 'Spinning…' : `Spin for ${coinsAmt(ui.casR || 0, ui.casN || 1)}`}</button>`;
+    h += casBetPicker(rlRet(C.x)) + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-spin" data-g="roulette"${spinning || casPending() ? ' disabled' : ''}>${spinning ? 'Spinning…' : `Spin for ${casAmt(ui.casR || 0, ui.casN || 1, C.practice)}`}</button>`;
     return h;
   }
   function plinkoView() {
@@ -2616,7 +2690,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const slots = PLINKO_M.map((m, k) => `<g transform="translate(${W / 2 + (k - 6) * 24 - 11} ${top + 12 * rowH})"><rect width="22" height="22" rx="5" fill="${m >= 3 ? '#E0457F' : m >= 1.1 ? '#E39424' : m >= 0.8 ? '#8F96A3' : '#5C6370'}"/><text x="11" y="15" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" font-family="'Source Sans 3',sans-serif">${m}</text></g>`).join('');
     let h = `<div class="plinko"><svg viewBox="0 0 ${W} ${top + 12 * rowH + 30}" role="img" aria-label="Plinko board">${pegs}${slots}<circle id="pk-ball" cx="${s && !spinning ? W / 2 + (s.res.reduce((x, y) => x + y, 0) - 6) * 24 : W / 2}" cy="${s && !spinning ? top + 12 * rowH - 8 : 8}" r="7" fill="var(--grape)" style="transition:cx .11s linear, cy .11s linear"/></svg></div>`;
     if (s && !spinning) h += spinResultLine(s);
-    h += casBetPicker(PLINKO_M[0]) + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-spin" data-g="plinko"${spinning || casPending() ? ' disabled' : ''}>${spinning ? 'Dropping…' : `Drop for ${coinsAmt(ui.casR || 0, ui.casN || 1)}`}</button>`;
+    h += casBetPicker(PLINKO_M[0]) + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-spin" data-g="plinko"${spinning || casPending() ? ' disabled' : ''}>${spinning ? 'Dropping…' : `Drop for ${casAmt(ui.casR || 0, ui.casN || 1, C.practice)}`}</button>`;
     return h;
   }
   function casLand(key, res, badWhy) {
@@ -2656,6 +2730,20 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     }
   }
   function casSpin(g) {
+    if (ui.cas && ui.cas.practice) {
+      const C = ui.cas, n = ui.casN || 1, ent = rndEnt(), key = 'practice:' + ent;
+      if (C.wait) return;
+      let res, ret;
+      if (g === 'slots') { res = slotSpin(ent); ret = n * slotRet(res); }
+      else if (g === 'plinko') { res = plinkoPath(ent); ret = Math.floor(n * PLINKO_M[res.reduce((x, y) => x + y, 0)]); }
+      else { res = hx(ent, 'rl') % 37; ret = rlWins(C.x || 'red', res) ? n * rlRet(C.x || 'red') : 0; }
+      casPrac.spins[key] = { g, a: uid, r: 0, n, ret, res, x: C.x, prac: true };
+      C.wait = key; C.t0 = Date.now(); C.landed = null;
+      if (g === 'slots') { C.reelT = setInterval(() => { [0, 1, 2].forEach(i => { const el = $('#reel' + i); if (el) el.innerHTML = slotSym(Math.floor(Math.random() * 6), 64); }); }, 90); }
+      if (g === 'plinko') { const b = $('#pk-ball'); if (b) { b.setAttribute('cx', 170); b.setAttribute('cy', 8); } }
+      drawCas(true);
+      return;
+    }
     if (!guardWrite() || uid === L.issuer || !ui.cas || ui.cas.wait || casPending()) return;
     const r = ui.casR, n = ui.casN || 1, C = ui.cas;
     if (availOf(uid)[r] < n) return toast(`You only have ${fmtInt(availOf(uid)[r])} ${RN[r]}.`);
@@ -2668,10 +2756,10 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     drawCas(true);
   }
   function tableView() {
-    const C = ui.cas, T = L.cas.tables[C.tb], now = Date.now();
+    const C = ui.cas, T = casTableOf(C.tb), now = Date.now();
     if (!T) return `<p class="soft mt">Setting up the table…</p>`;
-    const me = T.seats.find(s => s.u === uid), G = CAS_GAMES[T.g];
-    let h = `<div class="tbl-head"><span>${coinsAmt(T.r, T.n)} ${T.g === 'poker' ? 'ante and calls' : 'bet'}</span>${T.phase === 'lobby' ? `<span>Starts in <b data-cd="${T.deadline}">${secsLeft(T.deadline - now)}</b></span>` : T.phase !== 'done' ? `<span>${now > T.deadline ? 'Waiting for the table…' : `Time left <b data-cd="${T.deadline}">${secsLeft(T.deadline - now)}</b>`}</span>` : '<span>Round over</span>'}</div>`;
+    const me = T.seats.find(s => s.u === uid), G = CAS_GAMES[T.g], P = !!T.prac;
+    let h = `<div class="tbl-head"><span>${casAmt(T.r, T.n, P)} ${T.g === 'poker' ? 'ante and calls' : 'bet'}</span>${P ? `<span>${T.phase === 'done' ? 'Round over' : 'Practice against CPUs'}</span>` : T.phase === 'lobby' ? `<span>Starts in <b data-cd="${T.deadline}">${secsLeft(T.deadline - now)}</b></span>` : T.phase !== 'done' ? `<span>${now > T.deadline ? 'Waiting for the table…' : `Time left <b data-cd="${T.deadline}">${secsLeft(T.deadline - now)}</b>`}</span>` : '<span>Round over</span>'}</div>`;
     if (T.phase === 'lobby') {
       h += `<div class="lpanel">${T.seats.map(s => `<div class="lrow">${headBubble(s.u, 34)}<span class="lt"><b>${esc(nameOf(s.u))}${s.u === uid ? ' (you)' : ''}</b><span>Seated</span></span></div>`).join('')}${Array.from({ length: G.seats - T.seats.length }, () => `<div class="lrow"><span class="sq">${icon('plus')}</span><span class="lt"><b class="soft">Open seat</b><span>CPUs fill empty seats if nobody joins</span></span></div>`).join('')}</div><p class="small soft mt">Friends can join from the Scobbsino screen. The game starts when the timer hits zero.</p>`;
       return h;
@@ -2685,7 +2773,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         h += `<div class="seat${mine ? ' me' : ''}"><span class="small">${esc(casName(s.u))}${mine ? ' (you)' : ''} · ${v}</span><div class="hand">${s.cards.map(c => pcard(c)).join('')}</div><span class="tag-s ${T.phase === 'done' ? s.out : ''}">${st}</span></div>`;
       }
       h += `</div></div>`;
-      if (me && T.phase === 'play' && !me.done) h += `<div class="acts" style="grid-template-columns:1fr 1fr 1fr"><button type="button" class="btn btn-grape" data-act="cas-act" data-op="hit"${casPending() ? ' disabled' : ''}>Hit</button><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="stand"${casPending() ? ' disabled' : ''}>Stand</button><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="double"${me.cards.length !== 2 || availOf(uid)[T.r] < T.n || casPending() ? ' disabled' : ''}>Double</button></div><p class="small soft mt">If you don’t move in time, you stand.</p>`;
+      if (me && T.phase === 'play' && !me.done) h += `<div class="acts" style="grid-template-columns:1fr 1fr 1fr"><button type="button" class="btn btn-grape" data-act="cas-act" data-op="hit"${casPending() ? ' disabled' : ''}>Hit</button><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="stand"${casPending() ? ' disabled' : ''}>Stand</button><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="double"${me.cards.length !== 2 || (!P && availOf(uid)[T.r] < T.n) || casPending() ? ' disabled' : ''}>Double</button></div>${P ? '' : '<p class="small soft mt">If you don’t move in time, you stand.</p>'}`;
     } else {
       const done = T.phase === 'done';
       const pot = T.seats.reduce((x, s) => x + s.in, 0);
@@ -2698,21 +2786,22 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       }
       h += `</div></div>`;
       if (done && T.board.length < 5 && T.seats.filter(x => !x.fold).length === 1) h += `<p class="small soft mt" style="text-align:center">Everyone else folded, so ${esc(casName(T.seats.find(x => !x.fold).u))} took the pot without a showdown.</p>`;
-      if (me && (T.phase === 'pre' || T.phase === 'flop') && !me.fold && !me.acted) h += `<div class="row2"><button type="button" class="btn btn-grape" data-act="cas-act" data-op="call"${availOf(uid)[T.r] < T.n || casPending() ? ' disabled' : ''}>Call ${coinsAmt(T.r, T.n)}</button><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="fold"${casPending() ? ' disabled' : ''}>Fold</button></div><p class="small soft mt">${T.phase === 'pre' ? 'Calling puts in another bet and shows you the flop.' : 'Calling puts in one more bet and deals the turn and river.'} If you don’t move in time, you fold.</p>`;
+      if (me && (T.phase === 'pre' || T.phase === 'flop') && !me.fold && !me.acted) h += `<div class="row2"><button type="button" class="btn btn-grape" data-act="cas-act" data-op="call"${(!P && availOf(uid)[T.r] < T.n) || casPending() ? ' disabled' : ''}>Call ${casAmt(T.r, T.n, P)}</button><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="fold"${casPending() ? ' disabled' : ''}>Fold</button></div><p class="small soft mt">${T.phase === 'pre' ? 'Calling puts in another bet and shows you the flop.' : 'Calling puts in one more bet and deals the turn and river.'} If you don’t move in time, you fold.</p>`;
       else if (me && !me.fold && !done) h += `<p class="small soft mt">Waiting for everyone else.</p>`;
     }
     if (T.phase === 'done' && me) {
       const d = (me.ret || 0) - (T.g === 'poker' ? me.in : me.bet);
-      h += `<p class="cas-out ${d > 0 ? 'won' : ''}">${T.cancel ? 'Nobody could play, so you got your bet back.' : d > 0 ? `You won ${coinsAmt(T.r, d)}!` : d === 0 ? 'You broke even.' : `You lost ${coinsAmt(T.r, -d)}.`}${T.g === 'poker' && T.rake ? ` <span class="small soft">The house took ${fmtInt(T.rake)} in rake.</span>` : ''}</p><button type="button" class="btn btn-grape btn-block mt" data-act="cas-again" data-g="${T.g}">Play again</button>`;
+      h += `<p class="cas-out ${d > 0 ? 'won' : ''}">${T.cancel ? 'Nobody could play, so you got your bet back.' : d > 0 ? `You won ${casAmt(T.r, d, P)}!` : d === 0 ? 'You broke even.' : `You lost ${casAmt(T.r, -d, P)}.`}${T.g === 'poker' && T.rake ? ` <span class="small soft">The house took ${fmtInt(T.rake)} in rake.</span>` : ''}</p><button type="button" class="btn btn-grape btn-block mt" data-act="cas-again" data-g="${T.g}">Play again</button>`;
     }
     return h;
   }
 
   function setupView() {
     const C = ui.cas, G = CAS_GAMES[C.g], mine = casMyTable();
-    let h = `<p class="small soft">${G.blurb} After you open a table, friends get 25 seconds to join. CPUs fill any empty seats.</p>`;
+    let h = `<p class="small soft">${G.blurb}${C.practice ? '' : ' After you open a table, friends get 25 seconds to join. CPUs fill any empty seats.'}</p>`;
     h += casBetPicker(C.g === 'blackjack' ? 3 : 1);
     if (C.g === 'poker') h += `<p class="small soft mt">Your bet goes in to start, and you can call it two more times. The most you can lose is 3 times your bet.</p>`;
+    if (C.practice) return h + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-host" data-g="${C.g}">Start a practice hand for ${casAmt(0, ui.casN || 1, true)}</button><p class="small soft mt">Practice tables skip the 25-second wait and put you straight in with CPUs.</p>`;
     h += `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-host" data-g="${C.g}"${(mine && mine.phase !== 'done') || casPending() ? ' disabled' : ''}>Open a table for ${coinsAmt(ui.casR || 0, ui.casN || 1)}</button>`;
     if (mine && mine.phase !== 'done') h += `<p class="small soft mt">You’re already at a table. Finish that one first.</p>`;
     return h;
@@ -3222,8 +3311,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'farm-use': b => { const it = CAT[b.dataset.id]; if (!it || !guardWrite()) return; meDoc.farmEquip = Object.assign({}, meDoc.farmEquip || {}); const on = meDoc.farmEquip[it.b] === it.id; meDoc.farmEquip[it.b] = on ? null : it.id; savePlayer(); recompute(); toast(on ? 'Back to the default look' : `Your ${it.bname.toLowerCase()} uses it now`); },
     'mint-more': () => openMintMore(),
     'swap': () => openSwap(),
-    'cas-open': b => { const g = b.dataset.g; if (uid === L.issuer && CAS_GAMES[g]) return toast('You’re the house, so you can’t bet.'); casShow(CAS_GAMES[g].solo ? { view: g } : { view: 'setup', g }); },
-    'cas-again': b => casShow({ view: 'setup', g: b.dataset.g }),
+    'cas-open': b => { const g = b.dataset.g, prac = uid === L.issuer; if (!CAS_GAMES[g]) return; casShow(CAS_GAMES[g].solo ? { view: g, practice: prac } : { view: 'setup', g, practice: prac }); },
+    'cas-again': b => casShow({ view: 'setup', g: b.dataset.g, practice: !!(ui.cas && ui.cas.practice) }),
     'cas-close': () => casClose(),
     'cas-r': b => { ui.casR = Number(b.dataset.r); ui.casN = 1; drawCas(true); },
     'cas-n': b => { const max = Math.max(1, Number(b.dataset.max) || 1); ui.casN = b.dataset.d === 'max' ? max : Math.max(1, Math.min(b.dataset.d === '1' ? max : 999, (ui.casN || 1) + Number(b.dataset.d))); drawCas(true); },
@@ -3233,6 +3322,14 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'cas-table': b => casShow({ view: 'table', tb: b.dataset.tb }),
     'cas-join': b => { if (!guardWrite() || casPending()) return; const e = newEntry('cas', { op: 'join', tb: b.dataset.tb }); casShow({ view: 'table', tb: b.dataset.tb }); void e; },
     'cas-host': b => {
+      if (ui.cas && ui.cas.practice) {
+        const id = 'practice:' + rndEnt(), n = ui.casN || 1;
+        const T = { id, g: b.dataset.g, host: uid, r: 0, n, phase: 'lobby', seats: [], dealer: [], board: [], prac: true, t0: Date.now(), deadline: Infinity };
+        T.seats.push(T.g === 'blackjack' ? { u: uid, bet: n, cards: [], done: false, dbl: false } : { u: uid, in: n, hole: [], fold: false, acted: false });
+        casPrac.tables[id] = T;
+        pStart(T);
+        return casShow({ view: 'table', tb: id, practice: true });
+      }
       if (!guardWrite() || casPending()) return;
       const g = b.dataset.g, r = ui.casR, n = ui.casN || 1;
       if (availOf(uid)[r] < n) return toast(`You only have ${fmtInt(availOf(uid)[r])} ${RN[r]}.`);
@@ -3240,7 +3337,12 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       const e = newEntry('cas', { op: 'open', g, r, n });
       casShow({ view: 'table', tb: uid + ':' + e.i });
     },
-    'cas-act': b => { if (!guardWrite() || casPending() || !ui.cas) return; newEntry('cas', { op: b.dataset.op, tb: ui.cas.tb }); drawCas(true); },
+    'cas-act': b => {
+      if (!ui.cas) return;
+      if (ui.cas.practice) { const T = casPrac.tables[ui.cas.tb]; if (T) pAct(T, b.dataset.op); return drawCas(true); }
+      if (!guardWrite() || casPending()) return;
+      newEntry('cas', { op: b.dataset.op, tb: ui.cas.tb }); drawCas(true);
+    },
     'arc-spin': () => arcSpin(),
     'arc-play': () => arcPlay(null),
     'arc-practice': b => arcPlay(b.dataset.g),
