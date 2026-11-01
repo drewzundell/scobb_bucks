@@ -7,16 +7,16 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800;900&display=swap">
 <style>
 :root {
   color-scheme: light;
-  --bg: #EEF7E6; --card: #FFFFFF; --card-2: #F3F9EC; --ink: #1F2A14; --soft: #5E6E4E; --line: #D8E8C8;
-  --grape: #6C2BD9; --grape-deep: #4A16A6; --tint: #E6F4D7; --on-grape: #FFFFFF;
-  --lime: #8ED435; --lime-deep: #528A10; --on-lime: #1E3205;
-  --tomato: #E9453C; --tomato-deep: #A52A23; --gold: #C98A00;
-  --shadow: rgba(40, 70, 20, .16); --scrim: rgba(20, 35, 10, .46);
-  --font: "Baloo 2", "Trebuchet MS", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bg: #EEF0F3; --card: #FFFFFF; --card-2: #F2F3F6; --ink: #15171C; --soft: #676D78; --line: #E1E4E9;
+  --grape: #4A3AE0; --grape-deep: #3527B8; --tint: #ECEAFD; --on-grape: #FFFFFF;
+  --lime: #4A3AE0; --lime-deep: #1D8F60; --on-lime: #FFFFFF;
+  --tomato: #E5484D; --tomato-deep: #B8353A; --gold: #E39424;
+  --shadow: rgba(21, 23, 28, .14); --scrim: rgba(15, 17, 21, .45);
+  --font: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -24,16 +24,16 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #101A0B; --card: #1A2912; --card-2: #22351A; --ink: #EDF6E3; --soft: #A9BE95; --line: #2F4724;
-    --grape: #8C58FF; --grape-deep: #5A2FD0; --tint: #26401A; --lime: #9BE33A; --lime-deep: #528A10;
-    --tomato: #FF6A60; --tomato-deep: #B3332B; --gold: #FFC44D; --shadow: rgba(0, 0, 0, .45); --scrim: rgba(0, 0, 0, .62);
+    --bg: #0F1115; --card: #181B21; --card-2: #20242B; --ink: #F2F4F7; --soft: #9AA1AD; --line: #2A2F37;
+    --grape: #8E83FF; --grape-deep: #6A5EE8; --tint: #26233F; --lime: #8E83FF; --lime-deep: #4FCB96;
+    --tomato: #FF6B6F; --tomato-deep: #C9474B; --gold: #F2B356; --shadow: rgba(0, 0, 0, .5); --scrim: rgba(0, 0, 0, .6);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #101A0B; --card: #1A2912; --card-2: #22351A; --ink: #EDF6E3; --soft: #A9BE95; --line: #2F4724;
-  --grape: #8C58FF; --grape-deep: #5A2FD0; --tint: #26401A; --lime: #9BE33A; --lime-deep: #528A10;
-  --tomato: #FF6A60; --tomato-deep: #B3332B; --gold: #FFC44D; --shadow: rgba(0, 0, 0, .45); --scrim: rgba(0, 0, 0, .62);
+  --bg: #0F1115; --card: #181B21; --card-2: #20242B; --ink: #F2F4F7; --soft: #9AA1AD; --line: #2A2F37;
+  --grape: #8E83FF; --grape-deep: #6A5EE8; --tint: #26233F; --lime: #8E83FF; --lime-deep: #4FCB96;
+  --tomato: #FF6B6F; --tomato-deep: #C9474B; --gold: #F2B356; --shadow: rgba(0, 0, 0, .5); --scrim: rgba(0, 0, 0, .6);
 }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
 *, *::before, *::after { box-sizing: inherit; }
@@ -177,6 +177,69 @@ input[type="text"]:focus { border-color: var(--grape); }
 .seg { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
 .seg .chip { padding: 2px 10px; font-size: 13px; }
 .preview { margin-top: 12px; border-radius: 14px; padding: 10px 12px; background: var(--card); border: 2px solid var(--line); font-size: 14.5px; }
+/* ===== sleek theme ===== */
+body { font: 400 16px/1.45 var(--font); letter-spacing: -0.005em; }
+h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: 18px; font-weight: 700; margin: 26px 0 10px; letter-spacing: -0.01em; }
+h3 { font-size: 15px; font-weight: 700; }
+b, strong { font-weight: 600; }
+.card, .prog, .preview, .status { border: 1px solid var(--line); border-radius: 18px; }
+.btn { border-radius: 14px; height: 48px; font: 600 16px/1 var(--font); margin-bottom: 0; box-shadow: none !important; transition: transform .08s ease; }
+.btn:active:not(:disabled) { transform: scale(.98); }
+.btn-grape { background: var(--ink); color: var(--bg); }
+.btn-lime { background: var(--grape); color: #fff; }
+.btn-ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+.btn-danger { background: var(--tomato); color: #fff; }
+.btn-sm { height: 38px; font-size: 14.5px; border-radius: 11px; }
+.link { color: var(--grape); font-weight: 600; text-decoration: none; }
+.top h1 { display: flex; align-items: center; gap: 10px; font-size: 24px; white-space: nowrap; }
+.pill { border-radius: 8px; padding: 2px 9px; font-size: 12.5px; font-weight: 600; letter-spacing: .01em; }
+.status { padding: 12px 14px; font-weight: 500; }
+.status b { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.res { gap: 8px; margin-top: 10px; }
+.res div { border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; text-align: left; }
+.res span { font-size: 12px; font-weight: 500; }
+.res b { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+.alert { border-radius: 14px; font-weight: 600; animation: none; }
+.notice { background: var(--tint); border-radius: 14px; font-weight: 500; }
+.village { border-radius: 20px; box-shadow: none; border: 1px solid var(--line); }
+.brow { border-bottom: 1px solid var(--line); }
+.brow .t, .pcard .t, .ucard .t, .prog .t { font-weight: 600; }
+.cost { font-weight: 600; }
+.bar { height: 8px; border: 0; background: var(--line); }
+.bar i { background: var(--grape); }
+.plist .pcard, .ev, .ucard { border-bottom: 1px solid var(--line); }
+.win { color: #1D8F60; font-weight: 600; }
+.lose { color: var(--tomato); font-weight: 600; }
+.price { font-weight: 800; letter-spacing: -0.02em; }
+.field > label { font-weight: 600; font-size: 14px; color: var(--soft); }
+input[type="text"] { border: 1px solid var(--line); border-radius: 12px; font-weight: 500; font-size: 16px; }
+input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--tint); }
+.chip { border: 1px solid var(--line); font-weight: 600; }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.quote, .err { font-weight: 600; }
+.sb, .sv, .mini { border: 1px solid var(--line); }
+.sv { font: 600 18px/1 var(--font); }
+.sb { font-weight: 500; }
+.msg .bub { border: 1px solid var(--line); }
+.msg.me .bub { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.msg.me .bub .who { color: var(--bg); opacity: .7; }
+.msg .who { font-weight: 600; }
+.uchip { border: 1px solid var(--line); font-weight: 600; }
+.ucard .ui { border: 1px solid var(--line); background: var(--card-2); }
+.world { border: 1px solid var(--line); }
+.tabs { background: color-mix(in srgb, var(--card) 92%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding-top: 8px; }
+.tab { font-weight: 500; font-size: 11.5px; gap: 2px; }
+.tab .ib { width: auto; height: 26px; line-height: 0; display: grid; place-items: center; background: none !important; }
+.tab .ib svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-current="page"] { color: var(--ink); font-weight: 600; }
+.tab[aria-current="page"]::before { content: ""; position: absolute; top: -8px; left: 50%; width: 22px; margin-left: -11px; height: 2px; border-radius: 2px; background: var(--ink); }
+.badge { font-weight: 700; }
+.sheet { border-radius: 24px 24px 0 0; }
+.sheet-head h2 { font-size: 22px; font-weight: 700; }
+.x { border: 1px solid var(--line); border-radius: 12px; }
+.toast { font-weight: 500; border-radius: 14px; }
+.msgscreen h1 { font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .village .spin, .village .bob, .alert, .sheet { animation: none; } }
 </style>
 </head>
@@ -184,11 +247,11 @@ input[type="text"]:focus { border-color: var(--grape); }
 <div id="app"><div class="msgscreen"><h1>Loading Scobb Farm…</h1></div></div>
 
 <nav class="tabs" id="tabs" hidden aria-label="Scobb Farm">
-  <button type="button" class="tab" data-act="tab" data-tab="base"><span class="ib" aria-hidden="true">🏡</span><span>Base</span></button>
-  <button type="button" class="tab" data-act="tab" data-tab="map"><span class="ib" aria-hidden="true">🗺️</span><span>Map</span></button>
-  <button type="button" class="tab" data-act="tab" data-tab="army"><span class="ib" aria-hidden="true">⚔️</span><span>Army</span><i class="badge" id="bd-army" hidden></i></button>
-  <button type="button" class="tab" data-act="tab" data-tab="market"><span class="ib" aria-hidden="true">💰</span><span>Market</span></button>
-  <button type="button" class="tab" data-act="tab" data-tab="chat"><span class="ib" aria-hidden="true">💬</span><span>Chat</span><i class="badge" id="bd-chat" hidden></i></button>
+  <button type="button" class="tab" data-act="tab" data-tab="base"><span class="ib" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-5h4v5"/></svg></span><span>Base</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="map"><span class="ib" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg></span><span>Map</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="army"><span class="ib" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19 19 5M15 5h4v4"/><path d="M19 19 5 5M5 9V5h4"/><path d="M7 15l2 2M17 15l-2 2"/></svg></span><span>Army</span><i class="badge" id="bd-army" hidden></i></button>
+  <button type="button" class="tab" data-act="tab" data-tab="market"><span class="ib" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9h16l-1-4H5z"/><path d="M5 9v10h14V9"/><path d="M10 19v-5h4v5"/></svg></span><span>Market</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="chat"><span class="ib" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></span><span>Chat</span><i class="badge" id="bd-chat" hidden></i></button>
 </nav>
 
 <div class="sheet-root" id="sheet-root" hidden>
@@ -942,7 +1005,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   const DECOR = [[56, 52], [302, 60], [248, 96], [62, 182], [300, 204], [70, 262], [292, 266], [150, 112]].map(([x, y], i) => i % 3 === 0
     ? `<g opacity=".9"><circle cx="${x}" cy="${y}" r="7" fill="#5FAE3E"/><circle cx="${x + 7}" cy="${y + 2}" r="6" fill="#6CBF47"/><circle cx="${x - 6}" cy="${y + 3}" r="5" fill="#4E9A33"/></g>`
     : `<g>${[0, 1, 2].map(k => `<circle cx="${x + k * 6 - 6}" cy="${y + (k % 2) * 4}" r="2.4" fill="${['#FF7FA0', '#FFE066', '#FFFFFF'][(i + k) % 3]}"/>`).join('')}<path d="M${x - 8} ${y + 7}q3 -5 5 0M${x} ${y + 8}q3 -6 5 0" stroke="#4E9A33" stroke-width="1.6" fill="none"/></g>`).join('');
-  const label = (x, y, text, size) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="${size || 10}" fill="#1F2A14">${text}</text>`;
+  const label = (x, y, text, size) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="800" font-size="${size || 10}" fill="#1F2A14">${text}</text>`;
   function mineArt(s) {
     const r = s.max ? s.left / s.max : 0;
     const nug = r <= 0 ? '' : [[10, 18], [28, 14], [18, 9], [32, 21], [6, 22]].slice(0, Math.max(1, Math.ceil(r * 5))).map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6" fill="#F2C14E" stroke="#B8860B" stroke-width=".6"/>`).join('');
@@ -1033,7 +1096,7 @@ input[type="text"]:focus { border-color: var(--grape); }
   function baseView() {
     const p = me();
     let h = villageSVG(p, colorOf(lookOf(uid)), now(), equipOf(uid), true);
-    h += `<div class="mapbar"><span class="small soft">Tap a building to use it.</span><button type="button" class="btn btn-ghost btn-sm" style="margin:0 0 0 auto" data-act="tab" data-tab="map">🗺️ World map</button></div>`;
+    h += `<div class="mapbar"><span class="small soft">Tap a building to use it.</span><button type="button" class="btn btn-ghost btn-sm" style="margin:0 0 0 auto" data-act="tab" data-tab="map">World map</button></div>`;
     h += `<p class="small soft" style="margin-top:6px">You make <b>${jellyRate(p).toFixed(1)}</b> Jelly and <b>${goldRate(p).toFixed(1)}</b> gold a second.</p>`;
     h += queueRows(p);
     h += `<div class="row3 mt"><button type="button" class="btn btn-grape btn-sm" data-act="open" data-k="build">Build</button><button type="button" class="btn btn-lime btn-sm" data-act="open" data-k="hall">Town Hall</button><button type="button" class="btn btn-ghost btn-sm" data-act="tab" data-tab="army">Army</button></div>`;
@@ -1063,7 +1126,7 @@ input[type="text"]:focus { border-color: var(--grape); }
       const v = villageParts(o, colorOf(lookOf(u)), now(), equipOf(u), false);
       defs += v.defs;
       const mine = u === uid;
-      s += `<g transform="translate(${x} ${y})">${mine ? '<rect x="-8" y="-8" width="376" height="316" rx="28" fill="none" stroke="#6C2BD9" stroke-width="6"/>' : ''}${v.body}<g transform="translate(180 -22)"><rect x="-80" y="-16" width="160" height="28" rx="14" fill="${mine ? '#6C2BD9' : '#FFFFFF'}" stroke="#1F2A14" stroke-opacity=".15"/><text y="4" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="16" fill="${mine ? '#FFFFFF' : '#1F2A14'}">${esc(nameOf(u))}${mine ? ' (you)' : ''} · ${farmsOf(o)} farms</text></g><rect class="base-hit" data-act="visit" data-u="${esc(u)}" x="0" y="0" width="360" height="300" rx="22" fill="transparent"/></g>`;
+      s += `<g transform="translate(${x} ${y})">${mine ? '<rect x="-8" y="-8" width="376" height="316" rx="28" fill="none" stroke="#4A3AE0" stroke-width="6"/>' : ''}${v.body}<g transform="translate(180 -22)"><rect x="-80" y="-16" width="160" height="28" rx="14" fill="${mine ? '#4A3AE0' : '#FFFFFF'}" stroke="#1F2A14" stroke-opacity=".15"/><text y="4" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="800" font-size="16" fill="${mine ? '#FFFFFF' : '#1F2A14'}">${esc(nameOf(u))}${mine ? ' (you)' : ''} · ${farmsOf(o)} farms</text></g><rect class="base-hit" data-act="visit" data-u="${esc(u)}" x="0" y="0" width="360" height="300" rx="22" fill="transparent"/></g>`;
     }
     for (const x of S.marches) {
       const A = c(x.a), D = c(x.to), main = Object.keys(x.army).sort((a, b) => x.army[b] - x.army[a])[0] || 'spear';
@@ -1071,7 +1134,7 @@ input[type="text"]:focus { border-color: var(--grape); }
       if (x.state === 'out') { t0 = x.sent; t1 = x.at; x1 = A.x; y1 = A.y; x2 = D.x; y2 = D.y; }
       else { const f = x.recalled ? Math.min(1, (x.from - x.sent) / x.ms) : 1; t0 = x.from; t1 = x.at; x1 = A.x + (D.x - A.x) * f; y1 = A.y + (D.y - A.y) * f; x2 = A.x; y2 = A.y; }
       const col = colorOf(lookOf(x.a)), enemy = x.to === uid && x.state === 'out';
-      s += `<path d="M${A.x} ${A.y}L${D.x} ${D.y}" stroke="${enemy ? '#E9453C' : '#6C2BD9'}" stroke-width="3" stroke-dasharray="8 8" opacity=".55"/><g class="march" data-mv="${t0}:${t1}:${x1}:${y1}:${x2}:${y2}" transform="translate(${x1} ${y1})">${unitG(main, 0, 0, col, 1.4)}<g transform="translate(16 -22)"><rect x="-14" y="-11" width="28" height="18" rx="9" fill="${enemy ? '#E9453C' : '#1F2A14'}"/><text y="3" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="12" fill="#fff">${fmt(sumObj(x.army))}</text></g></g>`;
+      s += `<path d="M${A.x} ${A.y}L${D.x} ${D.y}" stroke="${enemy ? '#E9453C' : '#4A3AE0'}" stroke-width="3" stroke-dasharray="8 8" opacity=".55"/><g class="march" data-mv="${t0}:${t1}:${x1}:${y1}:${x2}:${y2}" transform="translate(${x1} ${y1})">${unitG(main, 0, 0, col, 1.4)}<g transform="translate(16 -22)"><rect x="-14" y="-11" width="28" height="18" rx="9" fill="${enemy ? '#E9453C' : '#1F2A14'}"/><text y="3" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="800" font-size="12" fill="#fff">${fmt(sumObj(x.army))}</text></g></g>`;
     }
     return `<div class="mapbar"><span class="small soft">Drag to look around. Tap a base to visit it.</span><span style="margin-left:auto;display:flex;gap:6px"><button type="button" class="mini" data-act="zoom" data-d="-1" aria-label="Zoom out">−</button><button type="button" class="mini" data-act="zoom" data-d="1" aria-label="Zoom in">+</button><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="home-map">My base</button></span></div><div class="world" id="world" style="height:min(62vh, ${Math.round(L.H * z) + 4}px)"><svg width="${Math.round(L.W * z)}" height="${Math.round(L.H * z)}" viewBox="0 0 ${L.W} ${L.H}" role="img" aria-label="World map"><defs>${defs}</defs>${s}</svg></div>`;
   }

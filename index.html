@@ -1037,15 +1037,18 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const worn = [hat, hair, eyes, top, pnt, bk, watch].filter(Boolean);
     const call = (it, k) => (it && it[k] ? it[k](P) : '');
     const clip = s => (s ? `<g clip-path="url(#${p}-tc)">${s}</g>` : '');
-    const defs = `<defs><radialGradient id="${p}-sk" cx="36%" cy="28%" r="80%"><stop offset="0" stop-color="${mix(col, '#ffffff', 0.42)}"/><stop offset=".55" stop-color="${col}"/><stop offset="1" stop-color="${mix(col, '#000000', 0.2)}"/></radialGradient><clipPath id="${p}-tc"><path d="${TORSO}"/></clipPath>${worn.map(it => call(it, 'defs')).join('')}</defs>`;
-    const legs = `<g class="av-legs"><rect x="70" y="176" width="24" height="50" rx="12" fill="${skin}"/><rect x="106" y="176" width="24" height="50" rx="12" fill="${skin}"/>${call(pnt, 'legs')}<ellipse cx="80" cy="226" rx="15" ry="9" fill="${skin}"/><ellipse cx="120" cy="226" rx="15" ry="9" fill="${skin}"/></g>`;
+    const F = s => (s ? `<g filter="url(#${p}-3d)">${s}</g>` : '');
+    const FS = s => (s ? `<g filter="url(#${p}-3s)">${s}</g>` : '');
+    const lightF = (id, blur, scale, spec) => `<filter id="${id}" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="${blur}" result="b"/><feDiffuseLighting in="b" surfaceScale="${scale}" diffuseConstant="1" lighting-color="#fff" result="d"><feDistantLight azimuth="225" elevation="52"/></feDiffuseLighting><feComposite in="SourceGraphic" in2="d" operator="arithmetic" k1=".78" k2=".38" k3="0" k4="0" result="lit"/><feSpecularLighting in="b" surfaceScale="${scale}" specularConstant="${spec}" specularExponent="26" lighting-color="#fff" result="s"><fePointLight x="40" y="-30" z="150"/></feSpecularLighting><feComposite in="s" in2="SourceAlpha" operator="in" result="s2"/><feComposite in="lit" in2="s2" operator="arithmetic" k1="0" k2="1" k3=".55" k4="0" result="all"/><feComposite in="all" in2="SourceAlpha" operator="in"/></filter>`;
+    const defs = `<defs>${lightF(p + '-3d', 3.2, 4, 0.5)}${lightF(p + '-3s', 5, 3, 0.35)}<radialGradient id="${p}-sk" cx="36%" cy="28%" r="80%"><stop offset="0" stop-color="${mix(col, '#ffffff', 0.42)}"/><stop offset=".55" stop-color="${col}"/><stop offset="1" stop-color="${mix(col, '#000000', 0.2)}"/></radialGradient><clipPath id="${p}-tc"><path d="${TORSO}"/></clipPath>${worn.map(it => call(it, 'defs')).join('')}</defs>`;
+    const legs = `<g class="av-legs">${FS(`<rect x="70" y="176" width="24" height="50" rx="12" fill="${skin}"/><rect x="106" y="176" width="24" height="50" rx="12" fill="${skin}"/>`)}${F(call(pnt, 'legs'))}${FS(`<ellipse cx="80" cy="226" rx="15" ry="9" fill="${skin}"/><ellipse cx="120" cy="226" rx="15" ry="9" fill="${skin}"/>`)}</g>`;
     const topBack = top ? `<rect x="40" y="90" width="120" height="${top.hem || 92}" fill="${top.colorFill ? top.colorFill(P) : top.color}"/>` : '';
-    const torso = `<g class="av-torso"><path d="${TORSO}" fill="${skin}"/><ellipse cx="76" cy="134" rx="9" ry="17" fill="#fff" fill-opacity=".2" transform="rotate(18 76 134)"/>${clip(call(pnt, 'lower') + (o.back ? topBack : call(top, 'torso') + call(bk, 'straps')))}</g>`;
-    const head = `<g class="av-head"><circle cx="100" cy="66" r="45" fill="${skin}"/><ellipse cx="80" cy="41" rx="14" ry="8" fill="#fff" fill-opacity=".38" transform="rotate(-24 80 41)"/>${o.back ? call(hair, 'hairBack') : faceSVG(look)}${call(hair, 'head')}${o.back ? '' : call(eyes, 'head')}${call(hat, 'head')}</g>`;
-    const arms = armSVG('l', skin, top, watch, P) + armSVG('r', skin, top, null, P);
+    const torso = `<g class="av-torso">${FS(`<path d="${TORSO}" fill="${skin}"/>`)}<ellipse cx="76" cy="134" rx="9" ry="17" fill="#fff" fill-opacity=".2" transform="rotate(18 76 134)"/>${F(clip(call(pnt, 'lower') + (o.back ? topBack : call(top, 'torso') + call(bk, 'straps'))))}</g>`;
+    const head = `<g class="av-head">${FS(`<circle cx="100" cy="66" r="45" fill="${skin}"/>`)}<ellipse cx="80" cy="41" rx="14" ry="8" fill="#fff" fill-opacity=".38" transform="rotate(-24 80 41)"/>${o.back ? F(call(hair, 'hairBack')) : faceSVG(look)}${F(call(hair, 'head'))}${o.back ? '' : F(call(eyes, 'head'))}${F(call(hat, 'head'))}</g>`;
+    const arms = F(armSVG('l', skin, top, watch, P)) + F(armSVG('r', skin, top, null, P));
     const body = o.back
-      ? `${legs}${torso}<g class="av-pack">${call(bk, 'back')}</g>${arms}${head}`
-      : `<g class="av-backlayer">${call(bk, 'back')}${call(hair, 'hairBack')}</g>${legs}${torso}<g class="av-collar">${call(top, 'collar')}</g>${arms}${head}`;
+      ? `${legs}${torso}<g class="av-pack">${F(call(bk, 'back'))}</g>${arms}${head}`
+      : `<g class="av-backlayer">${F(call(bk, 'back'))}${F(call(hair, 'hairBack'))}</g>${legs}${torso}<g class="av-collar">${F(call(top, 'collar'))}</g>${arms}${head}`;
     return `<svg class="av ${o.cls}" viewBox="${o.crop}" role="img" aria-label="${esc(o.label)}" xmlns="http://www.w3.org/2000/svg">${defs}<ellipse class="av-shadow" cx="100" cy="234" rx="48" ry="7" fill="#000" fill-opacity=".14"/><g class="av-all"><g class="av-jelly">${body}</g></g>${o.fx ? `<g class="av-fx">${DANCE_FX}</g>` : ''}</svg>`;
   }
 
@@ -1107,7 +1110,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     order: '<path d="M10 6h10M10 12h10M10 18h10M4 5h1v4M4 15h2.5l-2.5 3h2.5"/>'
   };
   const arcIcon = id => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ARC_ICON[id] || ''}</svg>`;
-  const ARC_PRIZE = 5, ARC_WINDOW = 30 * 60000;
+  const ARC_PRIZE = 5, ARC_WINDOW = 30 * 60000, ARC_DAILY = 5;
   const arcDay = t => Math.floor((t - WEEK0) / DAY);
   function arcPick(a, d, spins) {
     const left = ARC_IDS.filter(id => !spins.some(s => s.g === id));
@@ -1200,6 +1203,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         if (e.op === 'spin') {
           if (!funded[a]) { bad[key] = 'unfunded'; continue; }
           const d = arcDay(e.t), D = A.days[d] || (A.days[d] = []);
+          if (D.length >= ARC_DAILY) { bad[key] = 'limit'; continue; }
           const g = arcPick(a, d, D);
           if (!g) { bad[key] = 'none'; continue; }
           const sp = { g, key, t: e.t, d, res: '' };
@@ -1845,7 +1849,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   }
   function arcadeRow() {
     const owner = uid === L.issuer, st = arcState();
-    const sub = owner ? 'Practice the minigames' : !L.funded[uid] ? 'Unlocks after your first ScobbBucks' : st.active ? `${ARC_NAME[st.active.g][1]} is waiting for you` : `${st.left.length} of ${ARC_IDS.length} games left today`;
+    const sub = owner ? 'Practice the minigames' : !L.funded[uid] ? 'Unlocks after your first ScobbBucks' : st.active ? `${ARC_NAME[st.active.g][1]} is waiting for you` : `${st.crates} of ${ARC_DAILY} crates left today`;
     return `<button type="button" class="lrow" data-act="tab" data-tab="arcade"><span class="sq">${icon('game')}</span><span class="lt"><b>Arcade</b><span>${sub}</span></span><span class="chipbtn${st.active && !owner ? ' go' : ''}">${st.active && !owner ? 'Resume' : 'Play'}</span></button>`;
   }
   function openPress() {
@@ -2170,7 +2174,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const spins = (A && A.days[today]) || [];
     let active = null;
     if (A) for (const k in A.byKey) { const sp = A.byKey[k]; if (!sp.res && now - sp.t <= ARC_WINDOW && (!active || sp.t > active.t)) active = sp; }
-    return { spins, active, left: ARC_IDS.filter(id => !spins.some(s => s.g === id)), today };
+    const crates = Math.max(0, ARC_DAILY - spins.length);
+    return { spins, active, crates, left: crates ? ARC_IDS.filter(id => !spins.some(s => s.g === id)) : [], today };
   }
   const ARC_HEARTS = 2;
   const arcHearts = key => { try { const v = localStorage.getItem('arc-h-' + key); return v == null ? ARC_HEARTS : Math.max(0, Math.min(ARC_HEARTS, Number(v))); } catch (e) { return ARC_HEARTS; } };
@@ -2182,13 +2187,13 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const owner = uid === L.issuer, st = arcState(), now = Date.now(), reset = WEEK0 + (st.today + 1) * DAY;
     const won = st.spins.filter(x => x.res === 'win').length * ARC_PRIZE;
     let h = `<header class="top" style="justify-content:flex-start"><button type="button" class="icon-btn" data-act="tab" data-tab="wallet" aria-label="Back to wallet">${icon('back')}</button><h1>Arcade</h1></header>`;
-    h += `<div class="arc-stats"><div><b>${owner ? ARC_IDS.length : st.left.length}</b><span>${owner ? 'Games' : 'Games left'}</span></div><div><b>${owner ? '0' : '+' + won}</b><span>Won today</span></div><div><b>${pressWait(reset - now).replace(/ \d+m$/, '')}</b><span>Until reset</span></div></div>`;
+    h += `<div class="arc-stats"><div><b>${owner ? ARC_IDS.length : st.crates}</b><span>${owner ? 'Games' : 'Crates left'}</span></div><div><b>${owner ? '0' : '+' + won}</b><span>Won today</span></div><div><b>${pressWait(reset - now).replace(/ \d+m$/, '')}</b><span>Until reset</span></div></div>`;
     h += `<div class="arc-panel">`;
     if (owner) h += `<p>You’re the bank, so you can practice every game below but you can’t win coins.</p>`;
     else if (!L.funded[uid]) h += `<p>The arcade unlocks once the bank sends you your first ScobbBucks. You can still practice below.</p>`;
     else if (st.active) { const g = ARC_NAME[st.active.g]; h += `<p>Your game</p><div class="lrow" style="padding:12px 0;color:#fff"><span class="arc-gi" style="background:#22252C;color:#fff">${arcIcon(st.active.g)}</span><span class="lt"><b>${g[1]}</b><span style="color:#A9AEB8">${plural(arcHearts(st.active.key), 'heart', 'hearts')} left. Play within ${pressWait(st.active.t + ARC_WINDOW - now)} or it counts as a loss</span></span></div><button type="button" class="btn btn-grape btn-block" data-act="arc-play">Play ${g[1]}</button>`; }
-    else if (st.left.length) h += `<p>Open a crate to get a random minigame. Beat it to win ${ARC_PRIZE} ScobbBucks. You get ${ARC_HEARTS} hearts, and win or lose, that game is gone until the reset.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-spin"${readOnly ? ' disabled' : ''}>Open a crate</button>`;
-    else h += `<p>You played every game today. A fresh set opens at midnight.</p>`;
+    else if (st.left.length) h += `<p>You get ${ARC_DAILY} crates a day. Each one picks a random minigame from the ${ARC_IDS.length} in the pool. Beat it to win ${ARC_PRIZE} ScobbBucks. You get ${ARC_HEARTS} hearts.</p><button type="button" class="btn btn-grape btn-block mt" data-act="arc-spin"${readOnly ? ' disabled' : ''}>Open a crate</button>`;
+    else h += `<p>You opened all ${ARC_DAILY} crates today. You get ${ARC_DAILY} more at midnight.</p>`;
     h += `</div>`;
     if (!owner && st.spins.length) {
       h += `<h2>Today</h2><div class="list">${st.spins.slice().reverse().map(x => { const g = ARC_NAME[x.g]; const r = x.res === 'win' ? `<span class="status done">Won ${ARC_PRIZE}</span>` : x.res ? '<span class="status">Lost</span>' : now - x.t > ARC_WINDOW ? '<span class="status">Timed out</span>' : '<span class="status">Ready</span>'; return `<div class="ev"><span class="arc-gi">${arcIcon(x.g)}</span><div class="main"><div class="t"><b>${g[1]}</b></div></div>${r}</div>`; }).join('')}</div>`;
