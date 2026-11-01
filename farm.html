@@ -870,7 +870,6 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     if (!authed) return 'login';
     if (!playersLoaded || !roundsLoaded) return 'loading';
     if (!players[uid] || !players[uid].avatar) return 'noprofile';
-    if (!allowed()) return 'closed';
     return 'game';
   }
 
@@ -922,7 +921,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     else if (ui.tab === 'chat') body += chatView();
     else if (S.phase === 'lobby') body += lobbyView();
     else if (S.phase === 'over') body += overView();
-    else if (!me()) body += spectatorView();
+    else if (!me()) body += ui.tab === 'map' ? (ui.visit && S.players[ui.visit] ? visitView(ui.visit) : `<p class="notice">You’re watching this round live.</p>` + mapView()) : ui.tab === 'army' ? watchReports() : spectatorView();
     else if (ui.tab === 'map') body += ui.visit && S.players[ui.visit] && ui.visit !== uid ? visitView(ui.visit) : mapView();
     else if (ui.tab === 'army') body += armyView();
     else if (ui.tab === 'market') body += marketView();
@@ -941,6 +940,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     return h;
   }
   function bankOpen() {
+    if (!allowed()) return `<p class="soft mt">Waiting for someone to start a round. You can watch it live here.</p>`;
     return `<div class="card mt"><h3 style="margin-top:0">Start a round</h3><p class="small soft">Anyone can start one. Players get a lobby to join, then the 15-minute match begins. It needs at least 2 real players, or it won’t start and you’ll come back here.</p><div class="chips" id="lobby-len">${[1, 2, 5].map(n => `<button type="button" class="chip" data-act="lobby-len" data-v="${n}" aria-pressed="${n === lobbyLen}">${n} min lobby</button>`).join('')}</div><button type="button" class="btn btn-grape btn-block mt" data-act="open-round">Open a new round</button></div>`;
   }
   function howTo() {
@@ -954,7 +954,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     const r = round();
     const joined = S.order;
     let h = `<h2>Lobby</h2><div class="card"><p class="small soft">${joined.length ? 'In this round:' : 'Nobody has joined yet.'}</p><div class="plist">${joined.map(u => `<div class="pcard">${hb(u, 36)}<div class="main"><div class="t">${esc(nameOf(u))}</div></div></div>`).join('')}</div>`;
-    h += S.players[uid] ? `<p class="small mt" style="margin-top:10px">You’re in. Get ready!</p>` : `<button type="button" class="btn btn-lime btn-block mt" data-act="join">Join round ${r.n}</button>`;
+    h += S.players[uid] ? `<p class="small mt" style="margin-top:10px">You’re in. Get ready!</p>` : !allowed() ? `<p class="small soft mt">Scobb Farm is in preview, so you can watch but not play yet.</p>` : `<button type="button" class="btn btn-lime btn-block mt" data-act="join">Join round ${r.n}</button>`;
     h += joined.length < 2 ? `<p class="small soft mt">Waiting for at least one more player. If nobody else joins before the timer ends, the round won’t start.</p>` : '';
     if (r.by === uid) h += `<button type="button" class="btn btn-ghost btn-block mt" data-act="start"${joined.length < 2 ? ' disabled' : ''}>Start now</button>`;
     h += `</div>` + howTo();
@@ -963,7 +963,8 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
   function spectatorView() {
     const lateOk = now() < S.startAt + G.JOIN_LATE_MS;
     let h = `<h2>You’re watching</h2>`;
-    h += lateOk ? `<p class="small soft">You can still join for <span data-cd="${S.startAt + G.JOIN_LATE_MS}">${secs(S.startAt + G.JOIN_LATE_MS - now())}</span>.</p><button type="button" class="btn btn-lime btn-block mt" data-act="join">Join this round</button>` : `<p class="small soft">This round is too far along to join. Watch the chat and catch the next one.</p>`;
+    h += `<p class="small soft">Everything updates live. Open the Map tab to watch the bases and armies move, and Chat to talk with the players.</p><button type="button" class="btn btn-grape btn-block mt" data-act="tab" data-tab="map">Watch the map</button>`;
+    h += lateOk && allowed() ? `<p class="small soft">You can still join for <span data-cd="${S.startAt + G.JOIN_LATE_MS}">${secs(S.startAt + G.JOIN_LATE_MS - now())}</span>.</p><button type="button" class="btn btn-lime btn-block mt" data-act="join">Join this round</button>` : `<p class="small soft">This round is too far along to join. Watch the chat and catch the next one.</p>`;
     return h + standingsHTML();
   }
   function standingsHTML() {
@@ -1141,7 +1142,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
       if (x.state === 'out') { t0 = x.sent; t1 = x.at; x1 = A.x; y1 = A.y; x2 = D.x; y2 = D.y; }
       else { const f = x.recalled ? Math.min(1, (x.from - x.sent) / x.ms) : 1; t0 = x.from; t1 = x.at; x1 = A.x + (D.x - A.x) * f; y1 = A.y + (D.y - A.y) * f; x2 = A.x; y2 = A.y; }
       const col = colorOf(lookOf(x.a)), enemy = x.to === uid && x.state === 'out';
-      s += `<path d="M${A.x} ${A.y}L${D.x} ${D.y}" stroke="${enemy ? '#E9453C' : '#4A3AE0'}" stroke-width="3" stroke-dasharray="8 8" opacity=".55"/><g class="march" data-mv="${t0}:${t1}:${x1}:${y1}:${x2}:${y2}" transform="translate(${x1} ${y1})">${unitG(main, 0, 0, col, 1.4)}<g transform="translate(16 -22)"><rect x="-14" y="-11" width="28" height="18" rx="9" fill="${enemy ? '#E9453C' : '#1F2A14'}"/><text y="3" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="800" font-size="12" fill="#fff">${fmt(sumObj(x.army))}</text></g></g>`;
+      s += `<path d="M${A.x} ${A.y}L${D.x} ${D.y}" stroke="${enemy ? '#E9453C' : '#4A3AE0'}" stroke-width="3" stroke-dasharray="8 8" opacity=".55" pointer-events="none"/><g class="march" pointer-events="none" data-mv="${t0}:${t1}:${x1}:${y1}:${x2}:${y2}" transform="translate(${x1} ${y1})">${unitG(main, 0, 0, col, 1.4)}<g transform="translate(16 -22)"><rect x="-14" y="-11" width="28" height="18" rx="9" fill="${enemy ? '#E9453C' : '#1F2A14'}"/><text y="3" text-anchor="middle" font-family="'Source Sans 3',sans-serif" font-weight="800" font-size="12" fill="#fff">${fmt(sumObj(x.army))}</text></g></g>`;
     }
     return `<div class="mapbar"><span class="small soft">Drag to look around. Tap a base to visit it.</span><span style="margin-left:auto;display:flex;gap:6px"><button type="button" class="mini" data-act="zoom" data-d="-1" aria-label="Zoom out">−</button><button type="button" class="mini" data-act="zoom" data-d="1" aria-label="Zoom in">+</button><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="home-map">My base</button></span></div><div class="world" id="world" style="height:min(62vh, ${Math.round(L.H * z) + 4}px)"><svg width="${Math.round(L.W * z)}" height="${Math.round(L.H * z)}" viewBox="0 0 ${L.W} ${L.H}" role="img" aria-label="World map"><defs>${defs}</defs>${s}</svg></div>`;
   }
@@ -1151,8 +1152,22 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     let h = `<div class="mapbar"><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="back-map">← Map</button><b style="margin-left:6px">${esc(nameOf(u))}’s base</b></div>`;
     h += villageSVG(o, colorOf(lookOf(u)), t, equipOf(u), false);
     h += `<div class="card mt"><p class="small">${plural(farmsOf(o), 'farm', 'farms')}, ${plural(minesOf(o), 'gold mine', 'gold mines')}, wall level ${o.wall}, ${plural(o.tower, 'tower', 'towers')}, ${AGES[o.age - 1]} age.${sh ? ` Shielded for <span data-cd="${o.shield}">${secs(o.shield - t)}</span>.` : ''}</p><h3>Troops at home</h3>${armyChips(o.army, colorOf(lookOf(u)))}</div>`;
-    h += `<button type="button" class="btn btn-danger btn-block mt" data-act="attack" data-u="${esc(u)}"${sh || !UNIT_ORDER.some(k => !UNITS[k].home && (p.army[k] || 0) > 0) ? ' disabled' : ''}>Attack ${esc(nameOf(u))}</button>`;
+    if (p) h += `<button type="button" class="btn btn-danger btn-block mt" data-act="attack" data-u="${esc(u)}"${sh || !UNIT_ORDER.some(k => !UNITS[k].home && (p.army[k] || 0) > 0) ? ' disabled' : ''}>Attack ${esc(nameOf(u))}</button>`;
     return h;
+  }
+
+  function watchReports() {
+    const reps = S.reports.slice(-20).reverse();
+    const line = r => {
+      const a = esc(nameOf(r.a)), d = esc(nameOf(r.d));
+      if (r.shield) return `${a}’s attack bounced off ${d}’s shield.`;
+      const g = [r.farms ? plural(r.farms, 'farm', 'farms') : '', r.mines ? plural(r.mines, 'gold mine', 'gold mines') : '', r.lj || r.lc ? `${fmt(r.lj)} Jelly and ${fmt(r.lc)} gold` : '', r.towers ? plural(r.towers, 'tower', 'towers') : '', r.mil ? `the ${BUILDS[r.mil].name.toLowerCase()}` : ''].filter(Boolean).join(', ');
+      return r.win ? `<span class="win">${a} beat ${d}</span> and took ${g || 'the fight'}.` : `<span class="lose">${a} attacked ${d} and lost.</span>`;
+    };
+    let h = `<p class="notice">You’re watching this round live.</p><h2>Battles</h2><div class="card">${reps.length ? reps.map(r => `<div class="ev">${line(r)} <span class="when">${clock(r.t - S.startAt)} in</span></div>`).join('') : '<p class="small soft">No battles yet.</p>'}</div>`;
+    const out = S.marches.filter(x => x.state === 'out');
+    if (out.length) h += `<h2>Armies on the move</h2><div class="card">${out.map(x => `<div class="ev">${esc(nameOf(x.a))} is marching ${fmt(sumObj(x.army))} troops at ${esc(nameOf(x.to))}. Arrives in <span data-cd="${x.at}">${secs(x.at - now())}</span></div>`).join('')}</div>`;
+    return h + standingsHTML();
   }
 
   /* ---- army tab ---- */

@@ -2325,7 +2325,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const list = Object.keys(players).filter(u => players[u] && players[u].username && players[u].avatar).sort((a, b) => (players[a].joinedAt || 0) - (players[b].joinedAt || 0));
     let h = `<header class="top"><h1>Feed</h1></header>`;
     h += `<h3 style="margin-top:0">Players</h3><div class="hscroll players">${list.map(u => `<button type="button" class="pl" data-act="profile" data-u="${esc(u)}">${headBubble(u, 58)}<span>${esc(nameOf(u))}</span></button>`).join('')}</div>`;
-    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5]))) && (ev.k !== 'cas' || ev.ret >= ev.bet * 5)).sort((a, b) => b.t - a.t).slice(0, 80);
+    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5]))) ).sort((a, b) => b.t - a.t).slice(0, 100);
     if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades and shop buys show up here.</p>';
     h += `<div class="list">${evs.map(ev => {
       let t = '', more = '', hot = false, face = ev.a;
@@ -2343,10 +2343,13 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       } else if (ev.k === 'trade') {
         t = `<b>${esc(nameOf(ev.a))}</b> and <b>${esc(nameOf(ev.to))}</b> made a trade`;
       } else if (ev.k === 'cas') {
-        t = `<b>${esc(nameOf(ev.a))}</b> won ${coinsAmt(ev.r, ev.ret - ev.bet)} at ${CAS_GAMES[ev.g].name}`;
-        hot = ev.ret >= ev.bet * 10 || ev.r >= 4;
+        const d = ev.ret - ev.bet;
+        t = d > 0 ? `<b>${esc(nameOf(ev.a))}</b> won <b>${coinsAmt(ev.r, d)}</b> at ${CAS_GAMES[ev.g].name}` : d < 0 ? `<b>${esc(nameOf(ev.a))}</b> lost <b>${coinsAmt(ev.r, -d)}</b> at ${CAS_GAMES[ev.g].name}` : `<b>${esc(nameOf(ev.a))}</b> broke even at ${CAS_GAMES[ev.g].name}`;
+        more = `<div class="chips"><span class="status${d > 0 ? ' done' : ''}" style="${d < 0 ? 'background:#FDE7E8;color:#B8353A' : ''}">${d > 0 ? '+' : d < 0 ? '−' : ''}${fmtInt(Math.abs(d))} ${RN[ev.r]}</span><span class="small soft">Bet ${coinsAmt(ev.r, ev.bet)} in the Scobbsino</span></div>`;
+        hot = d >= ev.bet * 10 || (d > 0 && ev.r >= 4);
       } else if (ev.k === 'arc') {
-        t = `<b>${esc(nameOf(ev.a))}</b> beat ${ARC_NAME[ev.g][1]} and won ${bucks(sumC(ev.c))}`;
+        t = `<b>${esc(nameOf(ev.a))}</b> beat <b>${ARC_NAME[ev.g][1]}</b> in the arcade and won ${bucks(sumC(ev.c))}`;
+        more = `<div class="chips">${coinChips(ev.c)}</div>`;
         hot = !!(ev.c[4] || ev.c[5]);
       } else if (ev.k === 'press') {
         if (ev.op === 'up') t = `<b>${esc(nameOf(ev.a))}</b> upgraded their coin press to level ${ev.lvl}`;
@@ -2591,6 +2594,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       h += `<button type="button" class="lrow" data-act="cas-open" data-g="${g}"><span class="sq">${icon(G.solo ? 'dice' : 'cards')}</span><span class="lt"><b>${G.name}</b><span>${G.blurb}${G.solo ? '' : ` Up to ${G.seats} players. CPUs fill empty seats.`}</span></span><span class="chipbtn">${owner ? 'Practice' : 'Play'}</span></button>`;
     }
     h += `</div>`;
+    const allEv = L.events.filter(ev => ev.k === 'cas').sort((a, b) => b.t - a.t).slice(0, 12);
+    if (allEv.length) h += `<h2>Live results</h2><div class="list">${allEv.map(ev => { const d = ev.ret - ev.bet; return `<div class="ev">${headBubble(ev.a, 36)}<div class="main"><div class="t"><b>${esc(nameOf(ev.a))}</b> ${d > 0 ? 'won' : d < 0 ? 'lost' : 'broke even'} at ${CAS_GAMES[ev.g].name}</div><div class="s">Bet ${coinsAmt(ev.r, ev.bet)} · ${ago(ev.t)}</div></div><span class="status${d > 0 ? ' done' : ''}" style="${d < 0 ? 'background:#FDE7E8;color:#B8353A' : ''}">${d > 0 ? '+' : d < 0 ? '−' : ''}${fmtInt(Math.abs(d))}</span></div>`; }).join('')}</div>`;
     const mineEv = L.events.filter(ev => ev.k === 'cas' && ev.a === uid).sort((a, b) => b.t - a.t).slice(0, 8);
     if (mineEv.length) {
       const net = z(); mineEv.forEach(ev => { net[ev.r] += ev.ret - ev.bet; });
