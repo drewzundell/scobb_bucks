@@ -1264,6 +1264,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     return bluff || Math.max(...Object.values(suits)) >= 4;
   }
 
+  const FPS_ESC = '_fps', FPS_MAX = 100, FPS_WAIT = 10 * 60000, FPS_STALE = 60 * 60000;
   function replay(cfg, pl) {
     const issuer = cfg.issuer;
     const bal = Object.create(null);
@@ -1439,6 +1440,50 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       else { bad[key] = 'shape'; return; }
       if (T.seats.every(s => s.cpu || s.fold || s.acted)) pkStreet(T, ent, e.t);
     }
+    const fps = Object.create(null);
+    function fpsSettle(M, t, how) {
+      const us = Object.keys(M.stakes), pot = coinsOf(M.r, M.n * us.length);
+      if (how === 'refund') for (const u of us) move(FPS_ESC, u, coinsOf(M.r, M.n));
+      else move(FPS_ESC, how, pot);
+      M.done = true; M.end = t;
+      for (const u of us) events.push({ k: 'fps', key: M.id + ':' + u, a: u, m: M.id, r: M.r, n: M.n, opp: us.find(x => x !== u) || '', res: how === 'refund' ? 'refund' : how === u ? 'win' : 'loss', t });
+    }
+    function fpsEntry(e, a, key) {
+      const op = e.op, M0 = fps[e.m];
+      if (typeof e.m !== 'string' || e.m.length > 60) { bad[key] = 'shape'; return; }
+      if (op === 'stake') {
+        const r = e.r, n = e.n;
+        if (!Number.isInteger(r) || r < 0 || r > 5 || !Number.isInteger(n) || n < 1 || n > FPS_MAX || typeof e.opp !== 'string' || e.opp === a) { bad[key] = 'shape'; return; }
+        const M = M0 || (fps[e.m] = { id: e.m, r, n, stakes: {}, claims: {}, t0: e.t, done: false });
+        if (M.done || M.r !== r || M.n !== n || M.stakes[a]) { bad[key] = 'terms'; return; }
+        const others = Object.keys(M.stakes);
+        if (others.length >= 2 || (others.length === 1 && (others[0] !== e.opp || M.stakes[others[0]].opp !== a))) { bad[key] = 'who'; return; }
+        if (!has(a, coinsOf(r, n))) { bad[key] = 'funds'; return; }
+        move(a, FPS_ESC, coinsOf(r, n));
+        M.stakes[a] = { opp: e.opp, t: e.t };
+        if (others.length === 1) M.t2 = e.t;
+        return;
+      }
+      const M = M0;
+      if (!M || M.done || !M.stakes[a]) { bad[key] = 'gone'; return; }
+      const us = Object.keys(M.stakes);
+      if (op === 'result') {
+        if (us.length < 2 || !M.stakes[e.w] || M.claims[a]) { bad[key] = 'shape'; return; }
+        M.claims[a] = { w: e.w, t: e.t };
+        const cl = Object.values(M.claims);
+        if (cl.length === 2) fpsSettle(M, e.t, cl[0].w === cl[1].w ? cl[0].w : 'refund');
+        return;
+      }
+      if (op === 'settle') {
+        const cl = Object.values(M.claims);
+        if (us.length === 1 && e.t > M.t0 + FPS_WAIT) return fpsSettle(M, e.t, 'refund');
+        if (us.length === 2 && cl.length === 1 && e.t > cl[0].t + FPS_WAIT) return fpsSettle(M, e.t, cl[0].w);
+        if (us.length === 2 && cl.length === 0 && e.t > M.t2 + FPS_STALE) return fpsSettle(M, e.t, 'refund');
+        bad[key] = 'early';
+        return;
+      }
+      bad[key] = 'shape';
+    }
     let maxT = 0;
     for (const { e, a, key } of all) {
       if (e.t > maxT) maxT = e.t;
@@ -1488,6 +1533,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         } else { bad[key] = 'shape'; }
       } else if (e.k === 'cas') {
         casEntry(e, a, key, ent);
+      } else if (e.k === 'fps') {
+        fpsEntry(e, a, key);
       } else if (e.k === 'arc') {
         if (a === issuer) { bad[key] = 'who'; continue; }
         const A = arc[a] || (arc[a] = { days: {}, byKey: {} });
@@ -1561,7 +1608,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         bad[key] = 'kind';
       }
     }
-    return { bal, items, offers, events, bad, maxT, issuer, total, press, funded, arc, cas };
+    return { bal, items, offers, events, bad, maxT, issuer, total, press, funded, arc, cas, fps };
   }
 
   /* ================= state ================= */
@@ -2165,6 +2212,16 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       else if (ev.k === 'press' && ev.a === uid && ev.op !== 'start') rows.push(ev);
       else if (ev.k === 'arc' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'cas' && ev.a === uid) rows.push(ev);
+      else if (ev.k === 'fps' && ev.a === uid) rows.push(ev);
+    }
+    for (const id in farmResults) {
+      const r = farmResults[id];
+      const who = Array.isArray(r.players) && r.players.length ? r.players : (Array.isArray(r.places) ? r.places : []);
+      if (!who.includes(uid)) continue;
+      const t = r.st && typeof r.st.toMillis === 'function' ? r.st.toMillis() : 0;
+      rows.push({ k: 'farmres', key: 'farm:' + id, t, n: r.n || '', place: who.indexOf(uid) === 0 ? 0 : (who.indexOf(uid) < 3 ? who.indexOf(uid) : -1), farms: r.farms ? r.farms[uid] : null });
+    }
+    {
     }
     for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap')) rows.push({ k: 'bad', e, t: e.t }); }
     rows.sort((a, b) => b.t - a.t);
@@ -2185,8 +2242,17 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         more = evCoins(ev.c);
       } else if (ev.k === 'cas') {
         other = uid;
-        t = `${CAS_GAMES[ev.g].name}: ${ev.ret > ev.bet ? `you won ${coinsAmt(ev.r, ev.ret - ev.bet)}` : ev.ret === ev.bet ? 'you broke even' : `you lost ${coinsAmt(ev.r, ev.bet - ev.ret)}`}`;
-        more = `<p class="s">You bet ${coinsAmt(ev.r, ev.bet)}.</p>`;
+        const d = ev.ret - ev.bet;
+        t = `Scobbsino ${CAS_GAMES[ev.g].name}: ${d > 0 ? `you won <b>${coinsAmt(ev.r, d)}</b>` : d === 0 ? 'you broke even' : `you lost <b>${coinsAmt(ev.r, -d)}</b>`}`;
+        more = `<div class="chips"><span class="status${d > 0 ? ' done' : ''}" style="${d < 0 ? 'background:#FDE7E8;color:#B8353A' : ''}">${d > 0 ? '+' : d < 0 ? '−' : ''}${fmtInt(Math.abs(d))} ${RN[ev.r]}</span><span class="small soft">You bet ${coinsAmt(ev.r, ev.bet)}</span></div>`;
+      } else if (ev.k === 'fps') {
+        other = ev.opp || uid;
+        t = ev.res === 'refund' ? `Scobb Strike vs <b>${esc(nameOf(ev.opp))}</b>: your wager was refunded` : `Scobb Strike vs <b>${esc(nameOf(ev.opp))}</b>: ${ev.res === 'win' ? `you won <b>${coinsAmt(ev.r, ev.n)}</b>` : `you lost <b>${coinsAmt(ev.r, ev.n)}</b>`}`;
+        more = ev.res === 'refund' ? `<p class="s">The games didn’t agree on a winner, or the match never started, so you got your ${coinsAmt(ev.r, ev.n)} back.</p>` : `<div class="chips"><span class="status${ev.res === 'win' ? ' done' : ''}" style="${ev.res === 'loss' ? 'background:#FDE7E8;color:#B8353A' : ''}">${ev.res === 'win' ? '+' : '−'}${fmtInt(ev.n)} ${RN[ev.r]}</span><span class="small soft">Wager was ${coinsAmt(ev.r, ev.n)} each</span></div>`;
+      } else if (ev.k === 'farmres') {
+        other = uid;
+        t = ev.place === 0 ? `Scobb Farm round ${ev.n}: <b>you won!</b>` : `Scobb Farm round ${ev.n}: you ${ev.place > 0 ? `finished ${['1st', '2nd', '3rd'][ev.place] || (ev.place + 1) + 'th'}` : 'lost'}`;
+        more = `<div class="chips"><span class="status${ev.place === 0 ? ' done' : ''}" style="${ev.place !== 0 ? 'background:#FDE7E8;color:#B8353A' : ''}">${ev.place === 0 ? 'Win' : 'Loss'}</span><span class="small soft">${ev.farms != null ? plural(ev.farms, 'farm', 'farms') + ' at the end. ' : ''}${ev.place === 0 ? 'The bank sends the winner 25 ScobbBucks.' : ''}</span></div>`;
       } else if (ev.k === 'arc') {
         other = uid;
         t = `You beat ${ARC_NAME[ev.g][1]} and won ${bucks(sumC(ev.c))}`;
@@ -2326,7 +2392,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const list = Object.keys(players).filter(u => players[u] && players[u].username && players[u].avatar).sort((a, b) => (players[a].joinedAt || 0) - (players[b].joinedAt || 0));
     let h = `<header class="top"><h1>Feed</h1></header>`;
     h += `<h3 style="margin-top:0">Players</h3><div class="hscroll players">${list.map(u => `<button type="button" class="pl" data-act="profile" data-u="${esc(u)}">${headBubble(u, 58)}<span>${esc(nameOf(u))}</span></button>`).join('')}</div>`;
-    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5]))) ).sort((a, b) => b.t - a.t).slice(0, 100);
+    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && ev.k !== 'cas' && ev.k !== 'fps').sort((a, b) => b.t - a.t).slice(0, 100);
     if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades and shop buys show up here.</p>';
     h += `<div class="list">${evs.map(ev => {
       let t = '', more = '', hot = false, face = ev.a;
@@ -3554,7 +3620,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     }, onDbError));
     unsubs.push(FB.onSnapshot(FB.query(FB.collection(fs, 'dms'), FB.where('a', '==', uid)), qs => onDmSnap('from', qs), onDmError));
     unsubs.push(FB.onSnapshot(FB.query(FB.collection(fs, 'dms'), FB.where('to', '==', uid)), qs => onDmSnap('to', qs), onDmError));
-    if (FARM_LIVE) unsubs.push(FB.onSnapshot(FB.collection(fs, 'farmResults'), qs => { const next = {}; qs.forEach(d => { next[d.id] = d.data(); }); farmResults = next; recompute(); }, () => {}));
+    unsubs.push(FB.onSnapshot(FB.collection(fs, 'farmResults'), qs => { const next = {}; qs.forEach(d => { next[d.id] = d.data(); }); farmResults = next; recompute(); }, () => {}));
     FB.getDoc(FB.doc(fs, 'private/' + uid)).then(snap => {
       if (snap.exists()) priv = Object.assign({ seen: [] }, clone(snap.data()));
       privLoaded = true;

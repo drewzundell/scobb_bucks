@@ -1422,7 +1422,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     const r = round();
     if (!LIVE || !S || S.phase !== 'over' || S.cancelled || !S.winner || !isBank() || !r || wroteResult.has(curId)) return;
     wroteResult.add(curId);
-    FB.setDoc(FB.doc(fs, 'farmResults/' + curId), { by: uid, rd: curId, n: r.n, reason: S.reason || '', places: S.standings.slice(0, 3).map(p => p.uid), st: FB.serverTimestamp() }).catch(() => {});
+    FB.setDoc(FB.doc(fs, 'farmResults/' + curId), { by: uid, rd: curId, n: r.n, reason: S.reason || '', places: S.standings.slice(0, 3).map(p => p.uid), players: S.standings.map(p => p.uid), farms: Object.fromEntries(S.standings.map(p => [p.uid, farmsOf(p)])), st: FB.serverTimestamp() }).catch(() => {});
   }
   let backfilled = false;
   async function backfillResults() {
@@ -1438,7 +1438,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
         qs.forEach(d => { const x = d.data(); if (x && typeof x.a === 'string' && typeof x.i === 'string') { const e = Object.assign({}, x, { t: tOf(x.st, x.ct) }); delete e.st; mv.push(e); } });
         const R = simulate(r, mv, now());
         if (R.phase !== 'over' || R.cancelled || !R.winner) continue;
-        await FB.setDoc(FB.doc(fs, 'farmResults/' + r.id), { by: uid, rd: r.id, n: r.n, reason: R.reason || '', places: R.standings.slice(0, 3).map(p => p.uid), st: FB.serverTimestamp() }).catch(() => {});
+        await FB.setDoc(FB.doc(fs, 'farmResults/' + r.id), { by: uid, rd: r.id, n: r.n, reason: R.reason || '', places: R.standings.slice(0, 3).map(p => p.uid), players: R.standings.map(p => p.uid), farms: Object.fromEntries(R.standings.map(p => [p.uid, farmsOf(p)])), st: FB.serverTimestamp() }).catch(() => {});
       }
     } catch (e) { /* try again next visit */ }
   }
