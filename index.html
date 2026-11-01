@@ -947,7 +947,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
   const DAY = 86400000;
   function pressAt(pr, t) { const L0 = PRESS[pr.lvl - 1]; return Math.min(L0.cap, pr.acc + L0.rate * Math.max(0, t - pr.at) / DAY); }
   // Arcade: one crate per game per day; beating the game pays ARC_PRIZE coins from the vault.
-  const ARC = [['tap', 'Coin pop', '🎯'], ['react', 'Quick draw', '⚡'], ['simon', 'Scobb says', '🎵'], ['bar', 'Stop the bar', '🛑'], ['catch', 'Coin catcher', '🧺'], ['dodge', 'Block dodge', '🧱'], ['math', 'Math sprint', '➗'], ['count', 'Quick count', '🔢'], ['odd', 'Odd one out', '🎨'], ['type', 'Speed typer', '⌨️'], ['flappy', 'Flappy scobb', '🐤'], ['whack', 'Whack-a-scobb', '🔨'], ['grid', 'Tile memory', '🧠'], ['stack', 'Stacker', '🏗️'], ['stroop', 'Color clash', '🌈'], ['hoop', 'Hoop shot', '🏀'], ['pairs', 'Card match', '🃏'], ['order', 'Number rush', '🔟']];
+  const ARC = [['tap', 'Coin pop', '🎯'], ['react', 'Quick draw', '⚡'], ['simon', 'Scobb says', '🎵'], ['bar', 'Stop the bar', '🛑'], ['catch', 'Coin catcher', '🧺'], ['dodge', 'Block dodge', '🧱'], ['jump', 'Scobb jump', '🦘'], ['count', 'Quick count', '🔢'], ['odd', 'Odd one out', '🎨'], ['type', 'Speed typer', '⌨️'], ['flappy', 'Flappy scobb', '🐤'], ['whack', 'Whack-a-scobb', '🔨'], ['grid', 'Tile memory', '🧠'], ['stack', 'Stacker', '🏗️'], ['stroop', 'Color clash', '🌈'], ['hoop', 'Hoop shot', '🏀'], ['pairs', 'Card match', '🃏'], ['order', 'Number rush', '🔟']];
   const ARC_IDS = ARC.map(a => a[0]), ARC_NAME = Object.fromEntries(ARC.map(a => [a[0], a]));
   const ARC_PRIZE = 5, ARC_WINDOW = 30 * 60000;
   const arcDay = t => Math.floor((t - WEEK0) / DAY);
@@ -1992,7 +1992,8 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     if (A) for (const k in A.byKey) { const sp = A.byKey[k]; if (!sp.res && now - sp.t <= ARC_WINDOW && (!active || sp.t > active.t)) active = sp; }
     return { spins, active, left: ARC_IDS.filter(id => !spins.some(s => s.g === id)), today };
   }
-  const arcHearts = key => { try { const v = localStorage.getItem('arc-h-' + key); return v == null ? 3 : Math.max(0, Math.min(3, Number(v))); } catch (e) { return 3; } };
+  const ARC_HEARTS = 2;
+  const arcHearts = key => { try { const v = localStorage.getItem('arc-h-' + key); return v == null ? ARC_HEARTS : Math.max(0, Math.min(ARC_HEARTS, Number(v))); } catch (e) { return ARC_HEARTS; } };
   function arcadeCard() {
     const owner = uid === L.issuer, st = arcState();
     return `<section class="card mt"><div class="press-top"><span class="press-ic" aria-hidden="true">🎮</span><div><b>Arcade</b><p class="small soft">${owner ? 'Try out the minigames your friends play for coins' : `Beat a minigame to win ${ARC_PRIZE} ScobbBucks. ${st.left.length} of ${ARC_IDS.length} games left today.`}</p></div></div><button type="button" class="btn btn-lime btn-block mt" data-act="tab" data-tab="arcade">${st.active && !owner ? 'Finish your game' : 'Open the arcade'}</button></section>`;
@@ -2000,7 +2001,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
   function arcadeTab() {
     const owner = uid === L.issuer, st = arcState(), now = Date.now(), reset = WEEK0 + (st.today + 1) * DAY;
     let h = `<header class="top"><button type="button" class="icon-btn" data-act="tab" data-tab="wallet" aria-label="Back to wallet" style="font-size:26px;font-weight:800">‹</button><h1 style="flex:1;margin-left:10px">Arcade</h1></header>`;
-    h += `<section class="card"><p>${owner ? 'You’re the bank, so you can practice every game but you can’t win coins.' : `Open a crate to get a random minigame. Beat it to win <b>${ARC_PRIZE} ScobbBucks</b>. You get 3 hearts. Win or lose, that game is gone until the reset.`}</p><p class="small soft mt">${owner ? `${ARC_IDS.length} games in the pool.` : `${st.left.length} of ${ARC_IDS.length} games left today.`} New games at midnight, in ${pressWait(reset - now)}.</p>`;
+    h += `<section class="card"><p>${owner ? 'You’re the bank, so you can practice every game but you can’t win coins.' : `Open a crate to get a random minigame. Beat it to win <b>${ARC_PRIZE} ScobbBucks</b>. You get ${ARC_HEARTS} hearts. Win or lose, that game is gone until the reset.`}</p><p class="small soft mt">${owner ? `${ARC_IDS.length} games in the pool.` : `${st.left.length} of ${ARC_IDS.length} games left today.`} New games at midnight, in ${pressWait(reset - now)}.</p>`;
     if (!owner) {
       if (!L.funded[uid]) h += `<p class="small soft mt">The arcade unlocks once the bank sends you your first ScobbBucks. You can still practice below.</p>`;
       else if (st.active) { const g = ARC_NAME[st.active.g]; h += `<div class="arc-now"><span class="arc-em">${g[2]}</span> <b>${g[1]}</b> is waiting for you with ${plural(arcHearts(st.active.key), 'heart', 'hearts')} left. Play it within ${pressWait(st.active.t + ARC_WINDOW - now)} or it counts as a loss.</div><button type="button" class="btn btn-grape btn-block mt" data-act="arc-play">Play ${g[1]}</button>`; }
@@ -2063,7 +2064,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
     run.ctl = mod.play($('#arc-game'), id, {
       onHeart: left => { if (hk) { try { localStorage.setItem(hk, String(left)); } catch (e) { /* storage off */ } } },
       end: res => arcEnd(run, res)
-    }, sp ? arcHearts(sp.key) : 3);
+    }, sp ? arcHearts(sp.key) : ARC_HEARTS);
   }
   function arcEnd(run, res) {
     if (ui.arcRun === run) ui.arcRun = null;
