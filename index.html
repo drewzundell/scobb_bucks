@@ -2234,11 +2234,21 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   // Tracers change the color of your bullet trails.
   [['Ember', 0, '#FF9A5A'], ['Mint', 0, '#7EDDB0'], ['Ice', 1, '#9EF6FF'], ['Rose', 1, '#FF8FB0'], ['Volt', 2, '#C8FF2E'], ['Royal', 2, '#9B7BFF'], ['Plasma', 3, '#FF2EE0'], ['Sunbeam', 4, '#FFE14D'], ['Rainbow', 5, '#FF4F8B']]
     .forEach((c, i) => COS.push(['tr' + String(i).padStart(2, '0'), c[0] + ' tracers', c[1], c[2], '#FFFFFF', 0, c[1] >= 3 ? 1 : 0, 'tracer']));
-  const ALLC = SKN.map(x => x.concat('camo')).concat(COS);
+  // ===== More camos (shop only; crates keep rolling from the original list so old crate results never change) =====
+  const COS2 = [];
+  [['Gunmetal', '#4A4F5A'], ['Olive', '#6B7A3A'], ['Desert Tan', '#C2A878'], ['Midnight', '#1F2A44'], ['Crimson', '#9B1B30'], ['Teal', '#1C8C8C'], ['Orchid', '#B36BD1'], ['Copper', '#B87333']]
+    .forEach((c, i) => COS2.push(['cn' + i, c[0], 0, c[1], '#FFFFFF', 0, 0, 'camo']));
+  [[0, 6], [1, 7], [2, 9], [3, 8], [4, 2], [5, 1], [6, 0], [7, 3], [8, 4], [9, 5], [10, 7], [11, 6]]
+    .forEach(([a, b], i) => { COS2.push(['cd' + i * 2, `${COS_PAL[a][0]} ${COS_PAL[b][0]} Stripe`, 1, COS_PAL[a][1], COS_PAL[b][1], 1, 0, 'camo']); COS2.push(['cd' + (i * 2 + 1), `${COS_PAL[a][0]} ${COS_PAL[b][0]} Fade`, 2, COS_PAL[a][1], COS_PAL[b][1], 4, 0, 'camo']); });
+  [['Neon Pink', '#FF2E88', '#2A0B1E'], ['Neon Lime', '#C8FF2E', '#0B2A0B'], ['Neon Sky', '#2EC8FF', '#0B1E2A'], ['Neon Gold', '#FFD42E', '#2A1E0B'], ['Neon Violet', '#9B5BFF', '#140B2A'], ['Neon Ember', '#FF6A2E', '#2A100B']]
+    .forEach((c, i) => COS2.push(['cv' + i, c[0], 3, c[1], c[2], 1, 1, 'camo']));
+  COS2.push(['cw0', 'Northern Lights', 4, '#1BE3A2', '#7B3BFF', 4, 1, 'camo'], ['cw1', 'Sunset Strip', 4, '#FF5E3A', '#FFB13A', 1, 1, 'camo'], ['cw2', 'Glacier', 4, '#BFF4FF', '#2A6BD1', 4, 1, 'camo'], ['cw3', 'Dark Matter', 5, '#05050A', '#7B5BFF', 4, 1, 'camo']);
+  const ALLC_V1 = SKN.map(x => x.concat('camo')).concat(COS);
+  const ALLC = ALLC_V1.concat(COS2);
   const COS_KIND = { camo: 'Camo', charm: 'Charm', tracer: 'Tracers' };
   const sknInfo = id => ALLC.find(x => x[0] === id) || ALLC[0];
   const sknRand = () => ALLC[Math.floor(Math.random() * ALLC.length)][0];
-  const cosList = r => ALLC.filter(x => x[2] === r).map(x => x[0]);
+  const cosList = r => ALLC_V1.filter(x => x[2] === r).map(x => x[0]);
   // Strike crates (6 to 11) roll from every cosmetic. The original crates (0 to 5) stay as they were for old records.
   function cosDraw(c, seed) {
     const rnd = rng(hash32(seed));
@@ -2247,18 +2257,24 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const list = cosList(r);
     return list[Math.floor(rnd() * list.length)];
   }
-  // Twelve cosmetics a day: six camos, three charms, three tracers, spread across rarities.
+  // 24 cosmetics a day: fourteen camos, five charms and five tracers, spread across rarities.
   function cosShopAt(t, salt) {
-    const d = arcDay(t), rnd = rng(hash32('cosshop:' + d + ':' + (salt || ''))), out = [];
-    const take = (type, bands) => bands.forEach(b => {
+    const d = arcDay(t), out = [];
+    // Each day's first 12 picks never change, so anything bought before stays valid. The next 12 come from every camo.
+    const take = (rnd, pool, type, bands) => bands.forEach(b => {
       for (let tries = 0; tries < 12; tries++) {
-        const r = b[Math.floor(rnd() * b.length)], list = ALLC.filter(x => x[7] === type && x[2] === r && !out.includes(x[0]));
+        const r = b[Math.floor(rnd() * b.length)], list = pool.filter(x => x[7] === type && x[2] === r && !out.includes(x[0]));
         if (list.length) { out.push(list[Math.floor(rnd() * list.length)][0]); return; }
       }
     });
-    take('camo', [[0, 1], [1], [1, 2], [2], [2, 3], [3, 4, 5, 4]]);
-    take('charm', [[0, 1], [1, 2], [2, 3, 4, 5]]);
-    take('tracer', [[0, 1], [1, 2], [2, 3, 4, 5]]);
+    const r1 = rng(hash32('cosshop:' + d + ':' + (salt || '')));
+    take(r1, ALLC_V1, 'camo', [[0, 1], [1], [1, 2], [2], [2, 3], [3, 4, 5, 4]]);
+    take(r1, ALLC_V1, 'charm', [[0, 1], [1, 2], [2, 3, 4, 5]]);
+    take(r1, ALLC_V1, 'tracer', [[0, 1], [1, 2], [2, 3, 4, 5]]);
+    const r2 = rng(hash32('cosshop2:' + d + ':' + (salt || '')));
+    take(r2, ALLC, 'camo', [[0], [0, 1], [1], [1, 2], [2], [2, 3], [3], [3, 4, 5]]);
+    take(r2, ALLC, 'charm', [[0, 1, 2], [2, 3, 4]]);
+    take(r2, ALLC, 'tracer', [[0, 1, 2], [2, 3, 4, 5]]);
     return out;
   }
   const sknList = r => SKN.filter(x => x[2] === r).map(x => x[0]);
@@ -2398,7 +2414,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const shop = cosShopAt(now, config.salt), reset = WEEK0 + (arcDay(now) + 1) * DAY;
     const cell = id => { const inf = sknInfo(id), pr = SKN_PRICE[inf[2]], can = av[pr[0]] >= pr[1], have = mySkins(uid).some(x => x.s === id); return `<div class="skcell"><button type="button" class="skview" data-act="cos-view" data-s="${id}" aria-label="See ${esc(inf[1])} on a gun">${sknSw(id)}<i>See it on a gun</i></button><b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}</span>${have ? '<span class="small soft">You have one</span>' : ''}<button type="button" class="chipbtn" data-act="cos-buy" data-s="${id}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; };
     let h = owner ? `<p class="small soft">You’re the bank, so anything you buy here goes straight back into your vault.</p>` : '';
-    h += `<h3>Today’s Strike shop</h3><p class="small soft">Camos, charms and tracers for Scobb Strike. 12 new ones in ${timeLeft(reset - now)}.</p>`;
+    h += `<h3>Today’s Strike shop</h3><p class="small soft">${shop.length} camos, charms and tracers for Scobb Strike today. New ones in ${timeLeft(reset - now)}.</p>`;
     for (const type of ['camo', 'charm', 'tracer']) h += `<h3 class="small soft" style="margin:10px 0 6px">${COS_KIND[type] === 'Tracers' ? 'Tracers' : COS_KIND[type] + 's'}</h3><div class="skgrid">${shop.filter(id => sknInfo(id)[7] === type).map(cell).join('')}</div>`;
     h += `<h3>Strike crates</h3><p class="small soft">A random camo, charm or tracer. Rarer crates have better odds, and the best ones are very hard to pull.</p>`;
     h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c + 6}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
@@ -3373,7 +3389,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102g'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102h'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -3879,7 +3895,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102g" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102h" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -4109,7 +4125,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102g'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102h'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }

@@ -208,7 +208,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102g';
+import { create } from './scobb3d.js?v=20261102h';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -257,7 +257,16 @@ COS.push(['cy0', 'Celestial', 5, '#1B0B3A', '#FFD86B', 4, 1, 'camo'], ['cy1', 'I
 [['Ember', 0, '#FF9A5A'], ['Mint', 0, '#7EDDB0'], ['Ice', 1, '#9EF6FF'], ['Rose', 1, '#FF8FB0'], ['Volt', 2, '#C8FF2E'], ['Royal', 2, '#9B7BFF'], ['Plasma', 3, '#FF2EE0'], ['Sunbeam', 4, '#FFE14D'], ['Rainbow', 5, '#FF4F8B']]
   .forEach((c, i) => COS.push(['tr' + String(i).padStart(2, '0'), c[0] + ' tracers', c[1], c[2], '#FFFFFF', 0, c[1] >= 3 ? 1 : 0, 'tracer']));
 
-const ALLC = SKN.map(x => x.concat('camo')).concat(COS);
+  // ===== More camos (shop only; crates keep rolling from the original list so old crate results never change) =====
+const COS2 = [];
+[['Gunmetal', '#4A4F5A'], ['Olive', '#6B7A3A'], ['Desert Tan', '#C2A878'], ['Midnight', '#1F2A44'], ['Crimson', '#9B1B30'], ['Teal', '#1C8C8C'], ['Orchid', '#B36BD1'], ['Copper', '#B87333']]
+  .forEach((c, i) => COS2.push(['cn' + i, c[0], 0, c[1], '#FFFFFF', 0, 0, 'camo']));
+[[0, 6], [1, 7], [2, 9], [3, 8], [4, 2], [5, 1], [6, 0], [7, 3], [8, 4], [9, 5], [10, 7], [11, 6]]
+  .forEach(([a, b], i) => { COS2.push(['cd' + i * 2, `${COS_PAL[a][0]} ${COS_PAL[b][0]} Stripe`, 1, COS_PAL[a][1], COS_PAL[b][1], 1, 0, 'camo']); COS2.push(['cd' + (i * 2 + 1), `${COS_PAL[a][0]} ${COS_PAL[b][0]} Fade`, 2, COS_PAL[a][1], COS_PAL[b][1], 4, 0, 'camo']); });
+[['Neon Pink', '#FF2E88', '#2A0B1E'], ['Neon Lime', '#C8FF2E', '#0B2A0B'], ['Neon Sky', '#2EC8FF', '#0B1E2A'], ['Neon Gold', '#FFD42E', '#2A1E0B'], ['Neon Violet', '#9B5BFF', '#140B2A'], ['Neon Ember', '#FF6A2E', '#2A100B']]
+  .forEach((c, i) => COS2.push(['cv' + i, c[0], 3, c[1], c[2], 1, 1, 'camo']));
+COS2.push(['cw0', 'Northern Lights', 4, '#1BE3A2', '#7B3BFF', 4, 1, 'camo'], ['cw1', 'Sunset Strip', 4, '#FF5E3A', '#FFB13A', 1, 1, 'camo'], ['cw2', 'Glacier', 4, '#BFF4FF', '#2A6BD1', 4, 1, 'camo'], ['cw3', 'Dark Matter', 5, '#05050A', '#7B5BFF', 4, 1, 'camo']);
+const ALLC = SKN.map(x => x.concat('camo')).concat(COS).concat(COS2);
 const skinInfo = id => ALLC.find(x => x[0] === id) || null;
 const ownedOf = type => ALLC.filter(x => x[7] === type && skinsOwned.has(x[0]));
 const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
@@ -389,7 +398,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102g');
+    const cfg = await import('./firebase-config.js?v=20261102h');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -549,7 +558,7 @@ ui.addEventListener('click', e => {
 function openStore(kind) {
   if (document.querySelector('.store')) return;
   const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102g" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102h" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
