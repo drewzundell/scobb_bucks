@@ -120,6 +120,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .scope::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #000; }
 .scope::after { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #000; }
 .board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92vw, 520px); background: rgba(8,9,13,.88); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; font-size: 14.5px; }
+.lockhint { position: absolute; left: 50%; top: 42%; transform: translateX(-50%); background: rgba(8,9,13,.75); border: 1px solid rgba(255,255,255,.3); padding: 8px 16px; border-radius: 999px; font-size: 15px; }
+.lockhint[hidden] { display: none; }
 .kpops { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; }
 .kpop { display: flex; align-items: baseline; gap: 10px; padding: 8px 16px; border-radius: 12px; background: rgba(8,9,13,.62); border: 1px solid rgba(255,90,95,.5); animation: kp-in .25s cubic-bezier(.2,1.5,.4,1); transition: opacity .35s, transform .35s; }
 .kpop span { color: #FF8A8E; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
@@ -208,7 +210,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102k';
+import { create } from './scobb3d.js?v=20261102l';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -444,7 +446,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102k');
+    const cfg = await import('./firebase-config.js?v=20261102l');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -624,7 +626,7 @@ ui.addEventListener('click', e => {
 function openStore(kind) {
   if (document.querySelector('.store')) return;
   const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102k" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102l" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -903,7 +905,7 @@ function buildHud() {
     <div class="hp"><span id="h-hp"></span> <span class="prot" id="h-prot"></span><div class="bar"><i id="h-hpbar"></i></div></div>
     <div class="inv" id="h-inv"></div><div class="ammo"><b id="h-ammo"></b><span id="h-gun"></span></div>
     <div class="msg" id="h-msg"></div><div class="dmg"></div><div class="flash"></div>
-    <div class="board" id="h-board" hidden></div><div class="kpops" id="h-kills"></div><div class="score" id="h-score"></div>
+    <div class="board" id="h-board" hidden></div><div class="lockhint" id="h-lock" hidden>Click to aim and look around</div><div class="kpops" id="h-kills"></div><div class="score" id="h-score"></div>
     <div class="rstats" id="h-rstats"></div><canvas class="recoil" id="h-recoil" width="200" height="200"></canvas><div class="dmgnums" id="h-dmg"></div>
     ${touchDev ? `<div class="touch"><div class="stick" id="t-stick"><i></i></div><button class="tb" data-t="fire" style="right:24px;bottom:120px;width:78px;height:78px">FIRE</button><button class="tb" data-t="ads" style="right:118px;bottom:160px">AIM</button><button class="tb" data-t="jump" style="right:118px;bottom:84px">JUMP</button><button class="tb" data-t="reload" style="right:24px;bottom:210px">R</button><button class="tb" data-t="tac" style="right:24px;bottom:280px">TAC</button><button class="tb" data-t="leth" style="right:96px;bottom:250px">NADE</button><button class="tb" data-t="swap" style="right:170px;bottom:230px">SWAP</button><button class="tb" data-t="board" style="left:24px;top:calc(60px + env(safe-area-inset-top, 0px))">SCORE</button><button class="tb" data-t="pause" style="left:94px;top:calc(60px + env(safe-area-inset-top, 0px))">II</button></div>` : ''}
     <div class="pause" id="h-pause" hidden><div class="card"><h2 style="margin:0 0 10px">Paused</h2>${CONTROLS}<button class="btn block" id="h-resume" style="margin-top:14px">Resume</button><button class="btn ghost block" id="h-quit" style="margin-top:8px">Quit to menu</button></div></div>`;
@@ -949,6 +951,7 @@ function classPicker(sel) {
 }
 function showDeath() {
   if (document.getElementById('death') || mode === 'range') return;
+  clearInput();
   const k = me.killer, d = document.createElement('div'); d.id = 'death'; d.className = 'death';
   d.innerHTML = `<div class="dcard"><p class="dlbl">${k ? 'Killed by' : 'You died'}</p>${k ? `<h2>${k.name}</h2>${cardHTML(k.card || 'rookie', k.name)}` : '<h2>Your own grenade</h2>'}${mode === 'gun' ? `<p class="soft">You keep weapon ${(me.gg || 0) + 1} of ${GG.length}: ${WEAPONS[GG[me.gg || 0]].name}</p>` : `<h3>Switch class</h3>${classPicker(loadout.primary)}`}<button type="button" class="btn block" id="d-go" disabled>Respawn</button>${touchDev ? '' : `<p class="small soft dhint">Press <kbd>Space</kbd> to respawn${mode === 'gun' ? '' : ' · <kbd>1</kbd> to <kbd>6</kbd> to switch class'} · <kbd>Esc</kbd> to use the mouse</p>`}</div>`;
   $('#hud').appendChild(d);
@@ -959,11 +962,16 @@ function showDeath() {
   });
   setTimeout(() => { const g = document.getElementById('d-go'); if (g) g.disabled = false; }, TEST ? 50 : 1500);
 }
+function clearInput() { for (const k in keys) keys[k] = false; mouse.l = false; mouse.r = false; touchFire = false; touchMove = [0, 0]; if (me) me.cook = -1; }
+window.addEventListener('blur', clearInput);
+document.addEventListener('visibilitychange', () => { if (document.hidden) clearInput(); });
+document.addEventListener('pointerlockerror', () => { lockHint = true; });
+let lockHint = false;
 function respawnNow() {
   const go = document.getElementById('d-go');
   if (!go || go.disabled) return;
-  me.wantSpawn = true; keys.Space = false; mouse.l = false;
-  if (!TEST && !touchDev && document.pointerLockElement !== cv && cv.requestPointerLock) cv.requestPointerLock();
+  me.wantSpawn = true; clearInput();
+  if (!TEST && !touchDev && document.pointerLockElement !== cv && cv.requestPointerLock) { try { const r = cv.requestPointerLock(); if (r && r.catch) r.catch(() => { lockHint = true; }); } catch (e) { lockHint = true; } }
 }
 function pickClass(i) {
   const b = document.querySelectorAll('#death [data-pick]')[i];
@@ -981,6 +989,8 @@ function setPrimary(id) {
 function updateHud() {
   const g = me.guns[me.cur];
   if (!me.alive && !attract) showDeath();
+  const lh = document.getElementById('h-lock');
+  if (lh) lh.hidden = TEST || touchDev || paused || !me.alive || document.pointerLockElement === cv || (match && match.phase === 'done');
   if (mode === 'range') {
     hudEls.round.textContent = 'Shooting range';
     hudEls.time.textContent = '';
@@ -1044,7 +1054,11 @@ cv.addEventListener('mousedown', e => { if (!running || attract) return; if (!TE
 document.addEventListener('mouseup', e => { if (e.button === 0) mouse.l = false; if (e.button === 2) mouse.r = false; });
 cv.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('mousemove', e => { if (!running || attract || paused || !me) return; if (document.pointerLockElement === cv || TEST) { const sens = 0.0022 / (me.ads > 0.6 ? me.guns[me.cur].s.zoom * 0.7 : 1); me.yaw += e.movementX * sens; me.pitch = Math.max(-1.45, Math.min(1.45, me.pitch - e.movementY * sens)); } });
-document.addEventListener('pointerlockchange', () => { if (running && !attract && document.pointerLockElement !== cv && !TEST && match && match.phase !== 'done' && me && me.alive) togglePause(true); });
+document.addEventListener('pointerlockchange', () => {
+  if (document.pointerLockElement === cv) { lockHint = false; return; }
+  clearInput();
+  if (running && !attract && !TEST && match && match.phase !== 'done' && me && me.alive && !me.justSpawned) togglePause(true);
+});
 function togglePause(on) { paused = on; if (hudEls.pause) hudEls.pause.hidden = !on; }
 let touchMove = [0, 0], touchFire = false, touchAds = false;
 function wireTouch() {
@@ -1193,7 +1207,7 @@ function step(dt) {
   else if (mode === 'match' || mode === 'gun') { match.t -= dt; if (match.t <= 0) { endRound(); return; } }
   const live = match.phase === 'live';
   for (const e of ents) {
-    if (!e.alive) { e.respawn -= dt; if (e === me && !attract) { if (me.wantSpawn && live) { me.wantSpawn = false; spawn(me); hideDeath(); } } else if (e.respawn <= 0 && live) spawn(e); continue; }
+    if (!e.alive) { e.respawn -= dt; if (e === me && !attract) { if (me.wantSpawn && live) { me.wantSpawn = false; spawn(me); hideDeath(); clearInput(); me.justSpawned = true; setTimeout(() => { if (me) me.justSpawned = false; }, 1500); } } else if (e.respawn <= 0 && live) spawn(e); continue; }
     e.fireT -= dt; e.swapT -= dt; e.flashT -= dt; e.prot -= dt; e.meleeT = (e.meleeT || 0) - dt; e.knifeAnim = (e.knifeAnim || 0) - dt; e.flashMuzzle = (e.flashMuzzle || 0) - dt; e.recoil *= Math.pow(0.02, dt);
     if (e.reloadT > 0) { e.reloadT -= dt; if (e.reloadT <= 0) { const g = e.guns[e.cur]; g.ammo = g.s.mag; } }
     if (e.stimT > 0) { e.stimT -= dt; e.hp = Math.min(100, e.hp + 100 * dt); }
