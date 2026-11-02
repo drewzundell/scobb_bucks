@@ -6,11 +6,11 @@ const VS = `
 attribute vec3 aP; attribute vec3 aN;
 uniform mat4 uVP; uniform mat4 uM; uniform mat3 uNM;
 uniform int uMode; uniform vec3 uBox; uniform float uRad;
-varying vec3 vP; varying vec3 vN; varying vec2 vUV;
+varying vec3 vP; varying vec3 vN; varying vec2 vUV; varying vec3 vL;
 void main(){
   vec3 p = aP, n = aN;
   if (uMode == 1) { vec3 q = aP * uBox; vec3 inner = clamp(q, -(uBox - uRad), uBox - uRad); n = normalize(q - inner + aP * 1e-4); p = inner + n * uRad; }
-  vUV = aP.xy;
+  vUV = aP.xy; vL = p;
   vec4 w = uM * vec4(p, 1.0);
   vP = w.xyz; vN = normalize(uNM * n);
   gl_Position = uVP * w;
@@ -18,7 +18,12 @@ void main(){
 const FS = `
 precision highp float;
 precision highp int;
-varying vec3 vP; varying vec3 vN; varying vec2 vUV;
+varying vec3 vP; varying vec3 vN; varying vec2 vUV; varying vec3 vL;
+uniform int uPat; uniform float uPatS; uniform float uAnim; uniform float uTime;
+float hsh(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float vnoise(vec3 x) { vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hsh(i), hsh(i + vec3(1,0,0)), f.x), mix(hsh(i + vec3(0,1,0)), hsh(i + vec3(1,1,0)), f.x), f.y),
+             mix(mix(hsh(i + vec3(0,0,1)), hsh(i + vec3(1,0,1)), f.x), mix(hsh(i + vec3(0,1,1)), hsh(i + vec3(1,1,1)), f.x), f.y), f.z); }
 uniform vec3 uColor; uniform vec3 uEye; uniform vec3 uL; uniform vec3 uSky; uniform vec3 uGround;
 uniform float uSpec; uniform float uShiny; uniform float uAlpha; uniform int uMode; uniform float uEmit; uniform float uStripe; uniform vec3 uColor2; uniform vec3 uFogC; uniform float uFogD;
 void main(){
@@ -27,6 +32,13 @@ void main(){
   if (dot(n, v) < 0.0) n = -n;
   vec3 base = uColor;
   if (uStripe > 0.0) base = mix(uColor, uColor2, step(0.5, fract(vP.y * uStripe)));
+  if (uPat > 0) {
+    vec3 q = vL * uPatS; float tm = uTime * uAnim;
+    if (uPat == 1) base = mix(uColor, uColor2, step(0.5, fract((q.y + q.z * 0.8 + q.x * 0.6) * 0.5 + tm * 0.35)));
+    else if (uPat == 2) { vec2 c = fract(vec2(q.z + q.x, q.y + q.x) * 0.9 + vec2(tm * 0.2, 0.0)) - 0.5; base = mix(uColor, uColor2, 1.0 - step(0.26, length(c))); }
+    else if (uPat == 3) { float n1 = vnoise(q * 0.6 + vec3(0.0, 0.0, tm * 0.3)), n2 = vnoise(q * 1.3 + 7.1); base = n1 > 0.55 ? uColor2 : (n2 > 0.58 ? uColor * 0.62 : uColor); }
+    else if (uPat == 4) { float k = 0.5 + 0.5 * sin(q.z * 0.35 + q.y * 0.2 + tm * 1.6); base = mix(uColor, uColor2, k); }
+  }
   float dif = max(dot(n, uL), 0.0);
   float wrap = max((dot(n, uL) + 0.35) / 1.35, 0.0);
   vec3 hemi = mix(uGround, uSky, n.y * 0.5 + 0.5);
@@ -159,7 +171,7 @@ export function create(canvas, W, H, opts) {
   gl.linkProgram(pr);
   if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { create.lastError = 'Link error: ' + gl.getProgramInfoLog(pr); return null; }
   gl.useProgram(pr);
-  const U = {}; for (const k of ['uFogC', 'uFogD', 'uVP', 'uM', 'uNM', 'uMode', 'uBox', 'uRad', 'uColor', 'uColor2', 'uStripe', 'uEye', 'uL', 'uSky', 'uGround', 'uSpec', 'uShiny', 'uAlpha', 'uEmit']) U[k] = gl.getUniformLocation(pr, k);
+  const U = {}; for (const k of ['uPat', 'uPatS', 'uAnim', 'uTime', 'uFogC', 'uFogD', 'uVP', 'uM', 'uNM', 'uMode', 'uBox', 'uRad', 'uColor', 'uColor2', 'uStripe', 'uEye', 'uL', 'uSky', 'uGround', 'uSpec', 'uShiny', 'uAlpha', 'uEmit']) U[k] = gl.getUniformLocation(pr, k);
   const aP = gl.getAttribLocation(pr, 'aP'), aN = gl.getAttribLocation(pr, 'aN');
   gl.enableVertexAttribArray(aP); gl.enableVertexAttribArray(aN);
   const meshes = buildMeshes(gl);
@@ -194,6 +206,7 @@ export function create(canvas, W, H, opts) {
     gl.uniform3fv(U.uColor, hex(o.c || '#ffffff')); gl.uniform3fv(U.uColor2, hex(o.c2 || '#ffffff')); gl.uniform1f(U.uStripe, o.stripe || 0);
     gl.uniform1f(U.uSpec, o.spec == null ? 0.45 : o.spec); gl.uniform1f(U.uShiny, o.shiny || 40);
     gl.uniform1f(U.uAlpha, o.a == null ? 1 : o.a); gl.uniform1f(U.uEmit, o.emit || 0);
+    gl.uniform1i(U.uPat, o.pat || 0); gl.uniform1f(U.uPatS, o.patS || 30); gl.uniform1f(U.uAnim, o.anim ? 1 : 0);
     gl.drawElements(gl.TRIANGLES, m.n, gl.UNSIGNED_SHORT, 0);
   }
   const api = {
@@ -241,6 +254,7 @@ export function create(canvas, W, H, opts) {
       gl.uniformMatrix4fv(U.uVP, false, api.VPm);
       gl.uniform3fv(U.uEye, e);
     },
+    time(t) { gl.uniform1f(U.uTime, t / 1000); },
     fog(color, density) { api.bg = hex(color); gl.uniform3fv(U.uFogC, api.bg); gl.uniform1f(U.uFogD, density); },
     // World point to screen pixels for the free camera. Returns null if the point is behind the camera.
     toScreen(x, y, z) { const m = api.VPm; if (!m) return null; const cx = m[0] * x + m[4] * y + m[8] * z + m[12], cy = m[1] * x + m[5] * y + m[9] * z + m[13], cw = m[3] * x + m[7] * y + m[11] * z + m[15]; if (cw <= 0.01) return null; return [(cx / cw * 0.5 + 0.5) * W, (1 - (cy / cw * 0.5 + 0.5)) * H]; },

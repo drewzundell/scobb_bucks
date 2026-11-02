@@ -3389,7 +3389,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102h'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102i'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -3895,7 +3895,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102h" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102i" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -4125,7 +4125,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102h'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102i'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }

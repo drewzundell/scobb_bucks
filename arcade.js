@@ -1,7 +1,7 @@
 // ScobbBucks Arcade: 18 quick skill games. Each one gets 2 hearts.
 export const HEARTS = 2;
 // index.html keeps the same list of ids for the daily crate and payouts.
-import { create as create3d } from './scobb3d.js?v=20261102b';
+import { create as create3d } from './scobb3d.js?v=20261102i';
 
 // 3D stage: a WebGL canvas where 1 world unit is 1 screen pixel, so game logic stays in pixels.
 function stage3d(el, bg, opts) {

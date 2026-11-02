@@ -208,7 +208,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102h';
+import { create } from './scobb3d.js?v=20261102i';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -290,21 +290,35 @@ const TACT = { stim: ['Stim shot', 'Heals you to full'], flash: ['Flashbang', 'B
 const LETH = { frag: ['Frag grenade', 'Cook and throw. It can kill you too'], semtex: ['Semtex', 'Sticks to what it hits'], molotov: ['Molotov', 'Burns an area'], knife: ['Throwing knife', 'One hit kill if it lands'] };
 const DEFAULT_LOADOUT = { primary: 'ar0', secondary: 'pi0', att: { optic: 0, barrel: 0, mag: 0, grip: 0 }, perks: [0, 0, 1], tac: 'stim', leth: 'frag', skin: '', camos: {}, charm: '', tracer: '', atts: {} };
 let loadout = (() => { try { return Object.assign({}, DEFAULT_LOADOUT, JSON.parse(localStorage.getItem('scobbstrike-loadout2') || '{}')); } catch (e) { return Object.assign({}, DEFAULT_LOADOUT); } })();
-const saveLoadout = () => { try { localStorage.setItem('scobbstrike-loadout2', JSON.stringify(loadout)); } catch (e) { /* private mode */ } };
+let loSyncT = 0;
+const saveLoadout = () => {
+  loadout.t = Date.now();
+  try { localStorage.setItem('scobbstrike-loadout2', JSON.stringify(loadout)); } catch (e) { /* private mode */ }
+  clearTimeout(loSyncT);
+  loSyncT = setTimeout(() => { if (FB && ME_UID) FB.setDoc(FB.doc(fsdb, 'fpsStats/' + ME_UID), { lo: JSON.stringify(loadout), loT: loadout.t }, { merge: true }).catch(() => {}); }, 800);
+};
 let owned = new Set(), myLook = null, stats = {}, skinsOwned = new Set();
 const ownsW = id => WEAPONS[id] && (WEAPONS[id].tier === 0 || owned.has('w:' + id));
 const ownsA = (slot, i) => i === 0 || owned.has('a:' + slot + ':' + i);
+// statsReady flips on once your owned gear arrives. Before that we don't know what you own, so nothing gets taken off.
+let statsReady = false;
 function fixLoadout() {
   if (!WEAPONS[loadout.primary] || !CLASSES[WEAPONS[loadout.primary].ck].p) loadout.primary = 'ar0';
+  if (!WEAPONS[loadout.secondary] || WEAPONS[loadout.secondary].ck !== 'pi') loadout.secondary = 'pi0';
+  loadout.atts = Object.assign({}, loadout.atts || {});
+  loadout.camos = Object.assign({}, loadout.camos || {});
+  if (!loadout.atts[loadout.primary] && loadout.att) loadout.atts[loadout.primary] = Object.assign({}, loadout.att);
+  if (loadout.skin) { if (!loadout.camos[loadout.primary]) loadout.camos[loadout.primary] = loadout.skin; loadout.skin = ''; }
+  if (!statsReady) { loadout.att = attOf(loadout.primary); return; }
   if (!ownsW(loadout.primary)) loadout.primary = WEAPONS[loadout.primary].ck + '0';
-  if (!WEAPONS[loadout.secondary] || WEAPONS[loadout.secondary].ck !== 'pi' || !ownsW(loadout.secondary)) loadout.secondary = 'pi0';
+  if (!ownsW(loadout.secondary)) loadout.secondary = 'pi0';
   loadout.atts = Object.assign({}, loadout.atts || {});
   if (!loadout.atts[loadout.primary] && loadout.att) loadout.atts[loadout.primary] = Object.assign({}, loadout.att);
   for (const g in loadout.atts) { const a = Object.assign({ optic: 0, barrel: 0, mag: 0, grip: 0 }, loadout.atts[g]); for (const s2 in ATT) if (!ownsA(s2, a[s2] || 0)) a[s2] = 0; loadout.atts[g] = a; }
   loadout.att = attOf(loadout.primary);
   loadout.camos = Object.assign({}, loadout.camos || {});
   if (loadout.skin) { if (!loadout.camos[loadout.primary]) loadout.camos[loadout.primary] = loadout.skin; loadout.skin = ''; }
-  if (skinsOwned.size || ME_UID) { for (const g in loadout.camos) if (!skinsOwned.has(loadout.camos[g])) delete loadout.camos[g]; if (loadout.charm && !skinsOwned.has(loadout.charm)) loadout.charm = ''; if (loadout.tracer && !skinsOwned.has(loadout.tracer)) loadout.tracer = ''; }
+  { for (const g in loadout.camos) if (!skinsOwned.has(loadout.camos[g])) delete loadout.camos[g]; if (loadout.charm && !skinsOwned.has(loadout.charm)) loadout.charm = ''; if (loadout.tracer && !skinsOwned.has(loadout.tracer)) loadout.tracer = ''; }
   for (const s in ATT) if (!ownsA(s, loadout.att[s] || 0)) loadout.att[s] = 0;
 }
 function attOf(id) { return Object.assign({ optic: 0, barrel: 0, mag: 0, grip: 0 }, (loadout.atts && loadout.atts[id]) || {}); }
@@ -398,7 +412,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102h');
+    const cfg = await import('./firebase-config.js?v=20261102i');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -406,7 +420,10 @@ async function initFirebase() {
     const auth = FB.getAuth(a); fsdb = FB.getFirestore(a);
     FB.onAuthStateChanged(auth, u => {
       ME_UID = u ? u.uid : null;
-      if (u) FB.onSnapshot(FB.doc(fsdb, 'fpsStats/' + u.uid), d => { stats = d.data() || {}; owned = new Set(stats.owned || []); skinsOwned = new Set(stats.skins || []); myLook = stats.look || null; fixLoadout(); if (view !== 'game') drawUI(); }, () => {});
+      if (u) FB.onSnapshot(FB.doc(fsdb, 'fpsStats/' + u.uid), d => {
+        stats = d.data() || {}; owned = new Set(stats.owned || []); skinsOwned = new Set(stats.skins || []); myLook = stats.look || null;
+        if (stats.lo && (stats.loT || 0) > (loadout.t || 0)) { try { loadout = Object.assign({}, DEFAULT_LOADOUT, JSON.parse(stats.lo)); localStorage.setItem('scobbstrike-loadout2', JSON.stringify(loadout)); } catch (e2) { /* keep the local one */ } }
+        statsReady = true; fixLoadout(); if (view !== 'game') drawUI(); }, () => {});
       if (view !== 'game') drawUI();
     });
   } catch (e) { /* offline: practice still works with free gear */ }
@@ -519,7 +536,7 @@ function renderPreview(t) {
   G2.begin(); G2.setSky('#FFFFFF', '#5C6370'); G2.fog('#12141A', 0); G2.light([-0.35, 0.85, 0.5]);
   const ang = 1.25 + Math.sin(t / 2400) * 0.5, dist = s2.ck === 'sn' ? 0.88 : s2.ck === 'pi' ? 0.42 : 0.66, c = [0, 0.0, s2.ck === 'pi' ? 0.03 : 0.04];
   const e = [c[0] + Math.sin(ang) * dist, c[1] + 0.16, c[2] + Math.cos(ang) * dist], d = sub(c, e);
-  G2.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 42, 0.02, 20);
+  G2.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 42, 0.02, 20); G2.time(t);
   drawGun(G2, [0, 0, 0], s2, att, hoverCos && hoverCos.type === 'camo' ? hoverCos.id : loadout.camos[smithGun], hoverCos && hoverCos.type === 'charm' ? hoverCos.id : loadout.charm, 0, t, hl);
 }
 ui.addEventListener('mouseover', e => {
@@ -558,7 +575,7 @@ ui.addEventListener('click', e => {
 function openStore(kind) {
   if (document.querySelector('.store')) return;
   const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102h" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102i" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -1171,7 +1188,7 @@ function drawChar(e) {
   if (L.back) { const bk = P(-0.38, 0.95, 0); G.box(bk[0], bk[1], bk[2], 0.12, 0.25, 0.22, 0.05, L.back.c, { ry, spec: 0.4 }); }
   const gc = P(0.42, 0.98, 0.2);
   const bc = e.camo && skinInfo(e.camo);
-  G.box(gc[0], gc[1], gc[2], 0.06, 0.07, 0.3, 0.02, bc ? bc[3] : '#2B2F38', Object.assign({ ry: -e.yaw, rx: e.pitch * 0.6, spec: 0.9 }, bc && bc[5] === 1 ? { stripe: 26, c2: bc[4] } : {}));
+  G.box(gc[0], gc[1], gc[2], 0.06, 0.07, 0.3, 0.02, bc ? bc[3] : '#2B2F38', Object.assign({ ry: -e.yaw, rx: e.pitch * 0.6, spec: 0.9 }, bc && bc[5] ? { pat: bc[5], c2: bc[4], patS: 16, anim: bc[6] } : {}));
   for (const sg of [-1, 1]) { const hnd = P(0.32, 0.95, 0.12 * sg + 0.08); G.sphere(hnd[0], hnd[1], hnd[2], 0.09, body, { spec: 0.6 }); }
   if (e.flashMuzzle > 0) { const m = add(gc, scl(dirOf(e.yaw, e.pitch), 0.4)); G.sphere(m[0], m[1], m[2], 0.12, '#FFD86B', { emit: 1 }); }
   if (e.prot > 0) G.sphere(t[0], t[1] + 0.1, t[2], 1.0, '#7CC4F2', { a: 0.16, emit: 0.6, spec: 1 });
@@ -1183,12 +1200,8 @@ function drawGun(GX, o, s2, att, camoId, charmId, rl, t, hl) {
   const [x, y, z] = o, cls = s2.ck, len2 = cls === 'sn' ? 0.42 : cls === 'pi' ? 0.12 : cls === 'sg' ? 0.34 : cls === 'lmg' ? 0.3 : 0.26;
   let col = ['#2B2F38', '#2F3F5A', '#3A2F5A', '#5A2F3F', '#6B5321'][s2.tier], opt = {};
   const sk = camoId && skinInfo(camoId);
-  if (sk) {
-    const k = sk[6] ? (Math.sin(t / 500) + 1) / 2 : 0;
-    col = sk[5] === 0 || sk[5] === 4 ? mixHex(sk[3], sk[4], sk[5] === 4 ? (sk[6] ? k : 0.35) : 0) : sk[3];
-    if (sk[5] === 1) opt = { stripe: 26, c2: sk[4] };
-    if (sk[5] === 2 || sk[5] === 3) opt = { stripe: 9, c2: sk[4] };
-  }
+  if (sk) { col = sk[3]; if (sk[5]) opt = { pat: sk[5], c2: sk[4], patS: 34, anim: sk[6] }; }
+  if (GX.time) GX.time(t);
   const part = (px, py, pz, hx, hy, hz, r, c, o2) => GX.box(x + px, y + py, z + pz, hx, hy, hz, r, c, Object.assign({ spec: 1.1, shiny: 60 }, o2 || {}));
   part(0, 0, 0, 0.035, 0.05, len2, 0.012, col, Object.assign({ rx: rl }, opt, glow('camo')));
   const bl = (att && att.barrel === 3 ? 0.14 : 0.08);
@@ -1249,6 +1262,7 @@ function render() {
     const s = me.guns[me.cur].s; fov = 75 / (1 + (s.zoom - 1) * me.ads);
   }
   G.view(eye, yaw, pitch, fov, 0.05, 300);
+  G.time(performance.now());
   for (const bx of M.solid) { const b = bx.b; G.box(b[0], b[1], b[2], b[3], b[4], b[5], Math.min(0.12, b[3], b[4], b[5]), b[6], { spec: b[7] ? 0.2 : 0.25, shiny: 20, emit: b[7] ? 1 : 0 }); }
   for (const f of fires) for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + f.t, rr = 1.8 + Math.sin(f.t * 5 + i) * 0.5; G.sphere(f.p[0] + Math.cos(a) * rr, 0.3 + Math.abs(Math.sin(f.t * 7 + i)) * 0.4, f.p[2] + Math.sin(a) * rr, 0.35, i % 2 ? '#FF7A1A' : '#FFC233', { emit: 1, a: 0.85 }); }
   for (const e of ents) if (e.alive && e !== me) drawChar(e);
@@ -1269,7 +1283,7 @@ function startPreviewMode(id) {
       G.begin(); G.setSky('#FFFFFF', '#5C6370'); G.fog('#12141A', 0); G.light([-0.35, 0.85, 0.5]);
       const ang = 1.25 + Math.sin(t / 2600) * 0.55, dist = type === 'tracer' ? 0.78 : 0.6, c = [0, 0, type === 'tracer' ? -0.3 : 0.04];
       const e = [c[0] + Math.sin(ang) * dist, c[1] + 0.14, c[2] + Math.cos(ang) * dist], d = sub(c, e);
-      G.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 44, 0.02, 30);
+      G.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 44, 0.02, 30); G.time(t);
       const len2 = drawGun(G, [0, 0, 0], s2, at, type === 'camo' ? id : '', type === 'charm' ? id : '', 0, t);
       if (type === 'tracer') for (let k = 0; k < 3; k++) { const ph = ((t / 520 + k / 3) % 1); for (let i = 0; i < 8; i++) { const z = -len2 - 0.12 - (ph * 0.75 + i * 0.03); const col = inf[2] === 5 ? ['#FF4F8B', '#FFC233', '#5BE38A', '#3EC1FF', '#B98BFF'][(i + k) % 5] : inf[3]; G.sphere(0, 0.02, z, 0.02 - i * 0.0015, col, { emit: 1, a: 0.95 - i * 0.09 }); } }
     }
@@ -1281,7 +1295,7 @@ window.__strikeLoaded = true;
 const PREVIEW = new URLSearchParams(location.search).get('preview');
 if (PREVIEW) startPreviewMode(PREVIEW);
 else { initFirebase(); startAttract(); }
-if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, killMe: () => damage(me, 500, ents[1], 'gun'), killBot: () => { const b = ents.find(x => x.bot && x.alive && x.prot <= 0) || ents.find(x => x.bot && x.alive); if (b) { b.prot = 0; damage(b, 500, me, 'gun'); } return b && b.name; }, score: () => me.score, mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout, smith: id => { smithGun = id; view = 'smith'; drawUI(); }, thumbs: () => Object.keys(thumbs).length };
+if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, ready: (list, skins) => { owned = new Set(list); skinsOwned = new Set(skins); statsReady = true; fixLoadout(); drawUI(); }, killMe: () => damage(me, 500, ents[1], 'gun'), killBot: () => { const b = ents.find(x => x.bot && x.alive && x.prot <= 0) || ents.find(x => x.bot && x.alive); if (b) { b.prot = 0; damage(b, 500, me, 'gun'); } return b && b.name; }, score: () => me.score, mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout, smith: id => { smithGun = id; view = 'smith'; drawUI(); }, thumbs: () => Object.keys(thumbs).length };
 </script>
 </body>
 </html>
