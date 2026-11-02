@@ -19,11 +19,65 @@ const FS = `
 precision highp float;
 precision highp int;
 varying vec3 vP; varying vec3 vN; varying vec2 vUV; varying vec3 vL;
-uniform int uPat; uniform float uPatS; uniform float uAnim; uniform float uTime;
+uniform int uPat; uniform float uPatS; uniform float uAnim; uniform float uTime; uniform int uTex; uniform float uTexS;
 float hsh(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
 float vnoise(vec3 x) { vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(mix(hsh(i), hsh(i + vec3(1,0,0)), f.x), mix(hsh(i + vec3(0,1,0)), hsh(i + vec3(1,1,0)), f.x), f.y),
              mix(mix(hsh(i + vec3(0,0,1)), hsh(i + vec3(1,0,1)), f.x), mix(hsh(i + vec3(0,1,1)), hsh(i + vec3(1,1,1)), f.x), f.y), f.z); }
+vec3 surf(int t, vec3 c, vec3 wp, vec3 n) {
+  vec3 a = abs(n); vec2 uv = a.y > a.x && a.y > a.z ? wp.xz : (a.x > a.z ? wp.zy : wp.xy);
+  uv *= uTexS;
+  float nz = vnoise(wp * 3.1) * 0.5 + vnoise(wp * 11.0) * 0.5;
+  if (t == 1) { // brick
+    vec2 b = vec2(uv.x / 0.5, uv.y / 0.22); b.x += step(1.0, mod(b.y, 2.0)) * 0.5; vec2 f = fract(b), id = floor(b);
+    float mortar = step(f.x, 0.05) + step(f.y, 0.09); float tone = hsh(vec3(id, 3.0)) * 0.25;
+    return mix(c * (0.82 + tone), vec3(0.72, 0.7, 0.66), clamp(mortar, 0.0, 1.0)) * (0.92 + nz * 0.12);
+  }
+  if (t == 2) { // wood planks
+    float pl = uv.y / 0.18, f = fract(pl), id = floor(pl); float grain = vnoise(vec3(uv.x * 2.0, id * 7.0, 0.0) + vec3(0.0, f * 4.0, 0.0));
+    return c * (0.78 + grain * 0.3 + hsh(vec3(id, 1.0, 2.0)) * 0.12) * (1.0 - step(0.93, f) * 0.45);
+  }
+  if (t == 3) { // concrete with panel seams
+    vec2 f = fract(uv / 2.0); float seam = step(f.x, 0.008) + step(f.y, 0.008);
+    return c * (0.86 + nz * 0.22) * (1.0 - clamp(seam, 0.0, 1.0) * 0.25);
+  }
+  if (t == 4) { // corrugated metal
+    float r = 0.5 + 0.5 * sin(uv.x * 34.0);
+    return c * (0.72 + r * 0.38) * (0.94 + nz * 0.1);
+  }
+  if (t == 5) { // grass
+    float g = vnoise(wp * 1.7) * 0.6 + vnoise(wp * 9.0) * 0.4;
+    return mix(c * 0.72, c * 1.18, g) * (0.95 + hsh(floor(wp * 18.0)) * 0.1);
+  }
+  if (t == 6) { // asphalt
+    return c * (0.8 + nz * 0.3 + hsh(floor(wp * 40.0)) * 0.12);
+  }
+  if (t == 7) { // roof shingles
+    vec2 b = vec2(uv.x / 0.34, uv.y / 0.2); b.x += step(1.0, mod(b.y, 2.0)) * 0.5; vec2 f = fract(b);
+    return c * (0.8 + hsh(vec3(floor(b), 5.0)) * 0.3) * (1.0 - step(0.86, f.y) * 0.4);
+  }
+  if (t == 8) { // floor tiles
+    vec2 f = fract(uv / 0.6); float g = step(f.x, 0.03) + step(f.y, 0.03);
+    return mix(c * (0.95 + nz * 0.08), c * 0.6, clamp(g, 0.0, 1.0));
+  }
+  if (t == 9) { // sand and dirt
+    return c * (0.84 + nz * 0.28);
+  }
+  if (t == 10) { // lap siding
+    float f = fract(uv.y / 0.16);
+    return c * (0.9 + nz * 0.08) * (1.0 - smoothstep(0.82, 1.0, f) * 0.35);
+  }
+  if (t == 11) { // window glass
+    vec2 f = fract(uv / vec2(1.2, 1.4)); float frame = step(f.x, 0.06) + step(f.y, 0.06);
+    vec3 g = mix(vec3(0.16, 0.24, 0.32), vec3(0.55, 0.68, 0.8), clamp(f.y * 0.8 + nz * 0.3, 0.0, 1.0));
+    return mix(g, c, clamp(frame, 0.0, 1.0));
+  }
+  if (t == 12) { // painted metal with rivets, for shipping containers
+    float r = 0.5 + 0.5 * sin(uv.x * 20.0); vec2 f = fract(uv / 0.6);
+    return c * (0.8 + r * 0.25) * (0.93 + nz * 0.1) * (1.0 - (1.0 - step(0.04, length(f - 0.08))) * 0.3);
+  }
+  return c;
+}
 uniform vec3 uColor; uniform vec3 uEye; uniform vec3 uL; uniform vec3 uSky; uniform vec3 uGround;
 uniform float uSpec; uniform float uShiny; uniform float uAlpha; uniform int uMode; uniform float uEmit; uniform float uStripe; uniform vec3 uColor2; uniform vec3 uFogC; uniform float uFogD;
 void main(){
@@ -32,6 +86,7 @@ void main(){
   if (dot(n, v) < 0.0) n = -n;
   vec3 base = uColor;
   if (uStripe > 0.0) base = mix(uColor, uColor2, step(0.5, fract(vP.y * uStripe)));
+  if (uTex > 0) base = surf(uTex, base, vP, normalize(vN));
   if (uPat > 0) {
     vec3 q = vL * uPatS; float tm = uTime * uAnim;
     if (uPat == 1) base = mix(uColor, uColor2, step(0.5, fract((q.y + q.z * 0.8 + q.x * 0.6) * 0.5 + tm * 0.35)));
@@ -171,7 +226,7 @@ export function create(canvas, W, H, opts) {
   gl.linkProgram(pr);
   if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { create.lastError = 'Link error: ' + gl.getProgramInfoLog(pr); return null; }
   gl.useProgram(pr);
-  const U = {}; for (const k of ['uPat', 'uPatS', 'uAnim', 'uTime', 'uFogC', 'uFogD', 'uVP', 'uM', 'uNM', 'uMode', 'uBox', 'uRad', 'uColor', 'uColor2', 'uStripe', 'uEye', 'uL', 'uSky', 'uGround', 'uSpec', 'uShiny', 'uAlpha', 'uEmit']) U[k] = gl.getUniformLocation(pr, k);
+  const U = {}; for (const k of ['uTex', 'uTexS', 'uPat', 'uPatS', 'uAnim', 'uTime', 'uFogC', 'uFogD', 'uVP', 'uM', 'uNM', 'uMode', 'uBox', 'uRad', 'uColor', 'uColor2', 'uStripe', 'uEye', 'uL', 'uSky', 'uGround', 'uSpec', 'uShiny', 'uAlpha', 'uEmit']) U[k] = gl.getUniformLocation(pr, k);
   const aP = gl.getAttribLocation(pr, 'aP'), aN = gl.getAttribLocation(pr, 'aN');
   gl.enableVertexAttribArray(aP); gl.enableVertexAttribArray(aN);
   const meshes = buildMeshes(gl);
@@ -206,6 +261,7 @@ export function create(canvas, W, H, opts) {
     gl.uniform3fv(U.uColor, hex(o.c || '#ffffff')); gl.uniform3fv(U.uColor2, hex(o.c2 || '#ffffff')); gl.uniform1f(U.uStripe, o.stripe || 0);
     gl.uniform1f(U.uSpec, o.spec == null ? 0.45 : o.spec); gl.uniform1f(U.uShiny, o.shiny || 40);
     gl.uniform1f(U.uAlpha, o.a == null ? 1 : o.a); gl.uniform1f(U.uEmit, o.emit || 0);
+    gl.uniform1i(U.uTex, o.tex || 0); gl.uniform1f(U.uTexS, o.texS || 1);
     gl.uniform1i(U.uPat, o.pat || 0); gl.uniform1f(U.uPatS, o.patS || 30); gl.uniform1f(U.uAnim, o.anim ? 1 : 0);
     gl.drawElements(gl.TRIANGLES, m.n, gl.UNSIGNED_SHORT, 0);
   }

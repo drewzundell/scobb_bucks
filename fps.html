@@ -208,7 +208,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102i';
+import { create } from './scobb3d.js?v=20261102j';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -362,39 +362,77 @@ const CARD_PROGRESS = { first: ['k', 10], vet: ['k', 100], hs: ['hs', 50], boom:
 function stairs(x, z, dir, n, w, col) { const out = []; for (let i = 0; i < n; i++) { const h = 0.4 * (i + 1); out.push(dir === 'x' ? [x + i * 0.6, h / 2, z, 0.3, h / 2, w, col] : dir === '-x' ? [x - i * 0.6, h / 2, z, 0.3, h / 2, w, col] : dir === '-z' ? [x, h / 2, z - i * 0.6, w, h / 2, 0.3, col] : [x, h / 2, z + i * 0.6, w, h / 2, 0.3, col]); } return out; }
 function walls(S, H, col) { return [[0, H / 2, -S, S, H / 2, 0.5, col], [0, H / 2, S, S, H / 2, 0.5, col], [-S, H / 2, 0, 0.5, H / 2, S, col], [S, H / 2, 0, 0.5, H / 2, S, col]]; }
 const crate = (x, z, s, col, y) => [x, (y || 0) + s, z, s, s, s, col];
+// Box: [x, centerY, z, halfX, halfY, halfZ, color, emissive, texture, shape]. Textures: 1 brick, 2 wood, 3 concrete, 4 corrugated metal,
+// 5 grass, 6 asphalt, 7 shingles, 8 tile, 9 sand, 10 siding, 11 glass, 12 container steel. Shapes: 1 upright tank, 2 gable roof, 3 pipe along x, 4 pipe along z.
+const BX = (x, y0, z, hx, hy, hz, c, tex, emit, shape) => [x, y0 + hy, z, hx, hy, hz, c, emit || 0, tex || 0, shape || 0];
+function house(cx, cz, face, wall, roof) {
+  const o = [], W = 5, D = 3.6, H = 2.8, T = 0.15, fz = cz + face * D, bz = cz - face * D, U = H + 0.2, H2 = 2.6;
+  const wx = (x0, x1, z, y0, h, tex, c) => o.push(BX((x0 + x1) / 2, y0, z, (x1 - x0) / 2, h / 2, T, c || wall, tex == null ? 10 : tex));
+  const wz = (x, z0, z1, y0, h, tex, c) => o.push(BX(x, y0, (z0 + z1) / 2, T, h / 2, Math.abs(z1 - z0) / 2, c || wall, tex == null ? 10 : tex));
+  wx(cx - W, cx - 0.8, fz, 0, H); wx(cx + 0.8, cx + W, fz, 0, H); wx(cx - 0.8, cx + 0.8, fz, 2.2, H - 2.2);
+  wx(cx - W, cx + 1.7, bz, 0, H); wx(cx + 3.3, cx + W, bz, 0, H); wx(cx + 1.7, cx + 3.3, bz, 2.2, H - 2.2);
+  wz(cx - W, Math.min(fz, bz), Math.max(fz, bz), 0, H); wz(cx + W, Math.min(fz, bz), Math.max(fz, bz), 0, H);
+  for (const gx of [cx - 3, cx + 3]) o.push(BX(gx, 1.0, fz + face * 0.17, 0.8, 0.5, 0.03, '#E8E4DA', 11));
+  o.push(BX(cx + W + 0.17, 1.0, cz, 0.03, 0.5, 1.2, '#E8E4DA', 11), BX(cx - W - 0.17, 1.0, cz, 0.03, 0.5, 1.2, '#E8E4DA', 11));
+  o.push(BX(cx + 0.7, H, cz, W - 0.7 + 0.15, 0.1, D + 0.15, '#8E6A48', 2));
+  o.push(BX(cx - W + 0.7, H, cz - face * D / 2, 0.85, 0.1, D / 2 + 0.15, '#8E6A48', 2));
+  for (let i = 0; i < 7; i++) { const hh = 0.4 * (i + 1); o.push([cx - W + 0.7, hh / 2, fz - face * (0.6 + i * 0.5), 0.55, hh / 2, 0.25, '#7A5A3C', 0, 2, 0]); }
+  wx(cx - W, cx - 1.6, fz, U, H2); wx(cx + 1.6, cx + W, fz, U, H2); wx(cx - 1.6, cx + 1.6, fz, U, 0.9); wx(cx - 1.6, cx + 1.6, fz, U + 2.1, H2 - 2.1);
+  wx(cx - W, cx + W, bz, U, H2); wz(cx - W, Math.min(fz, bz), Math.max(fz, bz), U, H2); wz(cx + W, Math.min(fz, bz), Math.max(fz, bz), U, H2);
+  o.push(BX(cx, U + H2, cz, W + 0.4, 0.12, D + 0.4, '#5C6370', 3), [cx, U + H2 + 1.0, cz, W + 0.5, 0.9, D + 0.5, roof, 0, 7, 2]);
+  return o;
+}
+const fence = (x, z, hx, hz) => BX(x, 0, z, hx, 0.55, hz, '#C9A27A', 2);
+const container = (x, z, alongX, c, y0) => alongX ? BX(x, y0 || 0, z, 3, 1.3, 1.2, c, 12) : BX(x, y0 || 0, z, 1.2, 1.3, 3, c, 12);
 const MAPS = [
-  { name: 'Jelly Factory', blurb: 'Warehouse with crates, catwalks and a control room', sky: '#C9D3E6', ground: '#6B7180', fog: ['#9AA3B5', 0.006], floor: '#5E636E', S: 26, tint: 'linear-gradient(135deg,#5B6475,#2A2F37)',
-    boxes: [...walls(26, 9, '#A9AFBC'),
-      [0, 3, 0, 7, 0.2, 2, '#5C6370'], [-7.2, 1.5, 0, 0.2, 1.5, 2, '#5C6370'], [7.2, 1.5, 0, 0.2, 1.5, 2, '#5C6370'], ...stairs(-12.6, -1, 'x', 7, 1, '#6E7684'),
-      [0, 3, -9, 2, 0.2, 7, '#5C6370'], [0, 1.5, -15.5, 2, 1.5, 0.2, '#5C6370'], ...stairs(2.6, -18.4, 'x', 7, 0.9, '#6E7684'),
-      [18, 2.5, 18, 5, 2.5, 5, '#8E98A3'], [18, 5.1, 18, 5.2, 0.1, 5.2, '#5C6370'], [12.8, 1.2, 18, 0.2, 1.2, 1.2, '#2A2F37'],
-      crate(-14, -12, 1.1, '#C58A4E'), crate(-11.5, -10, 0.7, '#B97A3E'), crate(-14, -12, 0.6, '#B97A3E', 2.2), crate(12, 10, 1.1, '#C58A4E'), crate(10, 7, 0.8, '#B97A3E'), crate(-18, 6, 1, '#C58A4E'), crate(-6, 15, 0.9, '#B97A3E'), crate(6, -21, 1, '#C58A4E'),
-      [15, 1.6, -14, 2, 1.6, 1, '#4A90E2'], [-16, 1.6, 16, 1, 1.6, 2, '#E25A4A'], [-20, 1, -3, 0.6, 1, 3, '#8A6BE0'], [10, 2, -5, 1.5, 2, 1.5, '#7D838F'], [-9, 2, 7, 1.5, 2, 1.5, '#7D838F'],
-      [-22, 0.6, -20, 2, 0.6, 0.6, '#D9443B'], [22, 0.6, -2, 0.6, 0.6, 2.5, '#E39424'], [0, 0.5, 21, 4, 0.5, 0.6, '#C58A4E']],
-    spawns: [[-22, 0, -22], [22, 0, -22], [-22, 0, 22], [0, 0, 23], [-22, 0, 0], [22, 0, 4], [-4, 0, -22], [8, 0, 13]] },
-  { name: 'Rooftops', blurb: 'Sunset roofs at different heights joined by bridges', sky: '#FFD2A6', ground: '#6B4E5E', fog: ['#F2A98A', 0.006], floor: '#55505A', S: 30, tint: 'linear-gradient(135deg,#F2A98A,#6B4E7A)',
-    boxes: [...walls(30, 4, '#3E3A44'), [-15, 3, -15, 8, 3, 8, '#B5523B'], [15, 2, 15, 8, 2, 8, '#8E98A3'], [15, 4, -15, 7, 4, 7, '#D9B97A'], [-15, 1.5, 15, 7, 1.5, 7, '#7A8C6E'],
-      [0, 5.95, -15, 7, 0.15, 1.2, '#5C6370'], [-15, 2.95, 0, 1.2, 0.15, 7, '#5C6370'], [0, 3.95, 15, 7, 0.15, 1.2, '#5C6370'],
-      ...stairs(-8, 21, 'x', 4, 1.2, '#6E6670'), ...stairs(5, 5, 'z', 5, 1.2, '#6E6670'), ...stairs(-6.5, -5, '-z', 8, 1.2, '#6E6670'), ...stairs(1, -8, 'x', 10, 1.2, '#6E6670'),
-      [21, 9, -15, 0.6, 1, 3, '#C9A06A'], [-15, 6.5, -11, 2, 0.5, 0.5, '#9C4535'], [-19, 6.6, -19, 1, 0.6, 1, '#6E7684'], [-11, 6.6, -18, 1.4, 0.6, 0.6, '#6E7684'], [15, 4.6, 19, 1.5, 0.6, 0.6, '#5C6370'], [11, 4.6, 12, 0.6, 0.6, 1.5, '#5C6370'], [0, 1, 0, 2, 1, 2, '#3E3A44'], [-24, 1, 0, 1, 1, 3, '#3E3A44'], [24, 1, 4, 1, 1, 3, '#3E3A44']],
-    spawns: [[-15, 6.1, -15], [15, 4.1, 15], [15, 8.1, -15], [-15, 3.1, 15], [0, 0, 0], [26, 0, 0], [-26, 0, 0], [0, 0, 26]] },
-  { name: 'Desert Temple', blurb: 'Sandy ruins around a stepped pyramid', sky: '#FFE6B8', ground: '#C9A46B', fog: ['#F0D9A8', 0.005], floor: '#D9B97A', S: 28, tint: 'linear-gradient(135deg,#E8C27A,#A87A3E)',
-    boxes: [...walls(28, 3, '#C9A46B'), [0, 0.5, 0, 7, 0.5, 7, '#C9A46B'], [0, 1.5, 0, 5, 0.5, 5, '#BF9A5E'], [0, 2.5, 0, 3, 0.5, 3, '#B58F52'], [0, 3.5, 0, 1.2, 0.5, 1.2, '#E3B341'],
-      ...[-16, -8, 8, 16].flatMap(x => [[x, 2.5, -16, 0.7, 2.5, 0.7, '#E2C48A'], [x, 2.5, 16, 0.7, 2.5, 0.7, '#E2C48A']]), [-12, 5.2, -16, 5, 0.2, 1, '#C9A46B'], [12, 5.2, 16, 5, 0.2, 1, '#C9A46B'],
-      [-18, 1.2, 0, 0.6, 1.2, 4, '#B58F52'], [18, 1.2, 0, 0.6, 1.2, 4, '#B58F52'], [0, 1, -21, 5, 1, 0.6, '#B58F52'], [0, 1, 21, 5, 1, 0.6, '#B58F52'], [-10, 0.8, 9, 1.5, 0.8, 1, '#A87A3E'], [11, 0.8, -9, 1, 0.8, 1.5, '#A87A3E'],
-      [-22, 1.5, -22, 2, 1.5, 2, '#BF9A5E'], [22, 1.5, 22, 2, 1.5, 2, '#BF9A5E'], [22, 0.4, -22, 3, 0.4, 1, '#A87A3E'], [-22, 0.4, 22, 1, 0.4, 3, '#A87A3E'], [-6, 0.6, -12, 0.8, 0.6, 0.8, '#E2C48A'], [7, 0.6, 12, 0.8, 0.6, 0.8, '#E2C48A']],
-    spawns: [[-24, 0, -18], [24, 0, 18], [-24, 0, 24], [24, 0, -24], [0, 4.1, 0], [-24, 0, 0], [24, 0, 0], [0, 0, 24]] },
-  { name: 'Frozen Harbor', blurb: 'Icy docks with stacked containers and a crane', sky: '#E6F2FF', ground: '#8FA8C0', fog: ['#DCE8F5', 0.008], floor: '#E8F0F8', S: 30, tint: 'linear-gradient(135deg,#BFD9F2,#5D7C9C)',
-    boxes: [...walls(30, 3, '#9FB4C8'), [-12, 1.3, -10, 1.3, 1.3, 6, '#D9443B'], [-12, 3.9, -10, 1.3, 1.3, 6, '#2F74E8'], [12, 1.3, 10, 1.3, 1.3, 6, '#23A26F'], [12, 3.9, 10, 1.3, 1.3, 6, '#E39424'], [8, 1.3, -14, 6, 1.3, 1.3, '#E39424'], [-8, 1.3, 15, 6, 1.3, 1.3, '#7C4DEB'], [0, 1.3, 0, 1.3, 1.3, 4, '#D9443B'],
-      [18, 1.3, -4, 1.3, 1.3, 5, '#2F74E8'], [-20, 1.3, 4, 1.3, 1.3, 5, '#23A26F'], ...stairs(-15.5, -16.5, 'z', 6, 1.2, '#8FA8C0'), ...stairs(15.5, 17.2, '-z', 6, 1.2, '#8FA8C0'), [20, 4, 20, 0.5, 4, 0.5, '#F2C14E'], [20, 7.8, 15, 0.4, 0.3, 5, '#F2C14E'],
-      [-4, 0.8, -6, 2, 0.8, 0.8, '#9FB4C8'], [5, 0.8, 5, 0.8, 0.8, 2, '#9FB4C8'], [-24, 0.6, -24, 3, 0.6, 3, '#C9D9EA'], [24, 0.6, -24, 3, 0.6, 3, '#C9D9EA'], [0, 1.3, 22, 4, 1.3, 1.3, '#D9443B'], [0, 1.3, -24, 4, 1.3, 1.3, '#23A26F']],
-    spawns: [[-26, 0, -18], [26, 0, 26], [-26, 0, 26], [26, 0, -18], [0, 0, -18], [0, 0, 18], [-12, 5.3, -10], [12, 5.3, 10]] },
-  { name: 'Neon Arcade', blurb: 'Tight dark corridors lit by neon', sky: '#3A2E6E', ground: '#140F24', fog: ['#120E22', 0.016], floor: '#1B1730', S: 22, tint: 'linear-gradient(135deg,#FF4F8B,#3A2EAE)',
-    boxes: [...walls(22, 5, '#221C3A'), [0, 2, -8, 8, 2, 0.4, '#2A2347'], [0, 2, 8, 8, 2, 0.4, '#2A2347'], [-8, 2, -1, 0.4, 2, 4, '#2A2347'], [8, 2, 1, 0.4, 2, 4, '#2A2347'], [0, 3.7, -7.55, 8, 0.08, 0.05, '#FF4F8B', 1], [0, 3.7, 7.55, 8, 0.08, 0.05, '#3EC1FF', 1],
-      [-15, 2, -6, 0.4, 2, 5, '#2A2347'], [15, 2, 6, 0.4, 2, 5, '#2A2347'], [-6, 2, 15, 5, 2, 0.4, '#2A2347'], [6, 2, -15, 5, 2, 0.4, '#2A2347'], [-15, 3.5, -6, 0.45, 0.06, 5, '#B98BFF', 1], [15, 3.5, 6, 0.45, 0.06, 5, '#5BE38A', 1],
-      [-18, 1.2, -18, 1, 1.2, 0.8, '#5A3FD9'], [-15, 1.2, -18, 1, 1.2, 0.8, '#D93F8E'], [18, 1.2, 18, 1, 1.2, 0.8, '#3FD9C0'], [15, 1.2, 18, 1, 1.2, 0.8, '#5A3FD9'], [18, 1.2, -12, 0.8, 1.2, 1, '#D93F8E'], [-18, 1.2, 12, 0.8, 1.2, 1, '#3FD9C0'],
-      [0, 0.05, 0, 3, 0.05, 3, '#FFC233', 1], [-21.4, 2.5, 0, 0.05, 0.08, 10, '#5BE38A', 1], [21.4, 2.5, 0, 0.05, 0.08, 10, '#FF7A1A', 1], [0, 0.9, 0, 0.9, 0.9, 0.9, '#2A2347'], [-4, 0.6, 4, 0.6, 0.6, 0.6, '#3A2E6E'], [4, 0.6, -4, 0.6, 0.6, 0.6, '#3A2E6E']],
-    spawns: [[-18, 0, -15], [18, 0, 15], [-18, 0, 18], [18, 0, -18], [0, 0, -12], [0, 0, 12], [-12, 0, 0], [12, 0, 0]] }
+  { name: 'Atomic Cul-de-sac', blurb: 'Two houses face off across a street with a school bus in the middle', sky: '#BFE3FF', ground: '#6E8C55', fog: ['#CFE3F2', 0.006], floor: '#5E8C3A', floorTex: 5, S: 22, tint: 'linear-gradient(135deg,#7FBF5A,#3E6E8E)',
+    boxes: [...walls(22, 3, '#C9A27A').map(b => b.concat([0, 2, 0])), BX(0, 0, 0, 22, 0.02, 3.4, '#3A3D42', 6),
+      ...house(-7, -11, 1, '#E8D9B0', '#8A3B2E'), ...house(7, 11, -1, '#A9CBE0', '#3B4A5E'),
+      BX(-2.5, 0.3, 0.6, 4.3, 1.3, 1.25, '#F2B531', 0), BX(-2.5, 1.7, 0.6, 4.1, 0.4, 1.27, '#2B3A48', 11), BX(-2.5, 0.0, 0.6, 4.4, 0.18, 1.1, '#2A2D33', 0),
+      [-5.6, 0.45, 0.6, 0.45, 0.45, 1.3, '#15171C', 0, 0, 4], [0.6, 0.45, 0.6, 0.45, 0.45, 1.3, '#15171C', 0, 0, 4],
+      BX(7, 0, -1.4, 2.3, 0.9, 1.05, '#C94A3B', 0), BX(8.4, 0.9, -1.4, 0.9, 0.55, 1.0, '#C94A3B', 0), BX(8.4, 1.0, -1.4, 0.92, 0.35, 1.02, '#2B3A48', 11),
+      fence(-7, -18.5, 6, 0.06), fence(-13.1, -15, 0.06, 3.5), fence(-0.9, -16, 0.06, 2.5), fence(7, 18.5, 6, 0.06), fence(13.1, 15, 0.06, 3.5), fence(0.9, 16, 0.06, 2.5),
+      BX(-16, 0, 14, 2, 1.4, 2, '#8E98A3', 4), BX(16, 0, -14, 2, 1.4, 2, '#8E98A3', 4), BX(15, 0, 4.6, 0.8, 0.5, 0.8, '#7A5A3C', 2), BX(-15, 0, -4.6, 0.8, 0.5, 0.8, '#7A5A3C', 2), BX(-18, 0, 6, 0.5, 0.6, 1.6, '#2F8F5B', 0), BX(18, 0, -6, 0.5, 0.6, 1.6, '#2F8F5B', 0)],
+    spawns: [[-7, 0, -20], [7, 0, 20], [-17, 0, -18], [17, 0, 18], [-20, 0, 0], [20, 0, 0], [-18, 0, 10], [18, 0, -10]] },
+  { name: 'Shipyard', blurb: 'A tiny yard of stacked shipping containers. Fast and chaotic', sky: '#C7D2E0', ground: '#5C6370', fog: ['#B9C3D0', 0.01], floor: '#8C8F94', floorTex: 3, S: 14, tint: 'linear-gradient(135deg,#D9443B,#2F74E8)',
+    boxes: [...walls(14, 4, '#6E7684').map(b => b.concat([0, 4, 0])),
+      container(-6.5, -6.5, true, '#C0392B'), container(0, -6.5, false, '#2F74E8'), container(6.5, -6.5, true, '#23A26F'), container(-6.5, 0, false, '#E39424'), container(6.5, 0, false, '#7C4DEB'),
+      container(-6.5, 6.5, true, '#2F74E8'), container(0, 6.5, false, '#C0392B'), container(6.5, 6.5, true, '#E39424'), container(-6.5, -6.5, true, '#23A26F', 2.6), container(6.5, 6.5, true, '#C0392B', 2.6),
+      BX(0, 0, 0, 0.8, 0.8, 0.8, '#B97A3E', 2), BX(1.6, 0, 1.2, 0.6, 0.6, 0.6, '#B97A3E', 2), BX(-2.8, 0, 3, 0.6, 0.6, 0.6, '#B97A3E', 2), BX(3, 0, -3.2, 0.6, 0.6, 0.6, '#B97A3E', 2)],
+    spawns: [[-12, 0, -12], [12, 0, 12], [-12, 0, 12], [12, 0, -12], [0, 0, -11.5], [0, 0, 11.5], [-11.5, 0, 0], [11.5, 0, 0]] },
+  { name: 'Pipeworks', blurb: 'A desert oil yard around a tall tower. Whoever holds the top rules it', sky: '#F5D9A8', ground: '#B08A55', fog: ['#E8CFA0', 0.008], floor: '#C9A46B', floorTex: 9, S: 22, tint: 'linear-gradient(135deg,#E8B86A,#7A5A3C)',
+    boxes: [...walls(22, 3, '#B58F52').map(b => b.concat([0, 3, 0])),
+      BX(0, 2.3, 0, 3, 0.1, 3, '#6E7684', 4), BX(0, 4.7, 0, 2.2, 0.1, 2.2, '#6E7684', 4), BX(0, 7.1, 0, 1.4, 0.1, 1.4, '#6E7684', 4),
+      ...[[-2.8, -2.8], [2.8, -2.8], [-2.8, 2.8], [2.8, 2.8]].map(([x, z]) => [x, 3.6, z, 0.16, 3.6, 0.16, '#3A3F4A', 0, 0, 1]),
+      ...stairs(3.2, -1.5, 'x', 6, 0.6, '#5C6370').map(b => b.concat([0, 4, 0])),
+      [3.35 + 3.0, 1.2, -1.5, 0.3, 1.2, 0.6, '#5C6370', 0, 4, 0],
+      ...[0, 1, 2, 3, 4, 5].map(i => [-1.8, 2.4 + 0.4 * (i + 1) / 2 + 0.0, 3.4 - i * 0.6, 0.5, 0.2, 0.3, '#5C6370', 0, 4, 0]),
+      ...[0, 1, 2, 3, 4, 5].map(i => [1.0 - i * 0.45, 4.8 + 0.2 + i * 0.4, -2.0, 0.25, 0.2, 0.45, '#5C6370', 0, 4, 0]),
+      [-12, 1.5, -12, 2.2, 1.5, 2.2, '#D9D9D9', 0, 4, 1], [12, 1.5, 12, 2.2, 1.5, 2.2, '#D9D9D9', 0, 4, 1], [13, 1.2, -9, 1.6, 1.2, 1.6, '#C94A3B', 0, 4, 1],
+      [-8, 0.55, 8, 6, 0.55, 0.55, '#7A6E5A', 0, 4, 3], [9, 0.55, 2, 0.55, 0.55, 5, '#7A6E5A', 0, 4, 4], [-14, 0.55, 2, 0.55, 0.55, 4, '#7A6E5A', 0, 4, 4],
+      BX(-16, 0, -2, 0.3, 1.2, 4, '#B58F52', 3), BX(4, 0, 15, 4, 1.2, 0.3, '#B58F52', 3), BX(-4, 0, -15, 4, 1.2, 0.3, '#B58F52', 3),
+      BX(16, 0, 4, 2, 1.5, 1.6, '#8E98A3', 4), BX(-6, 0, 14, 1.6, 1.4, 2, '#8E98A3', 4), BX(8, 0, -14, 2.5, 1.3, 1.2, '#E39424', 12)],
+    spawns: [[-19, 0, -19], [19, 0, 19], [-19, 0, 19], [19, 0, -19], [0, 0, -19], [0, 0, 19], [-19, 0, 0], [19, 0, -4]] },
+  { name: 'Terminal', blurb: 'An airport hall with gates, shops, a raised walkway and a plane outside', sky: '#DDE6F0', ground: '#7A8296', fog: ['#D5DDE8', 0.006], floor: '#C8CCD2', floorTex: 8, S: 26, tint: 'linear-gradient(135deg,#9FB4C8,#3E4A5E)',
+    boxes: [[0, 0.6, -26, 26, 0.6, 0.5, '#8E98A3', 0, 3, 0], [0, 3.6, -26, 26, 2.4, 0.4, '#5A6E82', 0, 11, 0], [0, 0.6, 26, 26, 0.6, 0.5, '#8E98A3', 0, 3, 0], [0, 3.6, 26, 26, 2.4, 0.4, '#5A6E82', 0, 11, 0],
+      [-26, 3, 0, 0.5, 3, 26, '#B9BDC6', 0, 3, 0], [26, 3, 0, 0.5, 3, 26, '#B9BDC6', 0, 3, 0],
+      ...[-16, -8, 0, 8, 16].map(x => [x, 3, 0, 0.6, 3, 0.6, '#E0E3E8', 0, 3, 0]),
+      ...[-18, -10, 10, 18].flatMap(x => [BX(x, 0, -12, 3, 0.25, 0.4, '#2F4A7A', 0), BX(x, 0, -9, 3, 0.25, 0.4, '#2F4A7A', 0), BX(x, 0, 12, 3, 0.25, 0.4, '#2F4A7A', 0), BX(x, 0, 9, 3, 0.25, 0.4, '#2F4A7A', 0)]),
+      BX(-4, 0, -18, 3, 1.3, 2.2, '#9FB4C8', 11), BX(4, 0, 18, 3, 1.3, 2.2, '#9FB4C8', 11), BX(-4, 0, -15.4, 3, 0.55, 0.4, '#7A4A26', 2), BX(4, 0, 15.4, 3, 0.55, 0.4, '#7A4A26', 2),
+      BX(-12, 0, 0, 2.4, 0.55, 0.6, '#5C6370', 3), BX(12, 0, 0, 2.4, 0.55, 0.6, '#5C6370', 3),
+      BX(-21, 3, 0, 4.5, 0.15, 24, '#9AA0A8', 3), ...stairs(-15.9, 18, '-z', 8, 0.7, '#8E98A3').map(b => b.concat([0, 3, 0])), [-15.9, 1.6, 13.5, 0.7, 1.6, 0.3, '#8E98A3', 0, 3, 0],
+      BX(-16.6, 3.3, -6, 0.06, 0.5, 18, '#9FB4C8', 11)],
+    decor: [[0, 3, -40, 3, 3, 14, '#E8ECF2', 0, 0, 4], [-6, 3, -40, 6, 0.3, 2, '#E8ECF2'], [6, 3, -40, 6, 0.3, 2, '#E8ECF2'], [0, 6.2, -50, 0.3, 3, 2, '#2F74E8']],
+    spawns: [[-23, 0, -22], [23, 0, 22], [-23, 0, 22], [23, 0, -22], [0, 0, -22], [0, 0, 22], [-21, 3.2, -18], [21, 0, 0]] },
+  { name: 'Highrise', blurb: 'Skyscraper rooftops above a glowing city, with a helipad and glass offices', sky: '#2E3A66', ground: '#1E2238', fog: ['#3A4470', 0.008], floor: '#8E949C', floorTex: 3, S: 24, tint: 'linear-gradient(135deg,#3A4470,#E39424)',
+    boxes: [...walls(24, 1.1, '#9AA0A8').map(b => b.concat([0, 3, 0])),
+      BX(-13, 0, -13, 5.5, 0.04, 5.5, '#3A3D42', 6), BX(-13, 0.08, -13, 0.25, 0.01, 3, '#F2C14E', 0, 1), BX(-14.8, 0.08, -13, 0.25, 0.01, 3, '#F2C14E', 0, 1), BX(-11.2, 0.08, -13, 0.25, 0.01, 3, '#F2C14E', 0, 1), BX(-13, 0.08, -13, 1.6, 0.01, 0.25, '#F2C14E', 0, 1),
+      BX(0, 0, 0, 6, 1.6, 4, '#7A8C9E', 11), BX(0, 3.2, 0, 6.2, 0.1, 4.2, '#5C6370', 3),
+      BX(13, 0, 6, 9, 1.5, 15, '#9AA0A8', 3), ...stairs(1.6, 10, 'x', 7, 1.2, '#7A8296').map(b => b.concat([0, 3, 0])),
+      BX(15, 3, 12, 1.6, 0.9, 1.2, '#8E98A3', 4), BX(10, 3, -2, 1.6, 0.9, 1.2, '#8E98A3', 4), BX(18, 3, -4, 0.3, 0.55, 3, '#9AA0A8', 3),
+      BX(-15, 0, 9, 2.4, 1.6, 2, '#B9BDC6', 3), BX(-5, 0, 15, 1.4, 0.8, 1.4, '#8E98A3', 4), BX(4, 0, -14, 1.4, 0.8, 1.4, '#8E98A3', 4), BX(-20, 0, -2, 0.6, 1.2, 3, '#B9BDC6', 3)],
+    decor: [...[[-50, 25, -10, 6, 25, 8], [-45, 18, 30, 7, 18, 6], [45, 30, -20, 8, 30, 8], [55, 20, 25, 6, 20, 9], [0, 22, -60, 10, 22, 6], [10, 28, 60, 8, 28, 7], [-30, 15, -55, 6, 15, 6], [35, 16, 55, 7, 16, 6]].map(b => [b[0], b[1] - 30, b[2], b[3], b[4], b[5], '#4A5A7A', 0, 11, 0])],
+    spawns: [[-20, 0, -20], [20, 3, 18], [-20, 0, 20], [20, 3, -6], [0, 0, -20], [-4, 0, 20], [-20, 0, 4], [8, 3, 4]] }
 ];
 for (const m of MAPS) {
   for (const sp of m.spawns) {
@@ -404,7 +442,7 @@ for (const m of MAPS) {
     else { m.boxes.push([x, y + H, z - dir * L, L, H, T, col], [x - L, y + H, z, T, H, L, col], [x + L, y + H, z, T, H, L, col], [x, y + 2 * H + 0.04, z - dir * L, L, 0.04, T + 0.02, glow, 1]); }
   }
   m.solid = m.boxes.map(b => ({ min: [b[0] - b[3], b[1] - b[4], b[2] - b[5]], max: [b[0] + b[3], b[1] + b[4], b[2] + b[5]], b }));
-  m.solid.push({ min: [-m.S, -1, -m.S], max: [m.S, 0, m.S], b: [0, -0.5, 0, m.S, 0.5, m.S, m.floor] });
+  m.solid.push({ min: [-m.S, -1, -m.S], max: [m.S, 0, m.S], b: [0, -0.5, 0, m.S, 0.5, m.S, m.floor, 0, m.floorTex || 0, 0] });
   m.way = m.spawns.concat(m.boxes.filter(b => !b[7] && b[4] < 2.6 && b[3] > 1).map(b => [b[0], b[1] + b[4], b[2]]));
 }
 
@@ -412,7 +450,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102i');
+    const cfg = await import('./firebase-config.js?v=20261102j');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -442,18 +480,18 @@ const kdText = () => { const k = stats.k || 0, d = stats.d || 0; return d ? (k /
 const ui = $('#ui');
 let view = 'home';
 const opt = (act, val, on, label, sub, locked, price) => `<button type="button" class="opt${locked ? ' lock' : ''}" data-act="${act}" data-v="${val}" aria-pressed="${on}"${locked ? ' data-locked="1"' : ''}>${label}${sub ? `<small>${sub}</small>` : ''}${locked ? `<span class="price">${/shop|crate/i.test(price) ? price : 'Locked · ' + price}</span>` : ''}</button>`;
-const CONTROLS = `<div class="keys"><span><kbd>Mouse</kbd></span><span>Look around</span><span><kbd>Click</kbd></span><span>Shoot</span><span><kbd>Right click</kbd></span><span>Aim down sights</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>Move</span><span><kbd>Space</kbd></span><span>Jump</span><span><kbd>Shift</kbd></span><span>Sprint</span><span><kbd>R</kbd></span><span>Reload</span><span><kbd>1</kbd> <kbd>2</kbd></span><span>Primary or secondary</span><span><kbd>Q</kbd></span><span>Tactical</span><span><kbd>G</kbd></span><span>Lethal (hold to cook a frag)</span><span><kbd>Tab</kbd></span><span>Scoreboard</span><span><kbd>Esc</kbd></span><span>Pause</span></div><p class="small soft" style="margin:12px 0 0">On a phone or tablet, use the stick on the left to move, drag the right side to look, and tap the buttons to shoot, aim, jump, reload and throw.</p>`;
+const CONTROLS = `<div class="keys"><span><kbd>Mouse</kbd></span><span>Look around</span><span><kbd>Click</kbd></span><span>Shoot</span><span><kbd>Right click</kbd></span><span>Aim down sights</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>Move</span><span><kbd>Space</kbd></span><span>Jump</span><span><kbd>Shift</kbd></span><span>Sprint</span><span><kbd>R</kbd></span><span>Reload</span><span><kbd>1</kbd> <kbd>2</kbd></span><span>Primary or secondary</span><span><kbd>V</kbd></span><span>Melee (knife)</span><span><kbd>Q</kbd></span><span>Tactical</span><span><kbd>G</kbd></span><span>Lethal (hold to cook a frag)</span><span><kbd>Tab</kbd></span><span>Scoreboard</span><span><kbd>Esc</kbd></span><span>Pause</span></div><p class="small soft" style="margin:12px 0 0">On a phone or tablet, use the stick on the left to move, drag the right side to look, and tap the buttons to shoot, aim, jump, reload and throw.</p>`;
 function drawUI() {
   if (view === 'game') { ui.hidden = true; return; }
   ui.hidden = false;
   fixLoadout();
   const P = WEAPONS[loadout.primary];
   let h = `<div class="shade"></div><div class="side"><h1 class="logo">Scobb<span>Strike</span></h1><div class="tag">Free for all · Best of 3</div>
-    <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" disabled><span>Wager 1v1</span><small>Bet ScobbBucks against a friend. Coming next.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="armory"><span>Armory</span><small>Buy guns and attachments with ScobbBucks</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Calling cards</span><small>Challenges and the card killers see</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
+    <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" disabled><span>Wager 1v1</span><small>Bet ScobbBucks against a friend. Coming next.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="gungame"><span>Gun Game</span><small>20 weapons. Kill to climb. Getting knifed drops you one.</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="armory"><span>Armory</span><small>Buy guns and attachments with ScobbBucks</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Calling cards</span><small>Challenges and the card killers see</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
     <div class="kd"><div><b>${kdText()}</b><span>K/D</span></div><div><b>${stats.k || 0}</b><span>Kills</span></div><div><b>${stats.pts || 0}</b><span>Points</span></div><div><b>${stats.wins || 0}</b><span>Match wins</span></div></div>
     <p class="small soft" style="margin-top:22px">${ME_UID ? 'Your K/D shows on your ScobbBucks profile.' : 'Log in on ScobbBucks to track your K/D and use the gear you unlock.'} <a href="./" style="color:#C9C2FF">Back to ScobbBucks</a></p></div>`;
   if (view === 'loadout') {
-    const card = id => { const w = WEAPONS[id], own = ownsW(id), eq = loadout.primary === id || loadout.secondary === id; return `<button type="button" class="wcard${own ? '' : ' lock'}${eq ? ' eq' : ''}" data-act="smith" data-v="${id}"${own ? '' : ' data-locked="1"'}><img alt="" src="${gunThumb(id)}"><b>${w.name}</b><span>${eq ? (loadout.primary === id ? 'Equipped primary' : 'Equipped secondary') : own ? 'Tier ' + (w.tier + 1) : 'Locked · ' + priceText(WPRICE[w.tier])}</span></button>`; };
+    const card = id => { const w = WEAPONS[id], own = ownsW(id), eq = loadout.primary === id || loadout.secondary === id; return `<button type="button" class="wcard${own ? '' : ' lock'}${eq ? ' eq' : ''}" data-act="smith" data-v="${id}"${own ? '' : ' data-locked="1"'}><img alt="" data-tk="${thumbKey(id)}" src="${gunThumb(id)}"><b>${w.name}</b><span>${eq ? (loadout.primary === id ? 'Equipped primary' : 'Equipped secondary') : own ? 'Tier ' + (w.tier + 1) : 'Locked · ' + priceText(WPRICE[w.tier])}</span></button>`; };
     h += `<div class="panel wide"><h2>Loadout</h2>`;
     h += `<h3>Equipment</h3><div class="slots">${[['charm', 'Charm', loadout.charm ? skinInfo(loadout.charm)[1] : 'None'], ['tracer', 'Tracers', loadout.tracer ? skinInfo(loadout.tracer)[1] : 'Standard'], ['perk0', 'Perk 1', PERKS[0][loadout.perks[0]][0]], ['perk1', 'Perk 2', PERKS[1][loadout.perks[1]][0]], ['perk2', 'Perk 3', PERKS[2][loadout.perks[2]][0]], ['tac', 'Tactical', TACT[loadout.tac][0]], ['leth', 'Lethal', LETH[loadout.leth][0]]].map(([k, label, cur]) => `<button type="button" class="slotb${loSlot === k ? ' on' : ''}" data-act="loslot" data-v="${k}"><span>${label}</span><b>${cur}</b></button>`).join('')}</div>`;
     if (loSlot) h += `<div class="sopts">${slotOptions(loadout.primary, loSlot, attOf(loadout.primary))}</div>`;
@@ -490,9 +528,25 @@ function drawUI() {
 let smithGun = 'ar0', smithSlot = 'optic', hl = null, loSlot = 'charm';
 const thumbCv = document.createElement('canvas'), thumbs = {};
 let G3 = null;
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+const thumbQ = [];
+const thumbKey = id => id + '|' + (loadout.camos[id] || '') + '|' + JSON.stringify(CLASSES[WEAPONS[id].ck].p ? attOf(id) : null);
+// Pictures are drawn a couple per frame so opening the weapon list never freezes the screen.
 function gunThumb(id) {
-  const camo = loadout.camos[id] || '', at = CLASSES[WEAPONS[id].ck].p ? attOf(id) : null, key = id + '|' + camo + '|' + JSON.stringify(at);
+  const key = thumbKey(id);
   if (thumbs[key]) return thumbs[key];
+  if (!thumbQ.some(q => q.key === key)) thumbQ.push({ id, key });
+  return BLANK;
+}
+function pumpThumbs() {
+  for (let n = 0; n < 2 && thumbQ.length; n++) {
+    const q = thumbQ.shift();
+    renderThumb(q.id, q.key);
+    document.querySelectorAll('img[data-tk]').forEach(im => { if (im.dataset.tk === q.key) im.src = thumbs[q.key] || BLANK; });
+  }
+}
+function renderThumb(id, key) {
+  const camo = loadout.camos[id] || '', at = CLASSES[WEAPONS[id].ck].p ? attOf(id) : null;
   try {
     if (!G3) G3 = create(thumbCv, 300, 140, { free: true, opaque: true });
     if (!G3) return '';
@@ -567,6 +621,7 @@ ui.addEventListener('click', e => {
   else if (a.startsWith('perk-')) { loadout.perks = loadout.perks.slice(); loadout.perks[Number(a.slice(5))] = Number(v); }
   else if (a === 'practice') return beginPractice();
   else if (a === 'range') return beginRange();
+  else if (a === 'gungame') return beginPractice('gun');
   else if (a === 'store') return openStore();
   else if (a === 'armory') return openStore('armory');
   else if (a === 'card') { myCard = v; try { localStorage.setItem('scobbstrike-card', v); } catch (e2) { /* ignore */ } if (FB && ME_UID) FB.setDoc(FB.doc(fsdb, 'fpsStats/' + ME_UID), { card: v }, { merge: true }).catch(() => {}); }
@@ -575,7 +630,7 @@ ui.addEventListener('click', e => {
 function openStore(kind) {
   if (document.querySelector('.store')) return;
   const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102i" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102j" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -635,6 +690,13 @@ function makeEnt(name, col, bot, lo, look) {
 }
 function randomLoadout() { const c = pick(PRIM); return { primary: c + Math.floor(Math.random() * 3), secondary: 'pi' + Math.floor(Math.random() * 3), att: { optic: Math.floor(Math.random() * 3), barrel: Math.floor(Math.random() * 4), mag: Math.floor(Math.random() * 3), grip: Math.floor(Math.random() * 4) }, perks: [0, 1, 2].map(() => Math.floor(Math.random() * 3)), tac: pick(['stim', 'flash', 'smoke']), leth: pick(['frag', 'semtex', 'molotov', 'knife']) }; }
 const PROT = 3;
+// Gun Game: everyone starts on the same pistol. A gun kill moves you up one weapon; a kill with the last one wins.
+const GG = ['pi0', 'pi1', 'pi2', 'pi3', 'smg0', 'smg1', 'smg2', 'sg0', 'sg1', 'ar0', 'ar1', 'ar2', 'dmr0', 'dmr1', 'lmg0', 'lmg1', 'sn0', 'sn1', 'sg2', 'pi4'];
+function setTier(e, tier) {
+  e.gg = Math.max(0, Math.min(GG.length - 1, tier));
+  const st = gunStats(GG[e.gg], null);
+  e.guns = [{ key: GG[e.gg], s: st, ammo: st.mag }, { key: GG[e.gg], s: st, ammo: st.mag }]; e.cur = 0; e.reloadT = 0; e.swapT = 0.3;
+}
 function spawn(e) {
   const others = ents.filter(x => x !== e && x.alive);
   let best = null, bestD = -1;
@@ -642,9 +704,10 @@ function spawn(e) {
   if (safe.length) best = safe[Math.floor(Math.random() * safe.length)];
   else for (const s of M.spawns) { const d = others.length ? Math.min(...others.map(o => len(sub(o.p, s)))) : 99; if (d > bestD) { bestD = d; best = s; } }
   e.p = best.slice(); e.p[1] += 0.05; e.v = [0, 0, 0]; e.hp = 100; e.alive = true; e.yaw = Math.atan2(-e.p[0], e.p[2]); e.pitch = 0; e.prot = PROT;
-  e.guns.forEach(g => { g.ammo = g.s.mag; }); e.cur = 0; e.reloadT = 0; e.tac = 1; e.leth = e.lo.perks[1] === 1 ? 2 : 1; e.flashT = 0; e.cook = -1; e.lastHurt = -99;
+  e.guns.forEach(g => { g.ammo = g.s.mag; }); e.cur = 0; e.reloadT = 0; e.tac = mode === 'gun' ? 0 : 1; e.leth = mode === 'gun' ? 0 : e.lo.perks[1] === 1 ? 2 : 1; e.flashT = 0; e.cook = -1; e.lastHurt = -99;
   if (e.bot) { e.goal = null; e.target = null; e.react = 0; e.strafe = 1; e.aimErr = [rand(-0.2, 0.2), rand(-0.1, 0.1)]; e.nadeT = rand(6, 14); e.tacT = rand(4, 10); }
 }
+let forceMap = null;
 function newMatch(isAttract, mapOrder) {
   match = { round: 0, maps: mapOrder, clock: 0 };
   attract = isAttract;
@@ -652,6 +715,7 @@ function newMatch(isAttract, mapOrder) {
   me = makeEnt('You', look.body, false, loadout, look);
   ents = (isAttract ? [] : [me]).concat(BOT_NAMES.slice(0, isAttract ? 6 : 5).map((n, i) => { const b = makeEnt(n, BOT_COLS[i], true, randomLoadout()); b.card = pick(CARDS.slice(0, 7))[0]; b.camo = Math.random() < 0.7 ? pick(ALLC.filter(x => x[7] === 'camo'))[0] : ''; return b; }));
   me.card = myCard;
+  if (mode === 'gun') for (const e of ents) { setTier(e, 0); e.leth = 0; e.tac = 0; }
 }
 function startRound() {
   M = MAPS[match.maps[match.round % match.maps.length]];
@@ -659,10 +723,18 @@ function startRound() {
   nades = []; fires = []; smokes = []; fx = []; tracers = []; pings = []; pingT = -99;
   for (const e of ents) { e.kills = 0; e.deaths = 0; e.score = 0; spawn(e); }
   if (attract) { match.phase = 'live'; match.t = 120; return; }
+  if (mode === 'gun') { for (const e of ents) { setTier(e, e.gg || 0); e.leth = 0; e.tac = 0; } match.t = 600; match.phase = 'intro'; match.phaseT = 3; say('Gun Game', `${M.name}. Get a kill with all ${GG.length} weapons to win.`); return; }
   match.t = 150; match.phase = 'intro'; match.phaseT = 3;
   say(`Round ${match.round + 1}`, `${M.name}. First to 10 kills.`);
 }
+function endGunGame(winner) {
+  match.phase = 'done'; match.phaseT = 99;
+  if (!winner) winner = ents.slice().sort((a, b) => (b.gg || 0) - (a.gg || 0) || b.kills - a.kills)[0];
+  recordMatch(winner === me);
+  say(winner === me ? 'You win Gun Game!' : `${winner.name} wins Gun Game`, `You reached weapon ${(me.gg || 0) + 1} of ${GG.length} with ${me.tk} kills. Press Esc for the menu.`, true);
+}
 function endRound() {
+  if (mode === 'gun') return endGunGame(null);
   const top = ents.slice().sort((a, b) => b.kills - a.kills || a.deaths - b.deaths)[0];
   top.rounds += 1;
   if (attract) { match.round++; startRound(); return; }
@@ -698,8 +770,16 @@ function damage(target, amt, from, how, head) {
     if (!self && from) { from.score = (from.score || 0) + KILL_PTS; from.tp = (from.tp || 0) + KILL_PTS; if (from === me && !attract) killPopup(target, how === 'head'); }
     if (!self && from) { from.kills++; from.tk++; if (from.lo.perks[0] === 2) { from.guns.forEach(g => { g.ammo = g.s.mag; }); from.leth = Math.max(from.leth, 1); } }
     else if (self) target.kills = Math.max(0, target.kills - 1);
-    pushFeed(self ? (target === me ? 'You blew yourself up' : `${target.name} blew themselves up`) : `${from ? from.name : 'Fire'} ${how === 'boom' ? '💥' : how === 'knife' ? '🔪' : head || how === 'head' ? '◎' : '›'} ${target.name}`);
+    pushFeed(self ? (target === me ? 'You blew yourself up' : `${target.name} blew themselves up`) : `${from ? from.name : 'Fire'} ${how === 'boom' ? '💥' : how === 'knife' || how === 'melee' ? '🔪' : head || how === 'head' ? '◎' : '›'} ${target.name}`);
     for (let i = 0; i < 16; i++) fx.push({ p: add(target.p, [0, 0.9, 0]), v: [rand(-3, 3), rand(1, 5), rand(-3, 3)], t: 0, life: 0.7, c: target.col, r: 0.09 });
+    if (mode === 'gun' && match.phase === 'live') {
+      if (self || how === 'melee') { setTier(target, (target.gg || 0) - 1); if (target === me) say('Demoted', `Back to ${GG[target.gg] && WEAPONS[GG[target.gg]].name}`); }
+      if (!self && from && how !== 'melee') {
+        if ((from.gg || 0) >= GG.length - 1) { endGunGame(from); return; }
+        setTier(from, (from.gg || 0) + 1);
+        if (from === me) say(`Weapon ${me.gg + 1} of ${GG.length}`, WEAPONS[GG[me.gg]].name);
+      }
+    }
     if (mode === 'match' && ents.some(e => e.kills >= 10)) endRound();
   }
 }
@@ -749,6 +829,15 @@ function shoot(e) {
   e.flashMuzzle = 0.05;
   return true;
 }
+function melee(e) {
+  if ((e.meleeT || 0) > 0 || !e.alive) return false;
+  e.meleeT = 0.9; e.prot = 0; e.knifeAnim = 0.35;
+  const f = dirOf(e.yaw, 0), eye = eyeOf(e);
+  let best = null, bd = 2.3;
+  for (const t of ents) { if (t === e || !t.alive) continue; const d = sub(t.p, e.p), dist = Math.hypot(d[0], d[2]); if (dist > bd || Math.abs(d[1]) > 1.2) continue; const dot2 = (d[0] * f[0] + d[2] * f[2]) / (dist || 1); if (dot2 > 0.55 && canSee(eye, add(t.p, [0, 1, 0]))) { bd = dist; best = t; } }
+  if (best) { damage(best, 150, e, 'melee'); fx.push({ p: add(best.p, [0, 1, 0]), v: [0, 1, 0], t: 0, life: 0.3, c: '#FFFFFF', r: 0.15 }); }
+  return !!best;
+}
 function reload(e) { const g = e.guns[e.cur]; if (e.reloadT > 0 || g.ammo >= g.s.mag) return; e.reloadT = g.s.reload * (e.lo.perks[1] === 0 ? 0.7 : 1) * (e.lo.perks[0] === 0 ? 1.15 : 1); }
 function swap(e, i) { if (e.cur === i) return; e.cur = i; e.reloadT = 0; e.swapT = (e.lo.perks[1] === 0 ? 0.35 : 0.5) * (e.lo.perks[1] === 1 ? 1.3 : 1); }
 function throwNade(e, kind, cooked) {
@@ -788,7 +877,8 @@ function botThink(b, dt) {
     b.yaw += Math.max(-5 * dt, Math.min(5 * dt, dy)); b.pitch += (pitch - b.pitch) * Math.min(1, dt * 6);
     b.aimErr = b.aimErr.map(v => v * (1 - Math.min(1, dt * 1.2)));
     b.ads = dist > 12 ? 1 : 0;
-    if (b.react <= 0 && Math.abs(dy) < 0.12 && (W.auto || b.fireT <= 0)) shoot(b);
+    if (dist < 2.1 && b.react <= 0) melee(b);
+    else if (b.react <= 0 && Math.abs(dy) < 0.12 && (W.auto || b.fireT <= 0)) shoot(b);
     if (!canSee(eye, tp)) b.react = Math.min(b.react, -1.6);
     b.strafeT = (b.strafeT || 0) - dt; if (b.strafeT <= 0) { b.strafe = Math.random() < 0.5 ? -1 : 1; b.strafeT = rand(0.6, 1.4); }
     const side = [Math.cos(b.yaw) * b.strafe, 0, Math.sin(b.yaw) * b.strafe];
@@ -844,6 +934,7 @@ function killPopup(t, head) {
 function hitmark(kill) { const h = hudEls.hit; if (!h) return; h.className = 'hit on' + (kill ? ' kill' : ''); clearTimeout(hitmark.t); hitmark.t = setTimeout(() => { h.className = 'hit'; }, 120); }
 function drawBoard() {
   const rows = ents.slice().sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+  if (mode === 'gun') { hudEls.board.innerHTML = `<table><tr><th>Player</th><th>Weapon</th><th>Kills</th><th>Deaths</th></tr>${ents.slice().sort((a, b) => (b.gg || 0) - (a.gg || 0) || b.kills - a.kills).map(e => `<tr class="${e === me ? 'me' : ''}"><td>${e.name}</td><td>${(e.gg || 0) + 1}/${GG.length} ${WEAPONS[GG[e.gg || 0]].name}</td><td>${e.kills}</td><td>${e.deaths}</td></tr>`).join('')}</table><p class="small soft" style="margin:8px 0 0">Gun kills move you up. Getting knifed or killing yourself moves you down. Press V to knife.</p>`; return; }
   hudEls.board.innerHTML = `<table><tr><th>Player</th><th>Score</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Rounds</th></tr>${rows.map(e => `<tr class="${e === me ? 'me' : ''}"><td>${e.name}</td><td>${e.score || 0}</td><td>${e.kills}</td><td>${e.deaths}</td><td>${(e.td ? e.tk / e.td : e.tk).toFixed(2)}</td><td>${'★'.repeat(e.rounds) || '0'}</td></tr>`).join('')}</table><p class="small soft" style="margin:8px 0 0">Score, kills and deaths are for this round. Each kill is worth ${KILL_PTS} points. K/D counts the whole match.</p>`;
 }
 function drawMini() {
@@ -865,7 +956,7 @@ function classPicker(sel) {
 function showDeath() {
   if (document.getElementById('death') || mode === 'range') return;
   const k = me.killer, d = document.createElement('div'); d.id = 'death'; d.className = 'death';
-  d.innerHTML = `<div class="dcard"><p class="dlbl">${k ? 'Killed by' : 'You died'}</p>${k ? `<h2>${k.name}</h2>${cardHTML(k.card || 'rookie', k.name)}` : '<h2>Your own grenade</h2>'}<h3>Switch class</h3>${classPicker(loadout.primary)}<button type="button" class="btn block" id="d-go" disabled>Respawn</button>${touchDev ? '' : '<p class="small soft dhint">Press <kbd>Space</kbd> to respawn · <kbd>1</kbd> to <kbd>6</kbd> to switch class · <kbd>Esc</kbd> to use the mouse</p>'}</div>`;
+  d.innerHTML = `<div class="dcard"><p class="dlbl">${k ? 'Killed by' : 'You died'}</p>${k ? `<h2>${k.name}</h2>${cardHTML(k.card || 'rookie', k.name)}` : '<h2>Your own grenade</h2>'}${mode === 'gun' ? `<p class="soft">You keep weapon ${(me.gg || 0) + 1} of ${GG.length}: ${WEAPONS[GG[me.gg || 0]].name}</p>` : `<h3>Switch class</h3>${classPicker(loadout.primary)}`}<button type="button" class="btn block" id="d-go" disabled>Respawn</button>${touchDev ? '' : `<p class="small soft dhint">Press <kbd>Space</kbd> to respawn${mode === 'gun' ? '' : ' · <kbd>1</kbd> to <kbd>6</kbd> to switch class'} · <kbd>Esc</kbd> to use the mouse</p>`}</div>`;
   $('#hud').appendChild(d);
   d.addEventListener('click', e => {
     const b = e.target.closest('[data-pick]');
@@ -903,7 +994,8 @@ function updateHud() {
     drawRecoil();
     const dn = document.getElementById('h-dmg');
     if (dn) dn.innerHTML = dmgNums.map(d => { const p = G.toScreen(d.p[0], d.p[1], d.p[2]); return p ? `<span style="left:${p[0]}px;top:${p[1]}px;opacity:${Math.max(0, 1 - d.t)};color:${d.head ? '#FFD86B' : '#fff'}">${d.v}</span>` : ''; }).join('');
-  } else hudEls.round.textContent = `Round ${match.round + 1} of 3 · ${M.name}`;
+  } else if (mode === 'gun') hudEls.round.textContent = `Gun Game · Weapon ${(me.gg || 0) + 1} of ${GG.length}${me.gg < GG.length - 1 ? ' · Next: ' + WEAPONS[GG[(me.gg || 0) + 1]].name : ' · Final weapon'}`;
+  else hudEls.round.textContent = `Round ${match.round + 1} of 3 · ${M.name}`;
   if (mode !== 'range') hudEls.time.textContent = match.phase === 'live' ? `${Math.floor(match.t / 60)}:${String(Math.floor(Math.max(0, match.t) % 60)).padStart(2, '0')}` : '';
   hudEls.feed.innerHTML = feed.filter(f => performance.now() - f.at < 5000).map(f => `<div>${f.t}</div>`).join('');
   hudEls.hp.textContent = me.alive ? `${Math.max(0, Math.ceil(me.hp))} HP` : `Respawning in ${Math.ceil(me.respawn)}`;
@@ -936,13 +1028,14 @@ document.addEventListener('keydown', e => {
   if (me && !me.alive && document.getElementById('death')) {
     if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); respawnNow(); return; }
     const n = /^Digit([1-6])$/.exec(e.code);
-    if (n) { pickClass(Number(n[1]) - 1); return; }
+    if (n && mode !== 'gun') { pickClass(Number(n[1]) - 1); return; }
   }
   keys[e.code] = true;
   if (e.code === 'KeyR') reload(me);
   if (e.code === 'KeyB' && mode === 'range') { const ids = PRIM.flatMap(c => [0, 1, 2, 3, 4].map(t => c + t)).filter(ownsW); const i = ids.indexOf(me.guns[0].key); setPrimary(ids[(i + 1) % ids.length]); lastHit = null; shots = []; }
-  if (e.code === 'Digit1') swap(me, 0);
-  if (e.code === 'Digit2') swap(me, 1);
+  if (e.code === 'Digit1' && mode !== 'gun') swap(me, 0);
+  if (e.code === 'Digit2' && mode !== 'gun') swap(me, 1);
+  if ((e.code === 'KeyV' || e.code === 'KeyF') && me.alive) melee(me);
   if (e.code === 'KeyQ' && me.alive && me.tac > 0) useTac();
   if (e.code === 'KeyG' && me.alive && me.leth > 0 && me.cook < 0 && me.lo.leth === 'frag') me.cook = 0;
   if (e.code === 'Escape' && (TEST || match.phase === 'done')) { if (match.phase === 'done') quit(); else togglePause(true); }
@@ -1038,10 +1131,10 @@ function startAttract() {
   last = performance.now();
   if (!startAttract.loop) { startAttract.loop = true; requestAnimationFrame(frame); }
 }
-function beginPractice() {
-  mode = 'match';
+function beginPractice(kind) {
+  mode = kind === 'gun' ? 'gun' : 'match';
   const first = (() => { try { return !localStorage.getItem('scobbstrike-controls-seen'); } catch (e) { return false; } })();
-  const order = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5).slice(0, 3);
+  const order = forceMap != null ? [forceMap, forceMap, forceMap] : [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5).slice(0, 3);
   const go = () => mapRandomizer(order[0], () => {
     view = 'game'; drawUI();
     newMatch(false, order);
@@ -1073,7 +1166,7 @@ function mapRandomizer(win, done) {
 }
 function quit() {
   if (document.exitPointerLock) document.exitPointerLock();
-  if (mode === 'match' && me && !attract && match && match.phase !== 'done' && ((me.tk || 0) + (me.td || 0)) > 0) recordMatch(false, true);
+  if ((mode === 'match' || mode === 'gun') && me && !attract && match && match.phase !== 'done' && ((me.tk || 0) + (me.td || 0)) > 0) recordMatch(false, true);
   hideDeath(); paused = false; mode = 'match'; startAttract();
 }
 // Safari fires resize while the page loads. Resize the view in place; never recreate the context.
@@ -1095,6 +1188,7 @@ function frame(now) {
     if (!attract) updateHud();
   }
   if (view === 'smith') renderPreview(now);
+  if (thumbQ.length) pumpThumbs();
   requestAnimationFrame(frame);
 }
 function step(dt) {
@@ -1102,11 +1196,11 @@ function step(dt) {
   if (match.phase === 'intro') { match.phaseT -= dt; if (match.phaseT <= 0) { match.phase = 'live'; say('Go!', ''); } }
   else if (match.phase === 'between') { match.phaseT -= dt; if (match.phaseT <= 0) { match.round++; match.phase = 'spin'; mapRandomizer(match.maps[match.round], () => startRound()); } return; }
   else if (match.phase === 'done' || match.phase === 'spin') return;
-  else if (mode === 'match') { match.t -= dt; if (match.t <= 0) { endRound(); return; } }
+  else if (mode === 'match' || mode === 'gun') { match.t -= dt; if (match.t <= 0) { endRound(); return; } }
   const live = match.phase === 'live';
   for (const e of ents) {
     if (!e.alive) { e.respawn -= dt; if (e === me && !attract) { if (me.wantSpawn && live) { me.wantSpawn = false; spawn(me); hideDeath(); } } else if (e.respawn <= 0 && live) spawn(e); continue; }
-    e.fireT -= dt; e.swapT -= dt; e.flashT -= dt; e.prot -= dt; e.flashMuzzle = (e.flashMuzzle || 0) - dt; e.recoil *= Math.pow(0.02, dt);
+    e.fireT -= dt; e.swapT -= dt; e.flashT -= dt; e.prot -= dt; e.meleeT = (e.meleeT || 0) - dt; e.knifeAnim = (e.knifeAnim || 0) - dt; e.flashMuzzle = (e.flashMuzzle || 0) - dt; e.recoil *= Math.pow(0.02, dt);
     if (e.reloadT > 0) { e.reloadT -= dt; if (e.reloadT <= 0) { const g = e.guns[e.cur]; g.ammo = g.s.mag; } }
     if (e.stimT > 0) { e.stimT -= dt; e.hp = Math.min(100, e.hp + 100 * dt); }
     if (match.clock - e.lastHurt > (e.lo.perks[2] === 1 ? 2.5 : 5)) e.hp = Math.min(100, e.hp + (e.lo.perks[0] === 2 ? 15 : 25) * dt);
@@ -1187,54 +1281,102 @@ function drawChar(e) {
   } else if (L.hair) { const hr = P(-0.04, 1.62, 0); G.sphere(hr[0], hr[1], hr[2], 0.3, L.hair.c, { ky: 0.55, spec: 0.5 }); }
   if (L.back) { const bk = P(-0.38, 0.95, 0); G.box(bk[0], bk[1], bk[2], 0.12, 0.25, 0.22, 0.05, L.back.c, { ry, spec: 0.4 }); }
   const gc = P(0.42, 0.98, 0.2);
-  const bc = e.camo && skinInfo(e.camo);
-  G.box(gc[0], gc[1], gc[2], 0.06, 0.07, 0.3, 0.02, bc ? bc[3] : '#2B2F38', Object.assign({ ry: -e.yaw, rx: e.pitch * 0.6, spec: 0.9 }, bc && bc[5] ? { pat: bc[5], c2: bc[4], patS: 16, anim: bc[6] } : {}));
+  const bc = e.camo && skinInfo(e.camo), gry = -e.yaw, cam = bc && bc[5] ? { pat: bc[5], c2: bc[4], patS: 16, anim: bc[6] } : {};
+  const GP = (fw, up, rt) => P(0.42 + fw, 0.98 + up, 0.2 + rt);
+  const q1 = GP(0, 0, 0); G.box(q1[0], q1[1], q1[2], 0.045, 0.05, 0.16, 0.012, bc ? bc[3] : '#3A3D44', Object.assign({ ry: gry, spec: 0.8 }, cam));
+  const q2 = GP(0.3, 0.02, 0); G.cyl(q2[0], q2[1], q2[2], 0.016, 0.16, '#1A1C22', { rx: Math.PI / 2, ry: gry, spec: 1.2 });
+  const q3 = GP(0.02, -0.1, 0); G.box(q3[0], q3[1], q3[2], 0.022, 0.07, 0.035, 0.008, '#2A2D33', { ry: gry, rx: 0.25 });
+  const q4 = GP(-0.22, -0.02, 0); G.box(q4[0], q4[1], q4[2], 0.035, 0.055, 0.08, 0.01, bc ? bc[3] : '#2A2D33', Object.assign({ ry: gry }, cam));
+  const q5 = GP(0, 0.07, 0); G.box(q5[0], q5[1], q5[2], 0.018, 0.012, 0.1, 0.004, '#16181C', { ry: gry });
   for (const sg of [-1, 1]) { const hnd = P(0.32, 0.95, 0.12 * sg + 0.08); G.sphere(hnd[0], hnd[1], hnd[2], 0.09, body, { spec: 0.6 }); }
   if (e.flashMuzzle > 0) { const m = add(gc, scl(dirOf(e.yaw, e.pitch), 0.4)); G.sphere(m[0], m[1], m[2], 0.12, '#FFD86B', { emit: 1 }); }
   if (e.prot > 0) G.sphere(t[0], t[1] + 0.1, t[2], 1.0, '#7CC4F2', { a: 0.16, emit: 0.6, spec: 1 });
   if (e.hp < 100 && !attract) { const hp = P(0, 2.0, 0); G.box(hp[0], hp[1], hp[2], 0.4 * e.hp / 100, 0.035, 0.01, 0.01, e.hp > 50 ? '#4FCB96' : '#FF5A5F', { emit: 1, ry: -me.yaw }); }
 }
 // Draws a gun pointing down -z around point o, in whatever space the engine is in.
+// Built from real parts: receiver, rail, handguard, barrel, muzzle, magazine, grip, trigger guard and stock.
 function drawGun(GX, o, s2, att, camoId, charmId, rl, t, hl) {
+  const [x, y, z] = o, cls = s2.ck;
   const glow = slot => (hl && hl.slot === slot ? { emit: Math.max(0, 1 - (t - hl.t) / 700) * 0.7 } : {});
-  const [x, y, z] = o, cls = s2.ck, len2 = cls === 'sn' ? 0.42 : cls === 'pi' ? 0.12 : cls === 'sg' ? 0.34 : cls === 'lmg' ? 0.3 : 0.26;
-  let col = ['#2B2F38', '#2F3F5A', '#3A2F5A', '#5A2F3F', '#6B5321'][s2.tier], opt = {};
-  const sk = camoId && skinInfo(camoId);
-  if (sk) { col = sk[3]; if (sk[5]) opt = { pat: sk[5], c2: sk[4], patS: 34, anim: sk[6] }; }
   if (GX.time) GX.time(t);
-  const part = (px, py, pz, hx, hy, hz, r, c, o2) => GX.box(x + px, y + py, z + pz, hx, hy, hz, r, c, Object.assign({ spec: 1.1, shiny: 60 }, o2 || {}));
-  part(0, 0, 0, 0.035, 0.05, len2, 0.012, col, Object.assign({ rx: rl }, opt, glow('camo')));
-  const bl = (att && att.barrel === 3 ? 0.14 : 0.08);
-  GX.cyl(x, y + 0.02, z - len2 - bl + 0.02, cls === 'sg' ? 0.022 : 0.014, bl, '#1A1C22', { rx: Math.PI / 2, spec: 1.2 });
-  if (att && att.barrel === 1) GX.cyl(x, y + 0.02, z - len2 - 0.2, 0.024, 0.08, '#15171C', Object.assign({ rx: Math.PI / 2, spec: 0.8 }, glow('barrel')));
-  if (att && att.barrel === 2) GX.cyl(x, y + 0.02, z - len2 - 0.12, 0.03, 0.03, '#3A3F4A', Object.assign({ rx: Math.PI / 2, spec: 1.2 }, glow('barrel')));
-  if (att && att.barrel === 3 && hl && hl.slot === 'barrel') GX.cyl(x, y + 0.02, z - len2 - 0.15, 0.016, 0.06, '#1A1C22', Object.assign({ rx: Math.PI / 2 }, glow('barrel')));
-  if (cls !== 'pi') {
-    const m = att ? att.mag : 0;
-    if (m === 3) GX.cyl(x, y - 0.09, z - 0.05, 0.06, 0.03, '#4A3AE0', Object.assign({ rz: Math.PI / 2, spec: 0.9 }, glow('mag')));
-    else part(0, -0.07 - (m === 2 ? 0.03 : 0) + (m === 1 ? 0.015 : 0), -0.05, 0.022, 0.06 * (m === 2 ? 1.5 : m === 1 ? 0.75 : 1), 0.03, 0.01, '#4A3AE0', Object.assign({ rx: 0.2 + rl }, glow('mag')));
-    const g = att ? att.grip : 0;
-    if (g === 1) part(0, -0.005, len2 + 0.09, 0.015, 0.03, 0.1, 0.008, '#3A3F4A', glow('grip'));
-    else part(0, -0.01, len2 + 0.08, 0.03, 0.04, 0.09, 0.01, sk ? col : '#3A3F4A', sk ? opt : {});
-    if (g === 2) { part(0.04, 0, -len2 * 0.6, 0.012, 0.012, 0.04, 0.005, '#15171C', glow('grip')); GX.sphere(x + 0.04, y, z - len2 * 0.6 - 0.045, 0.008, '#FF2E2E', { emit: 1 }); }
-    if (g === 3) part(0, -0.07, -len2 * 0.55, 0.014, 0.045, 0.014, 0.006, '#15171C', Object.assign({ rx: -0.1 }, glow('grip')));
-  } else part(0, -0.07, 0.05, 0.025, 0.07, 0.03, 0.01, '#3A3F4A', { rx: -0.25 });
-  const optic = att ? att.optic : 0;
-  if (optic === 1) { part(0, 0.07, -0.02, 0.022, 0.02, 0.04, 0.008, '#15171C', Object.assign({ spec: 1.4 }, glow('optic'))); GX.sphere(x, y + 0.075, z - 0.06, 0.006, '#FF2E2E', { emit: 1 }); }
-  if (optic === 2) { part(0, 0.075, -0.02, 0.028, 0.03, 0.05, 0.008, '#15171C', Object.assign({ spec: 1.4 }, glow('optic'))); GX.torus(x, y + 0.08, z - 0.075, 0.018, '#3A3F4A', { rx: Math.PI / 2, tube: 0.004 }); }
-  if (optic === 3 || (s2.scope && cls === 'sn')) { GX.cyl(x, y + 0.08, z - 0.02, 0.022, 0.12, '#15171C', Object.assign({ rx: Math.PI / 2, spec: 1.4 }, glow('optic'))); GX.cyl(x, y + 0.08, z - 0.15, 0.028, 0.02, '#15171C', { rx: Math.PI / 2 }); }
+  const sk = camoId && skinInfo(camoId);
+  const MET = '#2A2D33', DARK = '#16181C', TIERS = ['#3A3D44', '#33405A', '#463A62', '#5A2F3F', '#6B5321'];
+  const woodCls = cls === 'sg' || cls === 'dmr';
+  const furn = sk ? sk[3] : woodCls ? (s2.tier ? TIERS[s2.tier] : '#7A4A26') : TIERS[s2.tier];
+  const fo = sk && sk[5] ? { pat: sk[5], c2: sk[4], patS: 34, anim: sk[6] } : woodCls && !s2.tier && !sk ? { tex: 2, texS: 6 } : {};
+  const mo = { spec: 1.5, shiny: 80 }, po = Object.assign({ spec: 0.45, shiny: 25 }, fo);
+  const B = (px, py, pz, hx, hy, hz, c, op) => GX.box(x + px, y + py, z + pz, hx, hy, hz, Math.min(0.006, hx, hy, hz), c, Object.assign({ rx: rl }, op || {}));
+  const C = (px, py, pz, r, hh, c, op) => GX.cyl(x + px, y + py, z + pz, r, hh, c, Object.assign({ rx: Math.PI / 2 }, op || {}));
+  const mg = att ? att.mag : 0, opt = att ? att.optic : 0, br = att ? att.barrel : 0, gr = att ? att.grip : 0;
+  let front = 0.44, railY = 0.062, railZ = -0.01, magZ = -0.02;
+  if (cls === 'pi') {
+    B(0, 0.03, 0, 0.016, 0.018, 0.09, sk ? furn : MET, Object.assign({}, mo, sk ? fo : {}));
+    for (let i = 0; i < 4; i++) B(0.0165, 0.03, 0.06 + i * 0.008, 0.001, 0.012, 0.002, DARK);
+    B(0, 0.008, -0.01, 0.015, 0.012, 0.08, TIERS[s2.tier], po);
+    B(0, -0.04, 0.055, 0.014, 0.045, 0.022, TIERS[s2.tier], Object.assign({ rx: -0.25 + rl }, po));
+    B(0, -0.012, 0.012, 0.003, 0.012, 0.022, MET);
+    C(0, 0.03, -0.095, 0.006, 0.01, DARK, mo);
+    B(0, 0.051, -0.08, 0.003, 0.004, 0.004, DARK); B(0, 0.051, 0.08, 0.008, 0.004, 0.004, DARK);
+    front = 0.1;
+  } else {
+    const lenB = cls === 'sn' ? 0.3 : cls === 'smg' ? 0.06 : cls === 'sg' ? 0.24 : cls === 'lmg' ? 0.14 : cls === 'dmr' ? 0.22 : 0.08;
+    const recL = cls === 'smg' ? 0.1 : cls === 'lmg' ? 0.15 : 0.13;
+    if (cls === 'dmr') { B(0, -0.005, -0.04, 0.024, 0.034, 0.27, furn, po); B(0, 0.036, -0.01, 0.02, 0.016, 0.12, MET, mo); }
+    else if (cls === 'sg') { B(0, 0.02, 0.03, 0.026, 0.035, 0.09, sk ? furn : MET, sk ? Object.assign({}, mo, fo) : mo); }
+    else { B(0, -0.005, 0.02, 0.026, 0.034, recL * 0.85, furn, po); B(0, 0.034, 0, 0.024, 0.022, recL, sk ? furn : MET, sk ? Object.assign({}, mo, fo) : mo); }
+    B(0.025, 0.034, -0.01, 0.0015, 0.009, 0.03, DARK);
+    B(0, railY, railZ, 0.013, 0.005, recL, MET, mo);
+    for (let i = 0; i < 8; i++) B(0, railY + 0.006, railZ - recL + 0.02 + i * (recL * 2 - 0.04) / 7, 0.013, 0.002, 0.003, DARK);
+    let hgEnd = -recL;
+    if (cls === 'ar' || cls === 'smg') { const hl2 = cls === 'smg' ? 0.06 : 0.09; B(0, 0.028, -recL - hl2, 0.029, 0.029, hl2, furn, po); for (let i = 0; i < 4; i++) B(0.0295, 0.028, -recL - 0.02 - i * hl2 * 0.45, 0.001, 0.012, 0.008, DARK); hgEnd = -recL - hl2 * 2; }
+    if (cls === 'lmg') { C(0, 0.034, -recL - 0.1, 0.02, 0.1, MET, mo); for (let i = 0; i < 5; i++) C(0, 0.034, -recL - 0.03 - i * 0.035, 0.0205, 0.004, DARK); hgEnd = -recL - 0.2; }
+    if (cls === 'sn') hgEnd = -recL;
+    if (cls === 'sg') { C(0, 0.04, -0.06 - 0.22, 0.012, 0.22, MET, mo); C(0, 0.012, -0.06 - 0.18, 0.011, 0.18, MET, mo); B(0, 0.012, -0.17, 0.022, 0.022, 0.07, furn, Object.assign({ rx: 0 }, po)); for (let i = 0; i < 5; i++) B(0, -0.011, -0.12 - i * 0.022, 0.023, 0.002, 0.005, DARK); front = 0.06 + 0.44; }
+    else if (cls === 'dmr') { C(0, 0.03, -0.31 - lenB * 0.5, 0.009, lenB * 0.5 + 0.02, MET, mo); front = 0.33 + lenB; }
+    else { const bz = hgEnd - lenB; C(0, 0.03, (hgEnd + bz) / 2, cls === 'sn' ? 0.012 : 0.009, (hgEnd - bz) / 2 + 0.005, MET, mo); front = -bz; }
+    if (cls === 'ar') { B(0, 0.05, hgEnd - 0.005, 0.006, 0.014, 0.006, MET); B(0, 0.072, hgEnd - 0.005, 0.002, 0.01, 0.002, DARK); }
+    if (br === 3) { C(0, 0.03, -front - 0.05, 0.009, 0.055, MET, Object.assign({}, mo, glow('barrel'))); front += 0.11; }
+    if (br === 1) { C(0, 0.03, -front - 0.07, 0.019, 0.07, DARK, Object.assign({ spec: 0.7 }, glow('barrel'))); front += 0.14; }
+    else if (br === 2) { C(0, 0.03, -front - 0.025, 0.016, 0.025, MET, Object.assign({}, mo, glow('barrel'))); for (let i = 0; i < 3; i++) B(0, 0.046, -front - 0.012 - i * 0.012, 0.006, 0.002, 0.003, DARK); front += 0.05; }
+    else { C(0, 0.03, -front - 0.015, 0.012, 0.016, MET, mo); front += 0.03; }
+    // magazine
+    const mo2 = Object.assign({}, po, glow('mag')), magC = TIERS[s2.tier];
+    if (cls === 'sg') { /* tube fed */ }
+    else if (mg === 3) { GX.cyl(x, y - 0.085, z + magZ, 0.058, 0.026, magC, Object.assign({ rz: Math.PI / 2 }, mo2)); }
+    else if (cls === 'lmg') { B(0, -0.065, -0.02, 0.034, 0.045, 0.05, '#4B5320', mo2); }
+    else if (cls === 'smg' || cls === 'dmr' || cls === 'sn') { const l = (mg === 2 ? 0.075 : mg === 1 ? 0.04 : 0.055) * (cls === 'sn' ? 0.6 : 1); B(0, -0.035 - l, magZ, 0.014, l, 0.022, magC, Object.assign({ rx: 0.05 + rl }, mo2)); }
+    else { const l1 = mg === 2 ? 0.06 : mg === 1 ? 0.035 : 0.045; B(0, -0.04 - l1, magZ, 0.015, l1, 0.025, magC, Object.assign({ rx: 0.12 + rl }, mo2)); B(0, -0.04 - l1 * 2.45, magZ - 0.012, 0.015, l1 * 0.55, 0.025, magC, Object.assign({ rx: 0.34 + rl }, mo2)); }
+    // grip, trigger guard, stock
+    if (cls !== 'dmr' || true) B(0, -0.07, recL * 0.75, 0.015, 0.045, 0.02, TIERS[s2.tier], Object.assign({ rx: -0.35 + rl }, po));
+    B(0, -0.044, recL * 0.4, 0.003, 0.003, 0.03, MET);
+    if (cls === 'smg' && gr !== 1) { B(0.012, 0.01, recL + 0.1, 0.003, 0.03, 0.09, MET); B(-0.012, 0.01, recL + 0.1, 0.003, 0.03, 0.09, MET); B(0, -0.005, recL + 0.19, 0.016, 0.035, 0.006, DARK); }
+    else if (cls === 'sg' || cls === 'dmr' || cls === 'sn') { B(0, -0.005, recL + 0.12, 0.022, 0.042, 0.12, furn, Object.assign({ rx: 0.06 }, po)); B(0, -0.01, recL + 0.245, 0.024, 0.048, 0.008, DARK); if (cls === 'sn') B(0, 0.04, recL + 0.1, 0.02, 0.008, 0.06, furn, po); }
+    else if (gr === 1) { C(0, 0.02, recL + 0.08, 0.011, 0.08, MET, Object.assign({}, mo, glow('grip'))); B(0, -0.01, recL + 0.16, 0.014, 0.04, 0.006, DARK, glow('grip')); }
+    else { C(0, 0.02, recL + 0.06, 0.012, 0.06, MET, mo); B(0, 0.003, recL + 0.13, 0.022, 0.04, 0.055, furn, po); B(0, -0.002, recL + 0.19, 0.024, 0.046, 0.008, DARK); }
+    if (gr === 2) { B(0.034, 0.02, hgEnd * 0.6, 0.008, 0.01, 0.035, DARK, glow('grip')); GX.sphere(x + 0.034, y + 0.02, z + hgEnd * 0.6 - 0.037, 0.006, '#FF2E2E', { emit: 1 }); }
+    if (gr === 3) B(0, -0.035, hgEnd * 0.7, 0.012, 0.04, 0.012, DARK, Object.assign({ rx: -0.08 }, glow('grip')));
+    if (cls === 'sn' || cls === 'lmg') { for (const sx of [-1, 1]) B(sx * 0.018, -0.03, hgEnd - 0.02, 0.003, 0.05, 0.003, MET, { rz: sx * 0.35 }); }
+    if (cls === 'lmg') { B(0, 0.085, -0.02, 0.008, 0.012, 0.06, MET); }
+    if (cls === 'sn') { GX.cyl(x + 0.03, y + 0.035, z + 0.04, 0.004, 0.018, MET, { rz: Math.PI / 2 }); GX.sphere(x + 0.05, y + 0.035, z + 0.04, 0.008, MET, mo); }
+    // optics sit on the rail
+    const oy = railY + 0.02;
+    if (opt === 0 && cls !== 'sn') B(0, railY + 0.012, recL - 0.02, 0.008, 0.008, 0.004, DARK);
+    if (opt === 1) { C(0, oy, -0.01, 0.014, 0.022, DARK, Object.assign({}, mo, glow('optic'))); GX.sphere(x, y + oy, z - 0.034, 0.004, '#FF2E2E', { emit: 1 }); }
+    if (opt === 2) { B(0, oy, -0.01, 0.018, 0.008, 0.03, DARK, glow('optic')); B(0, oy + 0.02, -0.035, 0.018, 0.014, 0.003, DARK, glow('optic')); B(0, oy + 0.02, -0.035, 0.013, 0.009, 0.0035, '#3E6E9E', { emit: 0.25, a: 0.85 }); }
+    if (opt === 3 || cls === 'sn') { C(0, oy + 0.012, -0.01, 0.017, 0.1, DARK, Object.assign({}, mo, glow('optic'))); C(0, oy + 0.012, -0.12, 0.024, 0.018, DARK, mo); C(0, oy + 0.012, 0.1, 0.021, 0.015, DARK, mo); B(0, oy - 0.008, -0.04, 0.006, 0.008, 0.006, MET); B(0, oy - 0.008, 0.04, 0.006, 0.008, 0.006, MET); }
+  }
   const ch = charmId && skinInfo(charmId);
   if (ch) {
-    const sw = Math.sin(t / 350) * 0.012, cx = x + 0.045, cy = y - 0.05 + sw * 0.3, cz = z + len2 * 0.35 + sw;
-    GX.cyl(cx, y - 0.02, z + len2 * 0.35, 0.002, 0.03, '#C9D2DC');
-    const co = { spec: 1.2, emit: Math.max(ch[6] ? 0.4 + 0.3 * Math.sin(t / 250) : 0, glow('charm').emit || 0) };
-    if (ch[5] === 1) GX.box(cx, cy, cz, 0.014, 0.014, 0.014, 0.004, ch[3], co);
-    else if (ch[5] === 2) GX.cone(cx, cy, cz, 0.014, 0.018, ch[3], co);
-    else if (ch[5] === 3) GX.cyl(cx, cy, cz, 0.016, 0.004, ch[3], Object.assign({ rz: Math.PI / 2 }, co));
-    else if (ch[5] === 4) GX.torus(cx, cy, cz, 0.014, ch[3], Object.assign({ rz: Math.PI / 2, tube: 0.004 }, co));
-    else GX.sphere(cx, cy, cz, 0.016, ch[3], co);
+    const sw = Math.sin(t / 350) * 0.012, cx = x + 0.04, cz = z + (cls === 'pi' ? 0.05 : 0.11);
+    GX.cyl(cx, y - 0.025, cz, 0.0015, 0.025, '#C9D2DC');
+    const co = { spec: 1.2, emit: Math.max(ch[6] ? 0.4 + 0.3 * Math.sin(t / 250) : 0, glow('charm').emit || 0) }, cy = y - 0.06 + sw * 0.3, czz = cz + sw;
+    if (ch[5] === 1) GX.box(cx, cy, czz, 0.012, 0.012, 0.012, 0.003, ch[3], co);
+    else if (ch[5] === 2) GX.cone(cx, cy, czz, 0.012, 0.016, ch[3], co);
+    else if (ch[5] === 3) GX.cyl(cx, cy, czz, 0.014, 0.003, ch[3], Object.assign({ rz: Math.PI / 2 }, co));
+    else if (ch[5] === 4) GX.torus(cx, cy, czz, 0.012, ch[3], Object.assign({ rz: Math.PI / 2, tube: 0.0035 }, co));
+    else GX.sphere(cx, cy, czz, 0.014, ch[3], co);
   }
-  return len2;
+  return front;
 }
 function drawViewmodel() {
   const g = me.guns[me.cur], s2 = g.s;
@@ -1242,13 +1384,16 @@ function drawViewmodel() {
   G.viewmodel();
   const a2 = me.ads, bob = Math.sin(me.bob * 2.2) * 0.012 * (1 - a2), kick = (me.kick || 0) * 0.05;
   const rl = me.reloadT > 0 ? 0.25 : 0, sw = me.swapT > 0 ? me.swapT * 0.6 : 0;
-  const x = 0.2 * (1 - a2), y = -0.2 + a2 * 0.085 + bob - rl * 0.3 - sw, z = -0.48 + kick;
+  const kn = Math.max(0, me.knifeAnim || 0), stab = kn > 0 ? Math.sin((1 - kn / 0.35) * Math.PI) : 0;
+  const x = 0.2 * (1 - a2) - stab * 0.12, y = -0.2 + a2 * 0.085 + bob - rl * 0.3 - sw - stab * 0.15, z = -0.48 + kick + stab * 0.1;
+  if (stab > 0) { G.box(0.05, -0.12 + stab * 0.05, -0.32 - stab * 0.25, 0.006, 0.014, 0.08, 0.003, '#C9D2DC', { spec: 1.6, shiny: 90 }); G.box(0.05, -0.12 + stab * 0.05, -0.22 - stab * 0.25, 0.01, 0.016, 0.03, 0.004, '#2A2D33'); }
   const att = me.cur === 0 ? me.lo.att : null, camos = me.lo.camos || {};
-  const len2 = drawGun(G, [x, y, z], s2, att, camos[g.key], me.lo.charm, rl, performance.now());
-  const L2 = me.look || {};
-  G.sphere(x - 0.02, y - 0.09, z + 0.05, 0.05, L2.body || '#B98BFF', { ky: 1.2, spec: 0.8 });
-  G.cyl(x - 0.03, y - 0.13, z + 0.16, 0.055, 0.09, (L2.top && L2.top.c) || L2.body || '#B98BFF', { rx: 1.1 });
-  if (me.flashMuzzle > 0 && !s2.quiet) G.sphere(x, y + 0.02, z - len2 - 0.17, 0.06, '#FFD86B', { emit: 1, a: 0.9 });
+  const front = drawGun(G, [x, y, z], s2, att, camos[g.key], me.lo.charm, rl, performance.now());
+  const L2 = me.look || {}, skinC = L2.body || '#B98BFF', sleeve = (L2.top && L2.top.c) || skinC, pi = s2.ck === 'pi';
+  G.sphere(x, y - 0.075, z + (pi ? 0.06 : 0.1), 0.032, skinC, { ky: 1.25, spec: 0.7 });
+  G.cyl(x + 0.03, y - 0.15, z + (pi ? 0.14 : 0.2), 0.038, 0.1, sleeve, { rx: -1.05 });
+  if (!pi) { G.sphere(x - 0.008, y + 0.0, z - 0.2, 0.03, skinC, { ky: 1.1, spec: 0.7 }); G.cyl(x - 0.07, y - 0.1, z - 0.1, 0.034, 0.12, sleeve, { rx: -0.85, rz: 0.55 }); }
+  if (me.flashMuzzle > 0 && !s2.quiet) { G.sphere(x, y + 0.03, z - front - 0.03, 0.045, '#FFE38A', { emit: 1, a: 0.95 }); G.sphere(x, y + 0.03, z - front - 0.06, 0.03, '#FF9A3A', { emit: 1, a: 0.8 }); }
 }
 function render() {
   G.begin();
@@ -1263,7 +1408,16 @@ function render() {
   }
   G.view(eye, yaw, pitch, fov, 0.05, 300);
   G.time(performance.now());
-  for (const bx of M.solid) { const b = bx.b; G.box(b[0], b[1], b[2], b[3], b[4], b[5], Math.min(0.12, b[3], b[4], b[5]), b[6], { spec: b[7] ? 0.2 : 0.25, shiny: 20, emit: b[7] ? 1 : 0 }); }
+  const drawB = b => {
+    const o2 = { spec: b[8] === 11 ? 1.1 : b[8] === 4 || b[8] === 12 ? 0.6 : 0.22, shiny: b[8] === 11 ? 90 : 20, emit: b[7] ? 1 : 0, tex: b[8] || 0, texS: 1 };
+    if (b[9] === 1) G.cyl(b[0], b[1], b[2], b[3], b[4], b[6], o2);
+    else if (b[9] === 3) G.cyl(b[0], b[1], b[2], b[4], b[3], b[6], Object.assign({ rz: Math.PI / 2 }, o2));
+    else if (b[9] === 4) G.cyl(b[0], b[1], b[2], b[3], b[5], b[6], Object.assign({ rx: Math.PI / 2 }, o2));
+    else if (b[9] === 2) { const ang = Math.atan2(b[4] * 2, b[5]); for (const sg of [-1, 1]) G.box(b[0], b[1], b[2] + sg * b[5] / 2, b[3], 0.08, b[5] / 2 / Math.cos(ang) + 0.05, 0.02, b[6], Object.assign({}, o2, { rx: sg * ang })); G.box(b[0], b[1] - b[4] / 2, b[2], b[3] - 0.05, b[4] / 2, b[5] - 0.2, 0.01, '#C9BFA8', { tex: 10, spec: 0.1 }); }
+    else G.box(b[0], b[1], b[2], b[3], b[4], b[5], Math.min(0.06, b[3], b[4], b[5]), b[6], o2);
+  };
+  for (const bx of M.solid) drawB(bx.b);
+  if (M.decor) for (const b of M.decor) drawB(b);
   for (const f of fires) for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + f.t, rr = 1.8 + Math.sin(f.t * 5 + i) * 0.5; G.sphere(f.p[0] + Math.cos(a) * rr, 0.3 + Math.abs(Math.sin(f.t * 7 + i)) * 0.4, f.p[2] + Math.sin(a) * rr, 0.35, i % 2 ? '#FF7A1A' : '#FFC233', { emit: 1, a: 0.85 }); }
   for (const e of ents) if (e.alive && e !== me) drawChar(e);
   for (const n of nades) G.sphere(n.p[0], n.p[1], n.p[2], n.kind === 'knife' ? 0.08 : 0.12, n.kind === 'frag' ? '#3A5A2A' : n.kind === 'semtex' ? '#E5484D' : n.kind === 'molotov' ? '#E39424' : n.kind === 'knife' ? '#C9D2DC' : '#9AA5B1', { spec: 1, ky: n.kind === 'knife' ? 2.4 : 1 });
@@ -1277,11 +1431,12 @@ function startPreviewMode(id) {
   ui.hidden = true; $('#hud').hidden = true;
   G = create(cv, window.innerWidth, window.innerHeight, { free: true, opaque: true, onLost: showGLError });
   if (!G) { showGLError(); return; }
-  const inf = skinInfo(id), type = inf ? inf[7] : 'camo', gun = 'ar2', at = { optic: 1, barrel: 0, mag: 0, grip: 0 }, s2 = gunStats(gun, at);
+  const qs = new URLSearchParams(location.search), gun = WEAPONS[qs.get('gun')] ? qs.get('gun') : 'ar2', inf = skinInfo(id), type = inf ? inf[7] : 'camo';
+  const at = CLASSES[WEAPONS[gun].ck].p ? (qs.get('att') ? (([o2, b2, m2, g2]) => ({ optic: +o2, barrel: +b2, mag: +m2, grip: +g2 }))(qs.get('att').split('')) : { optic: 1, barrel: 0, mag: 0, grip: 0 }) : null, s2 = gunStats(gun, at);
   const loop = t => {
     if (!G.lost) {
       G.begin(); G.setSky('#FFFFFF', '#5C6370'); G.fog('#12141A', 0); G.light([-0.35, 0.85, 0.5]);
-      const ang = 1.25 + Math.sin(t / 2600) * 0.55, dist = type === 'tracer' ? 0.78 : 0.6, c = [0, 0, type === 'tracer' ? -0.3 : 0.04];
+      const ang = qs.has('still') ? 1.45 : 1.25 + Math.sin(t / 2600) * 0.55, dist = type === 'tracer' ? 0.78 : s2.ck === 'sn' ? 0.95 : s2.ck === 'pi' ? 0.36 : 0.72, c = [0, 0, type === 'tracer' ? -0.3 : s2.ck === 'pi' ? 0.0 : -0.04];
       const e = [c[0] + Math.sin(ang) * dist, c[1] + 0.14, c[2] + Math.cos(ang) * dist], d = sub(c, e);
       G.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 44, 0.02, 30); G.time(t);
       const len2 = drawGun(G, [0, 0, 0], s2, at, type === 'camo' ? id : '', type === 'charm' ? id : '', 0, t);
@@ -1295,7 +1450,7 @@ window.__strikeLoaded = true;
 const PREVIEW = new URLSearchParams(location.search).get('preview');
 if (PREVIEW) startPreviewMode(PREVIEW);
 else { initFirebase(); startAttract(); }
-if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, ready: (list, skins) => { owned = new Set(list); skinsOwned = new Set(skins); statsReady = true; fixLoadout(); drawUI(); }, killMe: () => damage(me, 500, ents[1], 'gun'), killBot: () => { const b = ents.find(x => x.bot && x.alive && x.prot <= 0) || ents.find(x => x.bot && x.alive); if (b) { b.prot = 0; damage(b, 500, me, 'gun'); } return b && b.name; }, score: () => me.score, mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout, smith: id => { smithGun = id; view = 'smith'; drawUI(); }, thumbs: () => Object.keys(thumbs).length };
+if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, ready: (list, skins) => { owned = new Set(list); skinsOwned = new Set(skins); statsReady = true; fixLoadout(); drawUI(); }, killMe: () => damage(me, 500, ents[1], 'gun'), forceMap: i => { forceMap = i; }, gg: () => ({ me: me.gg, gun: me.guns[0].key, bots: ents.filter(e => e.bot).map(e => e.gg) }), setTier: n => setTier(me, n), knifeMe: () => { const b = ents.find(x => x.bot); damage(me, 500, b, 'melee'); }, killBot: () => { const b = ents.find(x => x.bot && x.alive && x.prot <= 0) || ents.find(x => x.bot && x.alive); if (b) { b.prot = 0; damage(b, 500, me, 'gun'); } return b && b.name; }, score: () => me.score, mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout, smith: id => { smithGun = id; view = 'smith'; drawUI(); }, thumbs: () => Object.keys(thumbs).filter(k => thumbs[k]).length };
 </script>
 </body>
 </html>
