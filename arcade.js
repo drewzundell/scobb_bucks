@@ -757,7 +757,7 @@ export const CSS = `
 .ag-cards .fr { background: linear-gradient(#FFFFFF, #EEF0F5); box-shadow: inset 0 -3px 0 rgba(0,0,0,.08), 0 6px 12px -6px rgba(0,0,0,.4); }
 .ag-cards .bk { transform: rotateY(180deg); background: repeating-linear-gradient(45deg, #5A4AF0 0 6px, #4433D0 6px 12px); box-shadow: inset 0 0 0 3px rgba(255,255,255,.85), 0 6px 12px -6px rgba(0,0,0,.4); }
 .ag-cards button.done .fr { background: linear-gradient(#DFF7E8, #BDEDCF); }
-.ag-nums button { background: linear-gradient(#FFFFFF, #E9ECF2); }
+.ag-nums button { background: linear-gradient(var(--card), var(--card-2, var(--card))); color: var(--ink); font-weight: 800; font-size: clamp(18px, 6cqmin, 30px); }
 .ag-nums button.good { background: linear-gradient(#7EE8A8, #2FBF71); color: #fff; transform: translateY(2px); box-shadow: inset 0 2px 4px rgba(0,0,0,.2); }
 .ag-opts .btn { box-shadow: 0 4px 0 var(--line), 0 10px 16px -10px rgba(0,0,0,.4) !important; }
 .ag-opts .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line) !important; }

@@ -99,6 +99,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .scope::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #000; }
 .scope::after { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #000; }
 .board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92vw, 520px); background: rgba(8,9,13,.88); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; font-size: 14.5px; }
+.kpops { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; }
+.kpop { display: flex; align-items: baseline; gap: 10px; padding: 8px 16px; border-radius: 12px; background: rgba(8,9,13,.62); border: 1px solid rgba(255,90,95,.5); animation: kp-in .25s cubic-bezier(.2,1.5,.4,1); transition: opacity .35s, transform .35s; }
+.kpop span { color: #FF8A8E; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.kpop b { font-size: 22px; font-weight: 900; }
+.kpop em { font-style: normal; color: #FFD86B; font-size: 18px; font-weight: 900; }
+.kpop.out { opacity: 0; transform: translateY(-10px); }
+@keyframes kp-in { from { transform: scale(.6); } to { transform: none; } }
+.score { position: absolute; top: calc(66px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); font-size: 15px; color: #FFD86B; background: rgba(8,9,13,.5); padding: 3px 10px; border-radius: 8px; }
 .board[hidden], .pause[hidden], .overlay[hidden], #hud[hidden], #ui[hidden], .panel[hidden] { display: none; }
 .board table { width: 100%; border-collapse: collapse; }
 .board th { text-align: left; color: var(--soft); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; padding: 4px 6px; }
@@ -179,7 +187,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102d';
+import { create } from './scobb3d.js?v=20261102e';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -356,7 +364,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102d');
+    const cfg = await import('./firebase-config.js?v=20261102e');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -372,7 +380,7 @@ async function initFirebase() {
 function recordMatch(won, partial) {
   if (!FB || !ME_UID || !me || me.recorded) return;
   me.recorded = true;
-  const up = { k: FB.increment(me.tk || 0), d: FB.increment(me.td || 0), hs: FB.increment(me.hsK || 0), boom: FB.increment(me.boomK || 0), knife: FB.increment(me.knifeK || 0), snipe: FB.increment(me.snipeK || 0) };
+  const up = { pts: FB.increment(me.tp || 0), k: FB.increment(me.tk || 0), d: FB.increment(me.td || 0), hs: FB.increment(me.hsK || 0), boom: FB.increment(me.boomK || 0), knife: FB.increment(me.knifeK || 0), snipe: FB.increment(me.snipeK || 0) };
   if (!partial) { up.matches = FB.increment(1); up.wins = FB.increment(won ? 1 : 0); }
   if ((me.bestStreak || 0) > (stats.best || 0)) up.best = me.bestStreak;
   FB.setDoc(FB.doc(fsdb, 'fpsStats/' + ME_UID), up, { merge: true }).catch(() => {});
@@ -391,7 +399,7 @@ function drawUI() {
   const P = WEAPONS[loadout.primary];
   let h = `<div class="shade"></div><div class="side"><h1 class="logo">Scobb<span>Strike</span></h1><div class="tag">Free for all · Best of 3</div>
     <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" disabled><span>Wager 1v1</span><small>Bet ScobbBucks against a friend. Coming next.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="view" data-v="armory" class="${view === 'armory' ? 'on' : ''}"><span>Armory</span><small>Every gun and attachment you can unlock</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Calling cards</span><small>Challenges and the card killers see</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
-    <div class="kd"><div><b>${kdText()}</b><span>K/D</span></div><div><b>${stats.k || 0}</b><span>Kills</span></div><div><b>${stats.wins || 0}</b><span>Match wins</span></div></div>
+    <div class="kd"><div><b>${kdText()}</b><span>K/D</span></div><div><b>${stats.k || 0}</b><span>Kills</span></div><div><b>${stats.pts || 0}</b><span>Points</span></div><div><b>${stats.wins || 0}</b><span>Match wins</span></div></div>
     <p class="small soft" style="margin-top:22px">${ME_UID ? 'Your K/D shows on your ScobbBucks profile.' : 'Log in on ScobbBucks to track your K/D and use the gear you unlock.'} <a href="./" style="color:#C9C2FF">Back to ScobbBucks</a></p></div>`;
   if (view === 'loadout') {
     const g = gunStats(loadout.primary, loadout.att), base = gunStats(loadout.primary, null), pn = WEAPONS[loadout.primary].name, sn = WEAPONS[loadout.secondary].name;
@@ -471,7 +479,7 @@ ui.addEventListener('click', e => {
 });
 function openStore() {
   const d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102d" title="Inventory" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102e" title="Inventory" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -553,7 +561,7 @@ function startRound() {
   M = MAPS[match.maps[match.round % match.maps.length]];
   setMapLook();
   nades = []; fires = []; smokes = []; fx = []; tracers = []; pings = []; pingT = -99;
-  for (const e of ents) { e.kills = 0; e.deaths = 0; spawn(e); }
+  for (const e of ents) { e.kills = 0; e.deaths = 0; e.score = 0; spawn(e); }
   if (attract) { match.phase = 'live'; match.t = 120; return; }
   match.t = 150; match.phase = 'intro'; match.phaseT = 3;
   say(`Round ${match.round + 1}`, `${M.name}. First to 10 kills.`);
@@ -591,6 +599,7 @@ function damage(target, amt, from, how, head) {
       if (how === 'knife') from.knifeK = (from.knifeK || 0) + 1;
       if ((how === 'gun' || how === 'head') && from.guns[from.cur].s.ck === 'sn') from.snipeK = (from.snipeK || 0) + 1;
     }
+    if (!self && from) { from.score = (from.score || 0) + KILL_PTS; from.tp = (from.tp || 0) + KILL_PTS; if (from === me && !attract) killPopup(target, how === 'head'); }
     if (!self && from) { from.kills++; from.tk++; if (from.lo.perks[0] === 2) { from.guns.forEach(g => { g.ammo = g.s.mag; }); from.leth = Math.max(from.leth, 1); } }
     else if (self) target.kills = Math.max(0, target.kills - 1);
     pushFeed(self ? (target === me ? 'You blew yourself up' : `${target.name} blew themselves up`) : `${from ? from.name : 'Fire'} ${how === 'boom' ? '💥' : how === 'knife' ? '🔪' : head || how === 'head' ? '◎' : '›'} ${target.name}`);
@@ -714,7 +723,7 @@ function buildHud() {
     <div class="hp"><span id="h-hp"></span> <span class="prot" id="h-prot"></span><div class="bar"><i id="h-hpbar"></i></div></div>
     <div class="inv" id="h-inv"></div><div class="ammo"><b id="h-ammo"></b><span id="h-gun"></span></div>
     <div class="msg" id="h-msg"></div><div class="dmg"></div><div class="flash"></div>
-    <div class="board" id="h-board" hidden></div>
+    <div class="board" id="h-board" hidden></div><div class="kpops" id="h-kills"></div><div class="score" id="h-score"></div>
     <div class="rstats" id="h-rstats"></div><canvas class="recoil" id="h-recoil" width="200" height="200"></canvas><div class="dmgnums" id="h-dmg"></div>
     ${touchDev ? `<div class="touch"><div class="stick" id="t-stick"><i></i></div><button class="tb" data-t="fire" style="right:24px;bottom:120px;width:78px;height:78px">FIRE</button><button class="tb" data-t="ads" style="right:118px;bottom:160px">AIM</button><button class="tb" data-t="jump" style="right:118px;bottom:84px">JUMP</button><button class="tb" data-t="reload" style="right:24px;bottom:210px">R</button><button class="tb" data-t="tac" style="right:24px;bottom:280px">TAC</button><button class="tb" data-t="leth" style="right:96px;bottom:250px">NADE</button><button class="tb" data-t="swap" style="right:170px;bottom:230px">SWAP</button><button class="tb" data-t="board" style="left:24px;top:calc(60px + env(safe-area-inset-top, 0px))">SCORE</button><button class="tb" data-t="pause" style="left:94px;top:calc(60px + env(safe-area-inset-top, 0px))">II</button></div>` : ''}
     <div class="pause" id="h-pause" hidden><div class="card"><h2 style="margin:0 0 10px">Paused</h2>${CONTROLS}<button class="btn block" id="h-resume" style="margin-top:14px">Resume</button><button class="btn ghost block" id="h-quit" style="margin-top:8px">Quit to menu</button></div></div>`;
@@ -725,10 +734,21 @@ function buildHud() {
 }
 function say(a, b, stay) { if (!hudEls.msg) return; hudEls.msg.innerHTML = `${a}<small>${b || ''}</small>`; hudEls.msg.style.opacity = '1'; clearTimeout(say.t); if (!stay) say.t = setTimeout(() => { hudEls.msg.style.opacity = '0'; }, 2600); }
 function pushFeed(t) { if (attract) return; feed.unshift({ t, at: performance.now() }); feed = feed.slice(0, 5); }
+const KILL_PTS = 100;
+// A popup in the middle of the screen naming who you just eliminated, with the points you earned.
+function killPopup(t, head) {
+  const box = document.getElementById('h-kills'); if (!box) return;
+  const d = document.createElement('div'); d.className = 'kpop';
+  d.innerHTML = `<span>${head ? 'Headshot' : 'Eliminated'}</span><b>${t.name}</b><em>+${KILL_PTS}</em>`;
+  box.prepend(d);
+  while (box.children.length > 3) box.lastChild.remove();
+  setTimeout(() => d.classList.add('out'), 1500);
+  setTimeout(() => d.remove(), 1900);
+}
 function hitmark(kill) { const h = hudEls.hit; if (!h) return; h.className = 'hit on' + (kill ? ' kill' : ''); clearTimeout(hitmark.t); hitmark.t = setTimeout(() => { h.className = 'hit'; }, 120); }
 function drawBoard() {
   const rows = ents.slice().sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
-  hudEls.board.innerHTML = `<table><tr><th>Player</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Rounds</th></tr>${rows.map(e => `<tr class="${e === me ? 'me' : ''}"><td>${e.name}</td><td>${e.kills}</td><td>${e.deaths}</td><td>${(e.td ? e.tk / e.td : e.tk).toFixed(2)}</td><td>${'★'.repeat(e.rounds) || '0'}</td></tr>`).join('')}</table><p class="small soft" style="margin:8px 0 0">Kills and deaths are for this round. K/D counts the whole match.</p>`;
+  hudEls.board.innerHTML = `<table><tr><th>Player</th><th>Score</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Rounds</th></tr>${rows.map(e => `<tr class="${e === me ? 'me' : ''}"><td>${e.name}</td><td>${e.score || 0}</td><td>${e.kills}</td><td>${e.deaths}</td><td>${(e.td ? e.tk / e.td : e.tk).toFixed(2)}</td><td>${'★'.repeat(e.rounds) || '0'}</td></tr>`).join('')}</table><p class="small soft" style="margin:8px 0 0">Score, kills and deaths are for this round. Each kill is worth ${KILL_PTS} points. K/D counts the whole match.</p>`;
 }
 function drawMini() {
   const c = hudEls.mini, x = c.getContext('2d'), W = c.width, s = W / (M.S * 2 + 2), now = match.clock;
@@ -793,6 +813,7 @@ function updateHud() {
   hudEls.hp.textContent = me.alive ? `${Math.max(0, Math.ceil(me.hp))} HP` : `Respawning in ${Math.ceil(me.respawn)}`;
   hudEls.prot.textContent = me.alive && me.prot > 0 ? 'Spawn protected' : '';
   hudEls.hpbar.style.width = Math.max(0, me.hp) + '%';
+  const sc = document.getElementById('h-score'); if (sc) { sc.textContent = mode === 'range' ? '' : `${me.score || 0} pts`; sc.style.display = mode === 'range' ? 'none' : ''; }
   hudEls.inv.innerHTML = [[me.guns[0].s.name, `${me.guns[0].ammo}/${me.guns[0].s.mag}`, '1', me.cur === 0], [me.guns[1].s.name, `${me.guns[1].ammo}/${me.guns[1].s.mag}`, '2', me.cur === 1], [TACT[me.lo.tac][0], `×${me.tac}`, 'Q', false], [LETH[me.lo.leth][0], me.cook >= 0 ? `cooking ${Math.max(0, 3 - me.cook).toFixed(1)}` : `×${me.leth}`, 'G', false]].map(([n, v, k, on]) => `<div class="slot${on ? ' on' : ''}"><kbd>${k}</kbd><b>${n}</b>${v}</div>`).join('');
   const sk = me.lo.skin && skinInfo(me.lo.skin);
   hudEls.gun.textContent = g.s.name + (sk ? ' · ' + sk[1] : '') + (me.reloadT > 0 ? ' · reloading' : '');
@@ -1159,7 +1180,7 @@ function render() {
 window.__strikeLoaded = true;
 initFirebase();
 startAttract();
-if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, killMe: () => damage(me, 500, ents[1], 'gun'), mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout };
+if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, killMe: () => damage(me, 500, ents[1], 'gun'), killBot: () => { const b = ents.find(x => x.bot && x.alive && x.prot <= 0) || ents.find(x => x.bot && x.alive); if (b) { b.prot = 0; damage(b, 500, me, 'gun'); } return b && b.name; }, score: () => me.score, mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout };
 </script>
 </body>
 </html>
