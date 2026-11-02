@@ -1268,9 +1268,10 @@ function drawChar(e) {
   const sway = Math.sin(e.walk * 5) * 0.12, ry = -e.yaw;
   G.blob(e.p[0], e.p[1] + 0.02, e.p[2], 0.55, 0.35);
   const legC = L.pants ? L.pants.c : body;
-  for (const sg of [-1, 1]) { const q = P(sway * sg, 0.3, 0.14 * sg); G.cyl(q[0], q[1], q[2], 0.11, 0.26, legC, { ry, spec: 0.4 }); const ft = P(sway * sg + 0.05, 0.06, 0.14 * sg); G.sphere(ft[0], ft[1], ft[2], 0.13, body, { ky: 0.6, kz: 1.2, ry, spec: 0.8 }); }
+  const patOf = it => (it && it.pat && it.c2 ? { pat: it.pat, c2: it.c2, patS: 7 } : {});
+  for (const sg of [-1, 1]) { const q = P(sway * sg, 0.3, 0.14 * sg); G.cyl(q[0], q[1], q[2], 0.11, 0.26, legC, Object.assign({ ry, spec: 0.4 }, patOf(L.pants))); const ft = P(sway * sg + 0.05, 0.06, 0.14 * sg); G.sphere(ft[0], ft[1], ft[2], 0.13, body, { ky: 0.6, kz: 1.2, ry, spec: 0.8 }); }
   const topC = L.top ? L.top.c : body, t = P(0, 0.88, 0);
-  G.sphere(t[0], t[1], t[2], 0.4, topC, { ky: 1.15, spec: 0.6, shiny: 40 });
+  G.sphere(t[0], t[1], t[2], 0.4, topC, Object.assign({ ky: 1.15, spec: 0.6, shiny: 40 }, patOf(L.top)));
   if (L.top) { const b2 = P(0, 0.62, 0); G.cyl(b2[0], b2[1], b2[2], 0.33, 0.06, legC, { spec: 0.3 }); }
   for (const sg of [-1, 1]) { const sh = P(0.12, 0.98, 0.36 * sg); G.sphere(sh[0], sh[1], sh[2], 0.13, topC, { spec: 0.5 }); }
   const hd = P(0, 1.43, 0);
@@ -1285,9 +1286,10 @@ function drawChar(e) {
     else if (/cowboy/.test(hk)) { G.cyl(top[0], top[1] + 0.03, top[2], 0.48, 0.025, hc); G.sphere(top[0], top[1] + 0.1, top[2], 0.24, hc, { ky: 0.7 }); }
     else if (/party|cone|wizard/.test(hk)) G.cone(top[0], top[1] + 0.2, top[2], 0.2, 0.24, hc, { spec: 0.6 });
     else if (/beanie|knit/.test(hk)) { G.sphere(top[0], top[1] - 0.04, top[2], 0.33, hc, { ky: 0.75 }); G.sphere(top[0], top[1] + 0.24, top[2], 0.08, '#FFFFFF'); }
-    else { G.sphere(top[0], top[1] - 0.05, top[2], 0.33, hc, { ky: 0.7, spec: 0.6 }); const br = P(0.24, 1.58, 0); G.box(br[0], br[1], br[2], 0.2, 0.02, 0.22, 0.02, hc, { ry }); }
+    else { G.sphere(top[0], top[1] - 0.05, top[2], 0.33, hc, Object.assign({ ky: 0.7, spec: 0.6 }, patOf(hat))); const br = P(0.24, 1.58, 0); G.box(br[0], br[1], br[2], 0.2, 0.02, 0.22, 0.02, hc, { ry }); }
   } else if (L.hair) { const hr = P(-0.04, 1.62, 0); G.sphere(hr[0], hr[1], hr[2], 0.3, L.hair.c, { ky: 0.55, spec: 0.5 }); }
-  if (L.back) { const bk = P(-0.38, 0.95, 0); G.box(bk[0], bk[1], bk[2], 0.12, 0.25, 0.22, 0.05, L.back.c, { ry, spec: 0.4 }); }
+  if (L.back) { const bk = P(-0.38, 0.95, 0); G.box(bk[0], bk[1], bk[2], 0.12, 0.25, 0.22, 0.05, L.back.c, Object.assign({ ry, spec: 0.4 }, patOf(L.back))); }
+  if (L.watch) { const wr = P(0.32, 0.9, 0.2); G.cyl(wr[0], wr[1], wr[2], 0.1, 0.025, L.watch.c, { spec: 1.2 }); }
   const gc = P(0.42, 0.98, 0.2);
   const bc = e.camo && skinInfo(e.camo), gry = -e.yaw, cam = bc && bc[5] ? { pat: bc[5], c2: bc[4], patS: 16, anim: bc[6] } : {};
   const GP = (fw, up, rt) => P(0.42 + fw, 0.98 + up, 0.2 + rt);

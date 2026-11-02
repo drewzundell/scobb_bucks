@@ -2201,14 +2201,32 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   let rafPending = false;
   let fpsStats = {}, fpsSyncSig = '';
   const kdOf = u => { const s = fpsStats[u]; if (!s || (!s.k && !s.d)) return null; return s.d ? (s.k / s.d).toFixed(2) : Number(s.k || 0).toFixed(2); };
+  // Stripes and pinstripes become stripes, polka dots and checks become dots, camo stays camo, flame fades.
+  const PAT3D = [0, 1, 1, 2, 2, 3, 2, 4];
+  const ITEM_COL = new Map();
+  // The main color of a closet item, read from its own drawing so the 3D version matches what you see in the Closet.
+  function itemColors(id) {
+    if (ITEM_COL.has(id)) return ITEM_COL.get(id);
+    let res = { c: '#8F96A3', c2: '' };
+    try {
+      const svg = thumbSVG(id, { color: 'grape' }) || '';
+      const fills = (svg.match(/fill="(#[0-9A-Fa-f]{6})"/g) || []).map(f => f.slice(6, 13).toUpperCase());
+      const skip = new Set([BODY.grape.c.toUpperCase(), '#FFFFFF', '#000000', '#15171C', '#1E1B24', '#2A2D33']);
+      const good = fills.filter(f => !skip.has(f));
+      if (good.length) res = { c: good[0], c2: good.find(f => f !== good[0]) || '' };
+    } catch (e) { /* keep the fallback */ }
+    ITEM_COL.set(id, res);
+    return res;
+  }
   function look3d(u) {
     const look = lookOf(u), eq = equipIds(u), out = { body: (BODY[look.color] || BODY.grape).c };
     for (const sl in eq) {
-      const id = eq[sl], m = /^g:([a-z]+):(\d+):(\d+)/.exec(id);
-      let c = '#8F96A3', kind = '';
-      if (m) { const pal = PALS[+m[3]]; if (pal) c = pal[2]; const base = GBASES[m[1]] && GBASES[m[1]][+m[2]]; kind = base ? base[0] : ''; }
-      else if (CAT[id]) kind = CAT[id].name || '';
+      const id = eq[sl], m = /^g:([a-z]+):(\d+):(\d+)(?::(\d+))?/.exec(id);
+      let c = '#8F96A3', c2 = '', pat = 0, kind = '';
+      if (m) { const pal = PALS[+m[3]]; if (pal) { c = pal[2]; c2 = pal[3]; } const base = GBASES[m[1]] && GBASES[m[1]][+m[2]]; kind = base ? base[0] : ''; pat = PAT3D[+(m[4] || 0)] || 0; }
+      else if (CAT[id]) { kind = CAT[id].name || ''; const ic = itemColors(id); c = ic.c; c2 = ic.c2; }
       out[sl] = { c, kind: String(kind).toLowerCase() };
+      if (pat && c2) { out[sl].pat = pat; out[sl].c2 = c2; }
     }
     return out;
   }
@@ -2983,8 +3001,8 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     const list = Object.keys(players).filter(u => players[u] && players[u].username && players[u].avatar).sort((a, b) => (players[a].joinedAt || 0) - (players[b].joinedAt || 0));
     let h = `<header class="top"><h1>Feed</h1></header>`;
     h += `<h3 style="margin-top:0">Players</h3><div class="hscroll players">${list.map(u => `<button type="button" class="pl" data-act="profile" data-u="${esc(u)}">${headBubble(u, 58)}<span>${esc(nameOf(u))}</span></button>`).join('')}</div>`;
-    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && ev.k !== 'cas' && ev.k !== 'fps' && ev.k !== 'fpsbuy' && ev.k !== 'crate' && ev.k !== 'skinbuy' && ev.k !== 'cosbuy' && ev.k !== 'list' && ev.k !== 'bid' && ev.k !== 'sold' && ev.k !== 'lotend').sort((a, b) => b.t - a.t).slice(0, 100);
-    if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades and shop buys show up here.</p>';
+    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && !(ev.k === 'fps' && (ev.res === 'loss' || (ev.res === 'refund' && ev.a > ev.opp))) && ev.k !== 'fpsbuy' && ev.k !== 'crate' && ev.k !== 'skinbuy' && ev.k !== 'cosbuy' && ev.k !== 'list' && ev.k !== 'bid' && ev.k !== 'sold' && ev.k !== 'lotend').sort((a, b) => b.t - a.t).slice(0, 100);
+    if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades, shop buys and everyone’s wins and losses show up here.</p>';
     h += `<div class="list">${evs.map(ev => {
       let t = '', more = '', hot = false, face = ev.a;
       if (ev.k === 'send') {
@@ -3000,6 +3018,10 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
         hot = CAT[ev.it].r >= 4;
       } else if (ev.k === 'trade') {
         t = `<b>${esc(nameOf(ev.a))}</b> and <b>${esc(nameOf(ev.to))}</b> made a trade`;
+      } else if (ev.k === 'fps') {
+        t = ev.res === 'refund' ? `<b>${esc(nameOf(ev.a))}</b> and <b>${esc(nameOf(ev.opp))}</b> got their Scobb Strike wager back` : `<b>${esc(nameOf(ev.a))}</b> beat <b>${esc(nameOf(ev.opp))}</b> in Scobb Strike and won <b>${coinsAmt(ev.r, ev.n)}</b>`;
+        more = ev.res === 'refund' ? '' : `<div class="chips"><span class="status done">+${fmtInt(ev.n)} ${RN[ev.r]}</span><span class="status" style="background:#FDE7E8;color:#B8353A">${esc(nameOf(ev.opp))} −${fmtInt(ev.n)}</span></div>`;
+        hot = ev.res === 'win' && ev.r >= 3;
       } else if (ev.k === 'cas') {
         const d = ev.ret - ev.bet;
         t = d > 0 ? `<b>${esc(nameOf(ev.a))}</b> won <b>${coinsAmt(ev.r, d)}</b> at ${CAS_GAMES[ev.g].name}` : d < 0 ? `<b>${esc(nameOf(ev.a))}</b> lost <b>${coinsAmt(ev.r, -d)}</b> at ${CAS_GAMES[ev.g].name}` : `<b>${esc(nameOf(ev.a))}</b> broke even at ${CAS_GAMES[ev.g].name}`;
@@ -3579,7 +3601,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102o'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102p'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -4085,7 +4107,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102o" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102p" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -4315,13 +4337,13 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102o'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102p'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
     BANK = bank;
     FARM_LIVE = cfgMod.FARM_LIVE === true;
-    try { FSK = await import('./farm-skins.js?v=20261102o'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
+    try { FSK = await import('./farm-skins.js?v=20261102p'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     FARM_TESTERS = Array.isArray(cfgMod.FARM_TESTERS) ? cfgMod.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(cfg);
