@@ -100,7 +100,23 @@ export function farmShopFor(d, salt) {
   SHOP.set(key, out);
   return out;
 }
-export function inFarmShop(id, t, salt) { return farmShopFor(dayOf(t), salt).includes(id) || farmShopFor(dayOf(t - 600000), salt).includes(id); }
+const SHOP2 = new Map();
+// The first 8 picks of each day never change, so anything bought before stays valid. Two more per building are added on top.
+export function farmShopPlus(d, salt) {
+  const key = salt + ':' + d;
+  if (SHOP2.has(key)) return SHOP2.get(key);
+  const base = farmShopFor(d, salt), out = base.slice(), P = pool(), rnd = rng(hash32('farmshopx:' + key));
+  for (const [b] of BUILDINGS) for (let n = 0; n < 2; n++) {
+    for (let tries = 0; tries < 8; tries++) {
+      let r = wpick(rnd, [34, 28, 20, 11, 5, 2]), id = null;
+      for (let k = 0; k < 6; k++) { const l = P[b][r]; if (l.length) { id = l[Math.floor(rnd() * l.length)]; break; } r = r > 0 ? r - 1 : 1; }
+      if (id && !out.includes(id)) { out.push(id); break; }
+    }
+  }
+  SHOP2.set(key, out);
+  return out;
+}
+export function inFarmShop(id, t, salt) { return farmShopPlus(dayOf(t), salt).includes(id) || farmShopPlus(dayOf(t - 600000), salt).includes(id); }
 
 /* ---------- drawing helpers ---------- */
 const f = n => (Math.round(n * 10) / 10).toString();

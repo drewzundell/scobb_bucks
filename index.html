@@ -1034,7 +1034,21 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   const DAY_MS = 86400000;
   const DAILY_FROM = Date.UTC(2026, 9, 29, 5, 0, 0);
   const dayN = t => Math.floor((t - WEEK0) / DAY_MS);
-  const dailyShop = (d, salt) => shopFor('d' + d, salt);
+  const SHOP_EXTRA = 12;
+  const PLUS_CACHE = new Map();
+  function dailyShop(d, salt) {
+    const key = salt + ':' + d;
+    if (PLUS_CACHE.has(key)) return PLUS_CACHE.get(key);
+    const base = shopFor('d' + d, salt), out = base.slice(), P = pools(), rnd = rng(hash32('shopx:' + key));
+    const pick = (slot, weights) => { let r = wpick(rnd, weights); for (let k = 0; k < 6; k++) { const pool = P[slot][r]; if (pool.length) return pool[Math.floor(rnd() * pool.length)]; r = r > 0 ? r - 1 : 1; } return null; };
+    for (let g = 0; out.length < base.length + SHOP_EXTRA && g < 120; g++) {
+      const s2 = g < SLOTS.length ? SLOTS[g] : GSLOTS[Math.floor(rnd() * GSLOTS.length)];
+      const id = pick(s2, g < SLOTS.length ? [40, 28, 17, 10, 4, 1] : [12, 24, 28, 20, 12, 4]);
+      if (id && !out.includes(id)) out.push(id);
+    }
+    PLUS_CACHE.set(key, out);
+    return out;
+  }
   function inShopAt(id, t, salt) {
     const it = CAT[id];
     if (!it || it.free) return false;
@@ -2736,8 +2750,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     h += `<div class="seg2" role="group" aria-label="Shop" style="grid-template-columns:repeat(${segs.length},1fr)">${segs.map(([k, l]) => `<button type="button" data-act="shop-mode" data-m="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</div>`;
     if (mode === 'strike') return h + strikeShopHTML() + `<p class="small soft mt">Your cosmetics are in Scobb Strike under Inventory, and you can sell them in the Market tab.</p>`;
     if (mode === 'farm') {
-      const d = FSK.dayOf(now), ids = FSK.farmShopFor(d, config.salt);
-      h += `<p class="small soft" style="margin:2px 0 10px">Today’s farm skins, one for each building. New ones in ${timeLeft(FSK.DAY0 + (d + 1) * FSK.DAY_MS - now)}.</p>`;
+      const d = FSK.dayOf(now), ids = FSK.farmShopPlus ? FSK.farmShopPlus(d, config.salt) : FSK.farmShopFor(d, config.salt);
+      h += `<p class="small soft" style="margin:2px 0 10px">Today’s ${ids.length} farm skins, at least two for every building. New ones in ${timeLeft(FSK.DAY0 + (d + 1) * FSK.DAY_MS - now)}.</p>`;
       h += `<div class="grid">${ids.map(id => shopCard(CAT[id])).join('')}</div>`;
       h += `<p class="small soft" style="margin-top:16px">There are ${fmtInt(FSK.TOTAL)} farm skins. They change how your farm looks in Scobb Farm, not how it plays. Use them from your closet.</p>`;
       return h;
@@ -4131,7 +4145,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
     BANK = bank;
     FARM_LIVE = cfgMod.FARM_LIVE === true;
-    try { FSK = await import('./farm-skins.js'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
+    try { FSK = await import('./farm-skins.js?v=20261102m'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     FARM_TESTERS = Array.isArray(cfgMod.FARM_TESTERS) ? cfgMod.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(cfg);
