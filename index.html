@@ -1578,15 +1578,22 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       } else if (e.k === 'fps') {
         fpsEntry(e, a, key);
       } else if (e.k === 'crate') {
-        if (!Number.isInteger(e.c) || e.c < 0 || e.c > 5) { bad[key] = 'shape'; continue; }
-        const price = coinsOf(SKN_CRATE[e.c][0], SKN_CRATE[e.c][1]);
+        if (!Number.isInteger(e.c) || e.c < 0 || e.c > 11) { bad[key] = 'shape'; continue; }
+        const ci = e.c % 6, price = coinsOf(SKN_CRATE[ci][0], SKN_CRATE[ci][1]);
         if (!has(a, price)) { bad[key] = 'funds'; continue; }
-        const s = sknDraw(e.c, key + ':' + e.t);
+        const s = e.c < 6 ? sknDraw(e.c, key + ':' + e.t) : cosDraw(ci, key + ':' + e.t);
         move(a, issuer, price);
         skins[key] = { s, o: a, c: e.c };
         events.push({ k: 'crate', key, a, c: e.c, s, t: e.t });
       } else if (e.k === 'skinbuy') {
         if (typeof e.s !== 'string' || !skinShopAt(e.t, cfg.salt).includes(e.s)) { bad[key] = 'gone'; continue; }
+        const pr = SKN_PRICE[sknInfo(e.s)[2]], price = coinsOf(pr[0], pr[1]);
+        if (!has(a, price)) { bad[key] = 'funds'; continue; }
+        move(a, issuer, price);
+        skins[key] = { s: e.s, o: a, c: -1 };
+        events.push({ k: 'skinbuy', key, a, s: e.s, t: e.t });
+      } else if (e.k === 'cosbuy') {
+        if (typeof e.s !== 'string' || !cosShopAt(e.t, cfg.salt).includes(e.s)) { bad[key] = 'gone'; continue; }
         const pr = SKN_PRICE[sknInfo(e.s)[2]], price = coinsOf(pr[0], pr[1]);
         if (!has(a, price)) { bad[key] = 'funds'; continue; }
         move(a, issuer, price);
@@ -2205,8 +2212,50 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     return bands.map(b => { const r = b[Math.floor(rnd() * b.length)], list = SKN.filter(x => x[2] === r); return list[Math.floor(rnd() * list.length)][0]; }).filter((v, i, a) => a.indexOf(v) === i);
   }
   const SKN_N = 42, SKN_WIN = 34, SKN_CW = 124;
-  const sknInfo = id => SKN.find(x => x[0] === id) || SKN[0];
-  const sknRand = () => SKN[Math.floor(Math.random() * SKN.length)][0];
+  // ===== Scobb Strike cosmetics (must match between index.html and fps.html) =====
+  // Every entry: [id, name, rarity, color, accent, pattern or shape, animated, type]. Type is camo, charm or tracer.
+  const COS_PAL = [['Cherry', '#E5484D', '#FFD5D6'], ['Tangerine', '#F78C3B', '#FFE1C7'], ['Lemon', '#F5CF4A', '#7A5B00'], ['Lime', '#8BCB3E', '#24410B'], ['Forest', '#2F8F5B', '#CFF2DC'], ['Sky', '#4BA3F2', '#E3F1FF'], ['Navy', '#24366B', '#F2C14E'], ['Grape', '#7B4FE0', '#F1E8FF'], ['Bubblegum', '#F27BB0', '#FFF0F6'], ['Charcoal', '#33333B', '#F45B69'], ['Snow', '#EDEDF0', '#3A3A44'], ['Sand', '#D9C29A', '#5B4426']];
+  // [pattern name, pattern code, rarity, animated]. 1 stripes, 2 dots, 3 camo blotches, 4 gradient.
+  const COS_PAT = [['Stripe', 1, 1, 0], ['Dot', 2, 1, 0], ['Woodland', 3, 2, 0], ['Fade', 4, 2, 0]];
+  const COS = [];
+  COS_PAL.forEach((p, i) => COS_PAT.forEach((q, j) => COS.push(['cm' + String(i * 4 + j).padStart(2, '0'), `${p[0]} ${q[0]}`, q[2], p[1], p[2], q[1], q[3], 'camo'])));
+  [[0, 7], [5, 8], [1, 9], [4, 11], [8, 5], [9, 0]].forEach(([a, b], k) => COS.push(['cx' + k, `${COS_PAL[a][0]} Flux`, 3, COS_PAL[a][1], COS_PAL[b][1], 4, 1, 'camo']));
+  COS.push(['cl0', 'Solar Flare', 4, '#FF7A1A', '#FFE14D', 4, 1, 'camo'], ['cl1', 'Deep Ocean', 4, '#0B3D91', '#35F2E6', 4, 1, 'camo'], ['cl2', 'Toxic', 4, '#5BE38A', '#1B2A00', 1, 1, 'camo']);
+  COS.push(['cy0', 'Celestial', 5, '#1B0B3A', '#FFD86B', 4, 1, 'camo'], ['cy1', 'Inferno', 5, '#2A0505', '#FF2E2E', 1, 1, 'camo']);
+  // Charms hang off the side of your gun. Shape: 0 ball, 1 cube, 2 cone, 3 coin, 4 ring.
+  [['Lucky Ball', 0, '#E5484D', 0], ['Dice', 0, '#EDEDF0', 1], ['Traffic Cone', 0, '#F78C3B', 2], ['Copper Coin', 0, '#B87333', 3], ['Jelly Bean', 1, '#8BCB3E', 0], ['Ice Cube', 1, '#9EF6FF', 1], ['Party Hat', 1, '#F27BB0', 2], ['Silver Ring', 1, '#C9D2DC', 4],
+   ['Gold Coin', 2, '#F2B531', 3], ['Amethyst', 2, '#7B4FE0', 1], ['Glow Ball', 3, '#7CFFE9', 0], ['Lava Rock', 3, '#FF5A2A', 1], ['Crown Spike', 3, '#E3B341', 2], ['Halo', 4, '#FFF2B0', 4], ['Scobb Jr', 4, '#B98BFF', 0], ['Black Hole', 5, '#0B0B14', 4]]
+    .forEach((c, i) => COS.push(['ch' + String(i).padStart(2, '0'), c[0], c[1], c[2], '#FFFFFF', c[3], c[1] >= 3 ? 1 : 0, 'charm']));
+  // Tracers change the color of your bullet trails.
+  [['Ember', 0, '#FF9A5A'], ['Mint', 0, '#7EDDB0'], ['Ice', 1, '#9EF6FF'], ['Rose', 1, '#FF8FB0'], ['Volt', 2, '#C8FF2E'], ['Royal', 2, '#9B7BFF'], ['Plasma', 3, '#FF2EE0'], ['Sunbeam', 4, '#FFE14D'], ['Rainbow', 5, '#FF4F8B']]
+    .forEach((c, i) => COS.push(['tr' + String(i).padStart(2, '0'), c[0] + ' tracers', c[1], c[2], '#FFFFFF', 0, c[1] >= 3 ? 1 : 0, 'tracer']));
+  const ALLC = SKN.map(x => x.concat('camo')).concat(COS);
+  const COS_KIND = { camo: 'Camo', charm: 'Charm', tracer: 'Tracers' };
+  const sknInfo = id => ALLC.find(x => x[0] === id) || ALLC[0];
+  const sknRand = () => ALLC[Math.floor(Math.random() * ALLC.length)][0];
+  const cosList = r => ALLC.filter(x => x[2] === r).map(x => x[0]);
+  // Strike crates (6 to 11) roll from every cosmetic. The original crates (0 to 5) stay as they were for old records.
+  function cosDraw(c, seed) {
+    const rnd = rng(hash32(seed));
+    let x = rnd() * 1000, r = 0;
+    for (; r < 5; r++) { if (x < SKN_ODDS[c][r]) break; x -= SKN_ODDS[c][r]; }
+    const list = cosList(r);
+    return list[Math.floor(rnd() * list.length)];
+  }
+  // Twelve cosmetics a day: six camos, three charms, three tracers, spread across rarities.
+  function cosShopAt(t, salt) {
+    const d = arcDay(t), rnd = rng(hash32('cosshop:' + d + ':' + (salt || ''))), out = [];
+    const take = (type, bands) => bands.forEach(b => {
+      for (let tries = 0; tries < 12; tries++) {
+        const r = b[Math.floor(rnd() * b.length)], list = ALLC.filter(x => x[7] === type && x[2] === r && !out.includes(x[0]));
+        if (list.length) { out.push(list[Math.floor(rnd() * list.length)][0]); return; }
+      }
+    });
+    take('camo', [[0, 1], [1], [1, 2], [2], [2, 3], [3, 4, 5, 4]]);
+    take('charm', [[0, 1], [1, 2], [2, 3, 4, 5]]);
+    take('tracer', [[0, 1], [1, 2], [2, 3, 4, 5]]);
+    return out;
+  }
   const sknList = r => SKN.filter(x => x[2] === r).map(x => x[0]);
   function sknDraw(c, seed) {
     const rnd = rng(hash32(seed));
@@ -2216,7 +2265,9 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     return list[Math.floor(rnd() * list.length)];
   }
   function sknCss(id) {
-    const [, , , c1, c2, p] = sknInfo(id);
+    const inf = sknInfo(id), [, , , c1, c2, p] = inf;
+    if (inf[7] === 'charm') return `radial-gradient(circle at 50% 46%, ${c1} 0 24%, rgba(0,0,0,.25) 25% 27%, transparent 28%), radial-gradient(circle at 50% 50%, #2B2F38, #15171C)`;
+    if (inf[7] === 'tracer') return inf[6] && inf[2] === 5 ? 'linear-gradient(90deg, #FF4F8B, #FFC233, #5BE38A, #3EC1FF, #B98BFF)' : `linear-gradient(90deg, #15171C 0 20%, ${c1} 45%, #FFFFFF 50%, ${c1} 55%, #15171C 80%)`;
     if (p === 0) return c1;
     if (p === 1) return `repeating-linear-gradient(45deg, ${c1} 0 9px, ${c2} 9px 18px)`;
     if (p === 2) return `radial-gradient(${c2} 0 22%, transparent 24%) 0 0 / 22px 22px, ${c1}`;
@@ -2243,7 +2294,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   }
   function openCrate(c) {
     if (!guardWrite()) return;
-    const pr = SKN_CRATE[c];
+    const pr = SKN_CRATE[c % 6];
     if (availOf(uid)[pr[0]] < pr[1]) { toast(`You need ${pr[1]} ${RN[pr[0]]} coins for that crate.`); return; }
     const e = newEntry('crate', { c });
     ui.crate = { key: uid + ':' + e.i, c, phase: 'wait', spin: null };
@@ -2258,7 +2309,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     if (!ov) { ov = document.createElement('div'); ov.id = 'crate-ov'; ov.className = 'crate-ov'; document.body.appendChild(ov); }
     const bad = L && L.bad[s.key], res = L && L.skins[s.key];
     if (bad) { clearInterval(s.spin); s.phase = 'done'; ov.innerHTML = `<div class="crate-box"><h2>The crate didn’t open</h2><p class="soft">Something didn’t line up, so nothing was charged.</p><button type="button" class="btn btn-grape btn-block" data-act="crate-close">Close</button></div>`; return; }
-    const title = `Opening ${SKN_CRATE_NAME[s.c]}`;
+    const title = `Opening ${SKN_CRATE_NAME[s.c % 6]}`;
     if (!res) {
       if (!s.spin) {
         ov.innerHTML = `<div class="crate-box"><h2 id="crate-h">${title}…</h2><div class="crate-win"><div class="crate-strip">${Array.from({ length: SKN_N }, () => sknCard(sknRand())).join('')}</div><i class="crate-mark"></i></div><p class="small soft" id="crate-out">Rolling…</p></div>`;
@@ -2278,7 +2329,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       strip.children[SKN_WIN].classList.add('won');
       const inf = sknInfo(res.s);
       ov.querySelector('#crate-h').textContent = 'You got…';
-      ov.querySelector('#crate-out').innerHTML = `<div class="crate-result">${sknSw(res.s, 'skw-lg')}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span></div><button type="button" class="btn btn-grape btn-block mt" data-act="crate-close">Keep it</button><button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${s.key}">List it on the market</button>`;
+      ov.querySelector('#crate-out').innerHTML = `<div class="crate-result">${sknSw(res.s, 'skw-lg')}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}</span></div><button type="button" class="btn btn-grape btn-block mt" data-act="crate-close">Keep it</button><button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${s.key}">List it on the market</button>`;
     };
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { strip.style.transform = `translateX(${-target}px)`; done(); return; }
     strip.addEventListener('transitionend', done, { once: true });
@@ -2337,18 +2388,30 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     return `<div class="ev">${sknSw(sk, 'skw-sm')}<div class="main"><div class="t"><b>${esc(inf[1])}</b> <span class="small" style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span></div><div class="s">${mine ? 'Yours' : `From ${esc(nameOf(l.seller))}`} · Start ${coinsAmt(l.r, l.start)} · ${top}</div><div class="chips">${acts}</div></div></div>`;
   }
   const STORE_MODE = new URLSearchParams(location.search).has('store');
+  function strikeShopHTML() {
+    const av = availOf(uid), now = Date.now(), owner = uid === L.issuer;
+    const shop = cosShopAt(now, config.salt), reset = WEEK0 + (arcDay(now) + 1) * DAY;
+    const cell = id => { const inf = sknInfo(id), pr = SKN_PRICE[inf[2]], can = av[pr[0]] >= pr[1], have = mySkins(uid).some(x => x.s === id); return `<div class="skcell">${sknSw(id)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}</span>${have ? '<span class="small soft">You have one</span>' : ''}<button type="button" class="chipbtn" data-act="cos-buy" data-s="${id}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; };
+    let h = owner ? `<p class="small soft">You’re the bank, so anything you buy here goes straight back into your vault.</p>` : '';
+    h += `<h3>Today’s Strike shop</h3><p class="small soft">Camos, charms and tracers for Scobb Strike. 12 new ones in ${timeLeft(reset - now)}.</p>`;
+    for (const type of ['camo', 'charm', 'tracer']) h += `<h3 class="small soft" style="margin:10px 0 6px">${COS_KIND[type] === 'Tracers' ? 'Tracers' : COS_KIND[type] + 's'}</h3><div class="skgrid">${shop.filter(id => sknInfo(id)[7] === type).map(cell).join('')}</div>`;
+    h += `<h3>Strike crates</h3><p class="small soft">A random camo, charm or tracer. Rarer crates have better odds, and the best ones are very hard to pull.</p>`;
+    h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c + 6}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
+    return h;
+  }
   function storeTab() {
-    const av = availOf(uid), owner = uid === L.issuer, now = Date.now();
-    const shop = skinShopAt(now, config.salt), reset = WEEK0 + (arcDay(now) + 1) * DAY;
+    const av = availOf(uid);
     let h = `<header class="top" style="justify-content:flex-start"><h1>Scobb Strike inventory</h1></header>`;
     h += `<div class="chips" style="margin-bottom:6px">${coinChips(av)}</div>`;
-    if (owner) h += `<p class="small soft">You’re the bank, so anything you buy here goes straight back into your vault.</p>`;
-    h += `<h3>Skin shop</h3><p class="small soft">Four skins a day. New ones in ${Math.max(1, Math.round((reset - now) / 3600000))} hours.</p><div class="skgrid">${shop.map(id => { const inf = sknInfo(id), pr = SKN_PRICE[inf[2]], can = av[pr[0]] >= pr[1]; return `<div class="skcell">${sknSw(id)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-buy" data-s="${id}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
-    h += `<h3>Crates</h3><p class="small soft">A random skin each time. Rarer crates have better odds. The best skins are very hard to pull.</p>`;
-    h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
+    h += strikeShopHTML();
     const mine = mySkins(uid);
-    h += `<h3>Your skins (${mine.length})</h3>`;
-    h += mine.length ? `<div class="skgrid">${mine.map(x => { const inf = sknInfo(x.s); return `<div class="skcell">${sknSw(x.s)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[x.r]}">${RN[x.r]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-list" data-sk="${x.key}">Sell on market</button></div>`; }).join('')}</div><p class="small soft">Equip a skin in Scobb Strike under Loadout. Skins you sell go to the Market tab in ScobbBucks.</p>` : `<p class="small soft">No skins yet. Buy one from the shop or open a crate.</p>`;
+    h += `<h3>Your cosmetics (${mine.length})</h3>`;
+    if (!mine.length) h += `<p class="small soft">Nothing yet. Buy something from the shop or open a crate.</p>`;
+    for (const type of ['camo', 'charm', 'tracer']) {
+      const list = mine.filter(x => sknInfo(x.s)[7] === type);
+      if (list.length) h += `<h3 class="small soft" style="margin:10px 0 6px">${type === 'tracer' ? 'Tracers' : COS_KIND[type] + 's'} (${list.length})</h3><div class="skgrid">${list.map(x => { const inf = sknInfo(x.s); return `<div class="skcell">${sknSw(x.s)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[x.r]}">${RN[x.r]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-list" data-sk="${x.key}">Sell on market</button></div>`; }).join('')}</div>`;
+    }
+    if (mine.length) h += `<p class="small soft">Equip these in Scobb Strike under Loadout. Anything you sell goes to the Market tab in ScobbBucks.</p>`;
     return h;
   }
   function marketTab() {
@@ -2558,7 +2621,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     }
     {
     }
-    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap' || e.k === 'crate' || e.k === 'skinbuy' || e.k === 'list' || e.k === 'bid' || e.k === 'buy_now' || e.k === 'accept' || e.k === 'cancel')) rows.push({ k: 'bad', e, t: e.t }); }
+    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap' || e.k === 'crate' || e.k === 'skinbuy' || e.k === 'cosbuy' || e.k === 'list' || e.k === 'bid' || e.k === 'buy_now' || e.k === 'accept' || e.k === 'cancel')) rows.push({ k: 'bad', e, t: e.t }); }
     rows.sort((a, b) => b.t - a.t);
     if (!rows.length) return `<p class="empty">Nothing here yet. Coins you send and get will show up here.</p>`;
     return `<div class="list">${rows.slice(0, 40).map(ev => {
@@ -2587,12 +2650,12 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       } else if (ev.k === 'crate') {
         other = uid;
         const inf = sknInfo(ev.s);
-        t = `You opened a ${SKN_CRATE_NAME[ev.c]} and got <b>${esc(inf[1])}</b>`;
-        more = `<div class="chips"><span class="status" style="background:${SKN_RC[inf[2]]}33;color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span><span class="small soft">Cost ${coinsAmt(SKN_CRATE[ev.c][0], SKN_CRATE[ev.c][1])}</span></div>`;
+        t = `You opened a ${SKN_CRATE_NAME[ev.c % 6]} and got <b>${esc(inf[1])}</b>`;
+        more = `<div class="chips"><span class="status" style="background:${SKN_RC[inf[2]]}33;color:${SKN_RC[inf[2]]}">${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}</span><span class="small soft">Cost ${coinsAmt(SKN_CRATE[ev.c % 6][0], SKN_CRATE[ev.c % 6][1])}</span></div>`;
       } else if (ev.k === 'skinbuy') {
         other = uid;
         const inf = sknInfo(ev.s), pr = SKN_PRICE[inf[2]];
-        t = `You bought the <b>${esc(inf[1])}</b> skin from the skin shop`;
+        t = `You bought <b>${esc(inf[1])}</b> (${COS_KIND[inf[7]].toLowerCase()}) from the Strike shop`;
         more = `<div class="chips"><span class="status" style="background:${SKN_RC[inf[2]]}33;color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span><span class="small soft">Cost ${coinsAmt(pr[0], pr[1])}</span></div>`;
       } else if (ev.k === 'list') {
         other = uid;
@@ -2646,9 +2709,11 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   function shopTab() {
     const av = availOf(uid);
     const now = Date.now();
-    const mode = farmVisible() && ui.shopMode === 'farm' ? 'farm' : 'avatar';
+    const mode = ui.shopMode === 'strike' ? 'strike' : farmVisible() && ui.shopMode === 'farm' ? 'farm' : 'avatar';
     let h = `<header class="top"><h1>Shop</h1><div class="mini-bal">${coinChipsCompact(av) || '<span class="small soft">No coins yet</span>'}</div></header>`;
-    if (farmVisible()) h += `<div class="seg2" role="group" aria-label="Shop">${[['avatar', 'Avatar'], ['farm', 'Farm']].map(([k, l]) => `<button type="button" data-act="shop-mode" data-m="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</div>`;
+    const segs = [['avatar', 'Avatar']].concat(farmVisible() ? [['farm', 'Farm']] : [], [['strike', 'Scobb Strike']]);
+    h += `<div class="seg2" role="group" aria-label="Shop" style="grid-template-columns:repeat(${segs.length},1fr)">${segs.map(([k, l]) => `<button type="button" data-act="shop-mode" data-m="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</div>`;
+    if (mode === 'strike') return h + strikeShopHTML() + `<p class="small soft mt">Your cosmetics are in Scobb Strike under Inventory, and you can sell them in the Market tab.</p>`;
     if (mode === 'farm') {
       const d = FSK.dayOf(now), ids = FSK.farmShopFor(d, config.salt);
       h += `<p class="small soft" style="margin:2px 0 10px">Today’s farm skins, one for each building. New ones in ${timeLeft(FSK.DAY0 + (d + 1) * FSK.DAY_MS - now)}.</p>`;
@@ -2757,7 +2822,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const list = Object.keys(players).filter(u => players[u] && players[u].username && players[u].avatar).sort((a, b) => (players[a].joinedAt || 0) - (players[b].joinedAt || 0));
     let h = `<header class="top"><h1>Feed</h1></header>`;
     h += `<h3 style="margin-top:0">Players</h3><div class="hscroll players">${list.map(u => `<button type="button" class="pl" data-act="profile" data-u="${esc(u)}">${headBubble(u, 58)}<span>${esc(nameOf(u))}</span></button>`).join('')}</div>`;
-    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && ev.k !== 'cas' && ev.k !== 'fps' && ev.k !== 'fpsbuy' && ev.k !== 'crate' && ev.k !== 'skinbuy' && ev.k !== 'list' && ev.k !== 'bid' && ev.k !== 'sold' && ev.k !== 'lotend').sort((a, b) => b.t - a.t).slice(0, 100);
+    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && ev.k !== 'cas' && ev.k !== 'fps' && ev.k !== 'fpsbuy' && ev.k !== 'crate' && ev.k !== 'skinbuy' && ev.k !== 'cosbuy' && ev.k !== 'list' && ev.k !== 'bid' && ev.k !== 'sold' && ev.k !== 'lotend').sort((a, b) => b.t - a.t).slice(0, 100);
     if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades and shop buys show up here.</p>';
     h += `<div class="list">${evs.map(ev => {
       let t = '', more = '', hot = false, face = ev.a;
@@ -3303,7 +3368,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102b'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102d'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -3806,6 +3871,13 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'swap': () => openSwap(),
     'fps-armory': () => openArmory(),
     'skin-crates': () => crateSheet(),
+    'cos-buy': b => {
+      if (!guardWrite()) return;
+      const id = b.dataset.s, pr = SKN_PRICE[sknInfo(id)[2]];
+      if (!cosShopAt(Date.now(), config.salt).includes(id)) { toast('That one left the shop.'); render(); return; }
+      if (availOf(uid)[pr[0]] < pr[1]) { toast(`You need ${pr[1]} ${RN[pr[0]]} coins.`); return; }
+      newEntry('cosbuy', { s: id }); toast(`Bought ${sknInfo(id)[1]}. Equip it in Scobb Strike under Loadout.`); render();
+    },
     'skin-buy': b => {
       if (!guardWrite()) return;
       const id = b.dataset.s, pr = SKN_PRICE[sknInfo(id)[2]];
@@ -4024,7 +4096,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102b'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102d'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }

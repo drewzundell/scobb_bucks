@@ -41,6 +41,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; font-size: 12px; color: var(--soft); }
 .stats div { background: rgba(255,255,255,.05); border-radius: 8px; padding: 6px 8px; }
 .stats b { display: block; font-size: 15px; color: #fff; }
+.stats em { display: block; font-style: normal; font-size: 11.5px; font-weight: 800; }
+.stats em.up { color: #4FCB96; } .stats em.down { color: #FF8A8E; }
+.gprev { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin: 10px 0 8px; background: #12141A; }
+.gcv { display: block; width: 100% !important; height: 230px !important; }
+.gcap { position: absolute; left: 12px; bottom: 10px; right: 12px; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+.gcap b { display: block; font-size: 17px; }
+.gcap span { font-size: 13px; color: #D5DAE3; }
+.swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 1px solid rgba(255,255,255,.4); }
 .btn { border: 0; border-radius: 12px; height: 50px; padding: 0 22px; font-weight: 800; font-size: 16px; background: #fff; color: #0B0C10; letter-spacing: .02em; }
 .btn.ghost { background: rgba(255,255,255,.08); color: #fff; border: 1px solid var(--line); }
 .btn.block { width: 100%; }
@@ -171,7 +179,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102c';
+import { create } from './scobb3d.js?v=20261102d';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -202,7 +210,27 @@ const SKN = [
   ['sk18', 'Aurora', 4, '#35F2B4', '#7B5BFF', 4, 1], ['sk19', 'Crystal Tiger', 4, '#FFB347', '#FFFFFF', 1, 1],
   ['sk20', 'Scobb Prism', 5, '#FFFFFF', '#6B5BFF', 4, 1], ['sk21', 'Void Pulse', 5, '#0B0B14', '#FF2E88', 1, 1]
 ];
-const skinInfo = id => SKN.find(x => x[0] === id) || null;
+  // ===== Scobb Strike cosmetics (must match between index.html and fps.html) =====
+// Every entry: [id, name, rarity, color, accent, pattern or shape, animated, type]. Type is camo, charm or tracer.
+const COS_PAL = [['Cherry', '#E5484D', '#FFD5D6'], ['Tangerine', '#F78C3B', '#FFE1C7'], ['Lemon', '#F5CF4A', '#7A5B00'], ['Lime', '#8BCB3E', '#24410B'], ['Forest', '#2F8F5B', '#CFF2DC'], ['Sky', '#4BA3F2', '#E3F1FF'], ['Navy', '#24366B', '#F2C14E'], ['Grape', '#7B4FE0', '#F1E8FF'], ['Bubblegum', '#F27BB0', '#FFF0F6'], ['Charcoal', '#33333B', '#F45B69'], ['Snow', '#EDEDF0', '#3A3A44'], ['Sand', '#D9C29A', '#5B4426']];
+// [pattern name, pattern code, rarity, animated]. 1 stripes, 2 dots, 3 camo blotches, 4 gradient.
+const COS_PAT = [['Stripe', 1, 1, 0], ['Dot', 2, 1, 0], ['Woodland', 3, 2, 0], ['Fade', 4, 2, 0]];
+const COS = [];
+COS_PAL.forEach((p, i) => COS_PAT.forEach((q, j) => COS.push(['cm' + String(i * 4 + j).padStart(2, '0'), `${p[0]} ${q[0]}`, q[2], p[1], p[2], q[1], q[3], 'camo'])));
+[[0, 7], [5, 8], [1, 9], [4, 11], [8, 5], [9, 0]].forEach(([a, b], k) => COS.push(['cx' + k, `${COS_PAL[a][0]} Flux`, 3, COS_PAL[a][1], COS_PAL[b][1], 4, 1, 'camo']));
+COS.push(['cl0', 'Solar Flare', 4, '#FF7A1A', '#FFE14D', 4, 1, 'camo'], ['cl1', 'Deep Ocean', 4, '#0B3D91', '#35F2E6', 4, 1, 'camo'], ['cl2', 'Toxic', 4, '#5BE38A', '#1B2A00', 1, 1, 'camo']);
+COS.push(['cy0', 'Celestial', 5, '#1B0B3A', '#FFD86B', 4, 1, 'camo'], ['cy1', 'Inferno', 5, '#2A0505', '#FF2E2E', 1, 1, 'camo']);
+// Charms hang off the side of your gun. Shape: 0 ball, 1 cube, 2 cone, 3 coin, 4 ring.
+[['Lucky Ball', 0, '#E5484D', 0], ['Dice', 0, '#EDEDF0', 1], ['Traffic Cone', 0, '#F78C3B', 2], ['Copper Coin', 0, '#B87333', 3], ['Jelly Bean', 1, '#8BCB3E', 0], ['Ice Cube', 1, '#9EF6FF', 1], ['Party Hat', 1, '#F27BB0', 2], ['Silver Ring', 1, '#C9D2DC', 4],
+ ['Gold Coin', 2, '#F2B531', 3], ['Amethyst', 2, '#7B4FE0', 1], ['Glow Ball', 3, '#7CFFE9', 0], ['Lava Rock', 3, '#FF5A2A', 1], ['Crown Spike', 3, '#E3B341', 2], ['Halo', 4, '#FFF2B0', 4], ['Scobb Jr', 4, '#B98BFF', 0], ['Black Hole', 5, '#0B0B14', 4]]
+  .forEach((c, i) => COS.push(['ch' + String(i).padStart(2, '0'), c[0], c[1], c[2], '#FFFFFF', c[3], c[1] >= 3 ? 1 : 0, 'charm']));
+// Tracers change the color of your bullet trails.
+[['Ember', 0, '#FF9A5A'], ['Mint', 0, '#7EDDB0'], ['Ice', 1, '#9EF6FF'], ['Rose', 1, '#FF8FB0'], ['Volt', 2, '#C8FF2E'], ['Royal', 2, '#9B7BFF'], ['Plasma', 3, '#FF2EE0'], ['Sunbeam', 4, '#FFE14D'], ['Rainbow', 5, '#FF4F8B']]
+  .forEach((c, i) => COS.push(['tr' + String(i).padStart(2, '0'), c[0] + ' tracers', c[1], c[2], '#FFFFFF', 0, c[1] >= 3 ? 1 : 0, 'tracer']));
+
+const ALLC = SKN.map(x => x.concat('camo')).concat(COS);
+const skinInfo = id => ALLC.find(x => x[0] === id) || null;
+const ownedOf = type => ALLC.filter(x => x[7] === type && skinsOwned.has(x[0]));
 const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const mixHex = (a, b, k) => { const A = hx(a), B = hx(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join(''); };
 // Every attachment helps something and costs something.
@@ -222,7 +250,7 @@ const PERKS = [
 ];
 const TACT = { stim: ['Stim shot', 'Heals you to full'], flash: ['Flashbang', 'Blinds anyone looking at it'], smoke: ['Smoke grenade', 'Blocks sight for 8 seconds'] };
 const LETH = { frag: ['Frag grenade', 'Cook and throw. It can kill you too'], semtex: ['Semtex', 'Sticks to what it hits'], molotov: ['Molotov', 'Burns an area'], knife: ['Throwing knife', 'One hit kill if it lands'] };
-const DEFAULT_LOADOUT = { primary: 'ar0', secondary: 'pi0', att: { optic: 0, barrel: 0, mag: 0, grip: 0 }, perks: [0, 0, 1], tac: 'stim', leth: 'frag', skin: '' };
+const DEFAULT_LOADOUT = { primary: 'ar0', secondary: 'pi0', att: { optic: 0, barrel: 0, mag: 0, grip: 0 }, perks: [0, 0, 1], tac: 'stim', leth: 'frag', skin: '', camos: {}, charm: '', tracer: '' };
 let loadout = (() => { try { return Object.assign({}, DEFAULT_LOADOUT, JSON.parse(localStorage.getItem('scobbstrike-loadout2') || '{}')); } catch (e) { return Object.assign({}, DEFAULT_LOADOUT); } })();
 const saveLoadout = () => { try { localStorage.setItem('scobbstrike-loadout2', JSON.stringify(loadout)); } catch (e) { /* private mode */ } };
 let owned = new Set(), myLook = null, stats = {}, skinsOwned = new Set();
@@ -233,7 +261,9 @@ function fixLoadout() {
   if (!ownsW(loadout.primary)) loadout.primary = WEAPONS[loadout.primary].ck + '0';
   if (!WEAPONS[loadout.secondary] || WEAPONS[loadout.secondary].ck !== 'pi' || !ownsW(loadout.secondary)) loadout.secondary = 'pi0';
   loadout.att = Object.assign({ optic: 0, barrel: 0, mag: 0, grip: 0 }, loadout.att);
-  if (loadout.skin && !skinsOwned.has(loadout.skin)) loadout.skin = '';
+  loadout.camos = Object.assign({}, loadout.camos || {});
+  if (loadout.skin) { if (!loadout.camos[loadout.primary]) loadout.camos[loadout.primary] = loadout.skin; loadout.skin = ''; }
+  if (skinsOwned.size || ME_UID) { for (const g in loadout.camos) if (!skinsOwned.has(loadout.camos[g])) delete loadout.camos[g]; if (loadout.charm && !skinsOwned.has(loadout.charm)) loadout.charm = ''; if (loadout.tracer && !skinsOwned.has(loadout.tracer)) loadout.tracer = ''; }
   for (const s in ATT) if (!ownsA(s, loadout.att[s] || 0)) loadout.att[s] = 0;
 }
 function gunStats(key, att) {
@@ -326,7 +356,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102c');
+    const cfg = await import('./firebase-config.js?v=20261102d');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -364,13 +394,24 @@ function drawUI() {
     <div class="kd"><div><b>${kdText()}</b><span>K/D</span></div><div><b>${stats.k || 0}</b><span>Kills</span></div><div><b>${stats.wins || 0}</b><span>Match wins</span></div></div>
     <p class="small soft" style="margin-top:22px">${ME_UID ? 'Your K/D shows on your ScobbBucks profile.' : 'Log in on ScobbBucks to track your K/D and use the gear you unlock.'} <a href="./" style="color:#C9C2FF">Back to ScobbBucks</a></p></div>`;
   if (view === 'loadout') {
-    const g = gunStats(loadout.primary, loadout.att);
-    h += `<div class="panel"><h2>Loadout</h2><p class="small soft">Locked gear unlocks in ScobbBucks under Scobb Strike Armory. Better gear costs more.</p>`;
+    const g = gunStats(loadout.primary, loadout.att), base = gunStats(loadout.primary, null), pn = WEAPONS[loadout.primary].name, sn = WEAPONS[loadout.secondary].name;
+    const attNames = ['optic', 'barrel', 'mag', 'grip'].map(k => ATT[k][loadout.att[k] || 0][0]).filter((n, i) => (loadout.att[['optic', 'barrel', 'mag', 'grip'][i]] || 0) > 0);
+    h += `<div class="panel"><h2>Loadout</h2>`;
+    h += `<div class="gprev"><div id="gprev-slot"></div><div class="gcap" id="gcap">${capText()}</div></div>`;
+    // stat cards show the change from the bare gun, green when it helps and red when it hurts
+    const st = (label, v, b0, unit, lowGood, fmt) => { const f = fmt || (x => Math.round(x)); const d = v - b0, better = lowGood ? d < 0 : d > 0, same = Math.abs(d) < 1e-6; return `<div>${label}<b>${f(v)}${unit || ''}</b>${same ? '' : `<em class="${better ? 'up' : 'down'}">${d > 0 ? '+' : '−'}${f(Math.abs(d))}${unit || ''}</em>`}</div>`; };
+    h += `<div class="stats">${st('Damage', g.dmg, base.dmg)}${st('Fire rate', g.rpm, base.rpm)}${st('Magazine', g.mag, base.mag)}${st('Range', g.range, base.range, ' m')}${st('Reload', g.reload, base.reload, ' s', true, x => x.toFixed(1))}${st('Move', g.move * 100, base.move * 100, '%')}${st('Aim time', g.ads * 1000, base.ads * 1000, ' ms', true)}${st('Kick', g.recoil * 1000, base.recoil * 1000, '', true)}${st('Zoom', g.zoom, base.zoom, '×', false, x => x.toFixed(1))}</div>`;
+    h += `<p class="small soft" style="margin:8px 0 0">${pn}${attNames.length ? ' with ' + attNames.join(', ') : ' with no attachments'}. Changes are compared to the bare gun. Point at an attachment to preview it.</p>`;
     h += `<h3>Primary</h3>${PRIM.map(c => `<div class="row" style="margin-bottom:6px">${[0, 1, 2, 3, 4].map(t => { const id = c + t; return opt('primary', id, loadout.primary === id, WEAPONS[id].name, t === 0 ? CLASSES[c].name : 'Tier ' + (t + 1), !ownsW(id), priceText(WPRICE[t])); }).join('')}</div>`).join('')}`;
-    h += `<div class="stats"><div>Damage<b>${g.dmg}${g.pellets ? '×' + g.pellets : ''}</b></div><div>Fire rate<b>${g.rpm}</b></div><div>Magazine<b>${g.mag}</b></div><div>Range<b>${Math.round(g.range)} m</b></div><div>Reload<b>${g.reload.toFixed(1)} s</b></div><div>Move<b>${Math.round(g.move * 100)}%</b></div></div>`;
-    for (const slot of ['optic', 'barrel', 'mag', 'grip']) h += `<h3>${slot === 'mag' ? 'Magazine' : slot}</h3><div class="row">${ATT[slot].map((a, i) => opt('att-' + slot, i, (loadout.att[slot] || 0) === i, a[0], a[2], !ownsA(slot, i), priceText(APRICE[a[3]]))).join('')}</div>`;
+    for (const slot of ['optic', 'barrel', 'mag', 'grip']) h += `<h3>${slot === 'mag' ? 'Magazine' : slot}</h3><div class="row">${ATT[slot].map((a2, i) => opt('att-' + slot, i, (loadout.att[slot] || 0) === i, a2[0], a2[2], !ownsA(slot, i), priceText(APRICE[a2[3]]))).join('')}</div>`;
+    const camos = ownedOf('camo'), charms = ownedOf('charm'), tracersOwned = ownedOf('tracer');
+    const cosRow = (act, cur, list, none) => `<div class="row">${opt(act, '', !cur, none, '')}${list.map(x => opt(act, x[0], cur === x[0], `<i class="swatch" style="background:${x[3]}"></i>${x[1]}`, RN[x[2]] + (x[6] ? ' · animated' : ''))).join('')}</div>`;
+    h += `<h3>Camo for ${pn}</h3>${cosRow('camo-p', loadout.camos[loadout.primary] || '', camos, 'No camo')}`;
+    h += `<h3>Charm</h3>${cosRow('charm', loadout.charm, charms, 'No charm')}`;
+    h += `<h3>Tracers</h3>${cosRow('tracer', loadout.tracer, tracersOwned, 'Standard')}`;
+    if (!camos.length && !charms.length && !tracersOwned.length) h += `<p class="small soft" style="margin-top:8px">Get camos, charms and tracers from the Inventory here, or the Shop and crates in ScobbBucks.</p>`;
     h += `<h3>Secondary</h3><div class="row">${[0, 1, 2, 3, 4].map(t => opt('secondary', 'pi' + t, loadout.secondary === 'pi' + t, WEAPONS['pi' + t].name, '', !ownsW('pi' + t), priceText(WPRICE[t]))).join('')}</div>`;
-    h += `<h3>Skin</h3><div class="row">${opt('skin', '', !loadout.skin, 'No skin', 'Default look')}${SKN.filter(x => skinsOwned.has(x[0])).map(x => opt('skin', x[0], loadout.skin === x[0], x[1], RN[x[2]] + (x[6] ? ' · animated' : ''))).join('')}</div>${skinsOwned.size ? '' : `<p class="small soft" style="margin-top:8px">Skins come from crates in the ScobbBucks app. Open a crate there and they show up here.</p>`}`;
+    h += `<h3>Camo for ${sn}</h3>${cosRow('camo-s', loadout.camos[loadout.secondary] || '', camos, 'No camo')}`;
     PERKS.forEach((list, i) => { h += `<h3>Perk ${i + 1}</h3><div class="row">${list.map((pk, j) => opt('perk-' + i, j, loadout.perks[i] === j, pk[0], pk[1])).join('')}</div>`; });
     h += `<h3>Tactical</h3><div class="row">${Object.keys(TACT).map(k => opt('tac', k, loadout.tac === k, TACT[k][0], TACT[k][1])).join('')}</div>`;
     h += `<h3>Lethal</h3><div class="row">${Object.keys(LETH).map(k => opt('leth', k, loadout.leth === k, LETH[k][0], LETH[k][1])).join('')}</div></div>`;
@@ -384,15 +425,43 @@ function drawUI() {
     h += `</div>`;
   } else if (view === 'controls') h += `<div class="panel"><h2>Controls</h2>${CONTROLS}<h3>Shooting range</h3><p class="small soft">Press B to switch guns. Shots on the dummies show damage numbers, and the box in the bottom left shows your recoil pattern.</p></div>`;
   ui.innerHTML = h;
+  const slot = document.getElementById('gprev-slot');
+  if (slot) { slot.appendChild(prevCv); ensurePreview(); }
 }
+// ---- the 3D gun preview in the loadout ----
+const prevCv = document.createElement('canvas'); prevCv.className = 'gcv';
+let G2 = null, hoverAtt = null, lastAdded = '';
+function ensurePreview() { if (!G2) G2 = create(prevCv, 500, 230, { free: true, opaque: true }); }
+function capText() {
+  const w = WEAPONS[loadout.primary];
+  if (hoverAtt) { const k = Object.keys(hoverAtt)[0], a2 = ATT[k][hoverAtt[k]]; return `<b>Previewing ${a2[0]}</b><span>${a2[2]}</span>`; }
+  return lastAdded ? `<b>${w.name}</b><span>${lastAdded}</span>` : `<b>${w.name}</b><span>${w.cls} · Tier ${w.tier + 1}</span>`;
+}
+function renderPreview(t) {
+  if (!G2 || !prevCv.isConnected || G2.lost) return;
+  const att = Object.assign({}, loadout.att, hoverAtt || {}), s2 = gunStats(loadout.primary, att);
+  G2.begin(); G2.setSky('#FFFFFF', '#5C6370'); G2.fog('#12141A', 0); G2.light([-0.35, 0.85, 0.5]);
+  const ang = 1.25 + Math.sin(t / 2400) * 0.5, dist = s2.ck === 'sn' ? 0.88 : s2.ck === 'pi' ? 0.42 : 0.66, c = [0, 0.0, s2.ck === 'pi' ? 0.03 : 0.04];
+  const e = [c[0] + Math.sin(ang) * dist, c[1] + 0.16, c[2] + Math.cos(ang) * dist], d = sub(c, e);
+  G2.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 42, 0.02, 20);
+  drawGun(G2, [0, 0, 0], s2, att, loadout.camos[loadout.primary], loadout.charm, 0, t);
+}
+ui.addEventListener('mouseover', e => {
+  const b = e.target.closest('[data-act^="att-"]');
+  const next = b && !b.dataset.locked ? { [b.dataset.act.slice(4)]: Number(b.dataset.v) } : (b ? { [b.dataset.act.slice(4)]: Number(b.dataset.v) } : null);
+  if (JSON.stringify(next) === JSON.stringify(hoverAtt)) return;
+  hoverAtt = next; const cap = document.getElementById('gcap'); if (cap) cap.innerHTML = capText();
+});
 ui.addEventListener('click', e => {
   const b = e.target.closest('[data-act]');
   if (!b || b.disabled) return;
   const a = b.dataset.act, v = b.dataset.v;
   if (b.dataset.locked) { flashMsg('Unlock that in ScobbBucks under Scobb Strike Armory.'); return; }
   if (a === 'view') view = view === v ? 'home' : v;
-  else if (a === 'primary' || a === 'secondary' || a === 'tac' || a === 'leth' || a === 'skin') loadout[a] = v;
-  else if (a.startsWith('att-')) loadout.att = Object.assign({}, loadout.att, { [a.slice(4)]: Number(v) });
+  else if (a === 'primary' || a === 'secondary' || a === 'tac' || a === 'leth') { loadout[a] = v; if (a === 'primary') lastAdded = ''; }
+  else if (a.startsWith('att-')) { const k = a.slice(4), a2 = ATT[k][Number(v)]; loadout.att = Object.assign({}, loadout.att, { [k]: Number(v) }); lastAdded = Number(v) ? `Added ${a2[0]}: ${a2[2]}` : `Took off the ${k === 'mag' ? 'magazine' : k}`; hoverAtt = null; }
+  else if (a === 'camo-p' || a === 'camo-s') { const gid = a === 'camo-p' ? loadout.primary : loadout.secondary; loadout.camos = Object.assign({}, loadout.camos); if (v) loadout.camos[gid] = v; else delete loadout.camos[gid]; lastAdded = v ? `Camo: ${skinInfo(v)[1]}` : 'No camo'; }
+  else if (a === 'charm' || a === 'tracer') { loadout[a] = v; lastAdded = v ? `${a === 'charm' ? 'Charm' : 'Tracers'}: ${skinInfo(v)[1]}` : (a === 'charm' ? 'No charm' : 'Standard tracers'); }
   else if (a.startsWith('perk-')) { loadout.perks = loadout.perks.slice(); loadout.perks[Number(a.slice(5))] = Number(v); }
   else if (a === 'practice') return beginPractice();
   else if (a === 'range') return beginRange();
@@ -402,7 +471,7 @@ ui.addEventListener('click', e => {
 });
 function openStore() {
   const d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102c" title="Inventory" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102d" title="Inventory" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -477,7 +546,7 @@ function newMatch(isAttract, mapOrder) {
   attract = isAttract;
   const look = myLook ? Object.assign({ body: '#B98BFF' }, myLook) : botLook('#B98BFF');
   me = makeEnt('You', look.body, false, loadout, look);
-  ents = (isAttract ? [] : [me]).concat(BOT_NAMES.slice(0, isAttract ? 6 : 5).map((n, i) => { const b = makeEnt(n, BOT_COLS[i], true, randomLoadout()); b.card = pick(CARDS.slice(0, 7))[0]; return b; }));
+  ents = (isAttract ? [] : [me]).concat(BOT_NAMES.slice(0, isAttract ? 6 : 5).map((n, i) => { const b = makeEnt(n, BOT_COLS[i], true, randomLoadout()); b.card = pick(CARDS.slice(0, 7))[0]; b.camo = Math.random() < 0.7 ? pick(ALLC.filter(x => x[7] === 'camo'))[0] : ''; return b; }));
   me.card = myCard;
 }
 function startRound() {
@@ -556,7 +625,7 @@ function shoot(e) {
     const best = r.best; let victim = r.victim;
     if (victim && smokeBlocks(o, d, best)) victim = null;
     const hitP = add(o, scl(d, best));
-    if (k < 3) tracers.push({ a: add(o, add(scl(d, 0.6), [0, -0.12, 0])), b: hitP, t: 0 });
+    if (k < 3) { const tc = e.lo.tracer && skinInfo(e.lo.tracer); tracers.push({ a: add(o, add(scl(d, 0.6), [0, -0.12, 0])), b: hitP, t: 0, c: tc ? (tc[2] === 5 ? ['#FF4F8B', '#FFC233', '#5BE38A', '#3EC1FF', '#B98BFF'][Math.floor(Math.random() * 5)] : tc[3]) : '#FFE9A8' }); }
     if (victim) {
       const fall = best > s.range ? Math.max(0.55, 1 - (best - s.range) / (s.range * 1.5)) : 1;
       const mult = r.part === 'head' ? (e.lo.perks[2] === 2 ? 1.75 : 1.5) : r.part === 'legs' ? 0.85 : (e.lo.perks[2] === 2 ? 0.9 : 1);
@@ -908,6 +977,7 @@ function frame(now) {
     }
     if (!attract) updateHud();
   }
+  if (view === 'loadout') renderPreview(now);
   requestAnimationFrame(frame);
 }
 function step(dt) {
@@ -1000,38 +1070,70 @@ function drawChar(e) {
   } else if (L.hair) { const hr = P(-0.04, 1.62, 0); G.sphere(hr[0], hr[1], hr[2], 0.3, L.hair.c, { ky: 0.55, spec: 0.5 }); }
   if (L.back) { const bk = P(-0.38, 0.95, 0); G.box(bk[0], bk[1], bk[2], 0.12, 0.25, 0.22, 0.05, L.back.c, { ry, spec: 0.4 }); }
   const gc = P(0.42, 0.98, 0.2);
-  G.box(gc[0], gc[1], gc[2], 0.06, 0.07, 0.3, 0.02, '#2B2F38', { ry: -e.yaw, rx: e.pitch * 0.6, spec: 0.9 });
+  const bc = e.camo && skinInfo(e.camo);
+  G.box(gc[0], gc[1], gc[2], 0.06, 0.07, 0.3, 0.02, bc ? bc[3] : '#2B2F38', Object.assign({ ry: -e.yaw, rx: e.pitch * 0.6, spec: 0.9 }, bc && bc[5] === 1 ? { stripe: 26, c2: bc[4] } : {}));
   for (const sg of [-1, 1]) { const hnd = P(0.32, 0.95, 0.12 * sg + 0.08); G.sphere(hnd[0], hnd[1], hnd[2], 0.09, body, { spec: 0.6 }); }
   if (e.flashMuzzle > 0) { const m = add(gc, scl(dirOf(e.yaw, e.pitch), 0.4)); G.sphere(m[0], m[1], m[2], 0.12, '#FFD86B', { emit: 1 }); }
   if (e.prot > 0) G.sphere(t[0], t[1] + 0.1, t[2], 1.0, '#7CC4F2', { a: 0.16, emit: 0.6, spec: 1 });
   if (e.hp < 100 && !attract) { const hp = P(0, 2.0, 0); G.box(hp[0], hp[1], hp[2], 0.4 * e.hp / 100, 0.035, 0.01, 0.01, e.hp > 50 ? '#4FCB96' : '#FF5A5F', { emit: 1, ry: -me.yaw }); }
 }
-function drawViewmodel() {
-  const g = me.guns[me.cur], s = g.s;
-  if (!me.alive || (s.scope && me.ads > 0.85)) return;
-  G.viewmodel();
-  const a = me.ads, bob = Math.sin(me.bob * 2.2) * 0.012 * (1 - a), kick = (me.kick || 0) * 0.05;
-  const rl = me.reloadT > 0 ? 0.25 : 0, sw = me.swapT > 0 ? me.swapT * 0.6 : 0;
-  const x = 0.2 * (1 - a), y = -0.2 + a * 0.085 + bob - rl * 0.3 - sw, z = -0.48 + kick;
-  const cls = s.ck, len2 = cls === 'sn' ? 0.42 : cls === 'pi' ? 0.12 : cls === 'sg' ? 0.34 : 0.26;
-  let tierCol = ['#2B2F38', '#2F3F5A', '#3A2F5A', '#5A2F3F', '#6B5321'][s.tier], skinOpt = {};
-  const sk = me.lo.skin && skinInfo(me.lo.skin);
+// Draws a gun pointing down -z around point o, in whatever space the engine is in.
+function drawGun(GX, o, s2, att, camoId, charmId, rl, t) {
+  const [x, y, z] = o, cls = s2.ck, len2 = cls === 'sn' ? 0.42 : cls === 'pi' ? 0.12 : cls === 'sg' ? 0.34 : cls === 'lmg' ? 0.3 : 0.26;
+  let col = ['#2B2F38', '#2F3F5A', '#3A2F5A', '#5A2F3F', '#6B5321'][s2.tier], opt = {};
+  const sk = camoId && skinInfo(camoId);
   if (sk) {
-    const k = sk[6] ? (Math.sin(performance.now() / 500) + 1) / 2 : 0;
-    tierCol = sk[5] === 0 || sk[5] === 4 ? mixHex(sk[3], sk[4], sk[5] === 4 ? (sk[6] ? k : 0.35) : 0) : sk[3];
-    if (sk[5] === 1) skinOpt = { stripe: 26, c2: sk[4] };
-    if (sk[5] === 2 || sk[5] === 3) skinOpt = { stripe: 9, c2: sk[4] };
+    const k = sk[6] ? (Math.sin(t / 500) + 1) / 2 : 0;
+    col = sk[5] === 0 || sk[5] === 4 ? mixHex(sk[3], sk[4], sk[5] === 4 ? (sk[6] ? k : 0.35) : 0) : sk[3];
+    if (sk[5] === 1) opt = { stripe: 26, c2: sk[4] };
+    if (sk[5] === 2 || sk[5] === 3) opt = { stripe: 9, c2: sk[4] };
   }
-  G.box(x, y, z, 0.035, 0.05, len2, 0.012, tierCol, Object.assign({ spec: 1.1, shiny: 60, rx: rl }, skinOpt));
-  G.cyl(x, y + 0.02, z - len2 - 0.06, cls === 'sg' ? 0.022 : 0.014, 0.08, '#1A1C22', { rx: Math.PI / 2, spec: 1.2 });
-  if (cls !== 'pi') { G.box(x, y - 0.07, z - 0.05, 0.022, 0.06 * (me.lo.att.mag >= 2 ? 1.5 : 1), 0.03, 0.01, '#4A3AE0', { rx: 0.2 + rl }); G.box(x, y - 0.01, z + len2 + 0.08, 0.03, 0.04, 0.09, 0.01, '#3A3F4A'); }
-  else G.box(x, y - 0.07, z + 0.05, 0.025, 0.07, 0.03, 0.01, '#3A3F4A', { rx: -0.25 });
-  if ((me.lo.att.optic || 0) > 0 && me.cur === 0) G.box(x, y + 0.07, z - 0.02, 0.025, 0.025, s.scope ? 0.12 : 0.05, 0.01, '#15171C', { spec: 1.4 });
-  if ((me.lo.att.barrel || 0) === 1 && me.cur === 0) G.cyl(x, y + 0.02, z - len2 - 0.2, 0.022, 0.07, '#15171C', { rx: Math.PI / 2 });
-  const L = me.look || {};
-  G.sphere(x - 0.02, y - 0.09, z + 0.05, 0.05, L.body || '#B98BFF', { ky: 1.2, spec: 0.8 });
-  G.cyl(x - 0.03, y - 0.13, z + 0.16, 0.055, 0.09, (L.top && L.top.c) || L.body || '#B98BFF', { rx: 1.1 });
-  if (me.flashMuzzle > 0 && !s.quiet) G.sphere(x, y + 0.02, z - len2 - 0.17, 0.06, '#FFD86B', { emit: 1, a: 0.9 });
+  const part = (px, py, pz, hx, hy, hz, r, c, o2) => GX.box(x + px, y + py, z + pz, hx, hy, hz, r, c, Object.assign({ spec: 1.1, shiny: 60 }, o2 || {}));
+  part(0, 0, 0, 0.035, 0.05, len2, 0.012, col, Object.assign({ rx: rl }, opt));
+  const bl = (att && att.barrel === 3 ? 0.14 : 0.08);
+  GX.cyl(x, y + 0.02, z - len2 - bl + 0.02, cls === 'sg' ? 0.022 : 0.014, bl, '#1A1C22', { rx: Math.PI / 2, spec: 1.2 });
+  if (att && att.barrel === 1) GX.cyl(x, y + 0.02, z - len2 - 0.2, 0.024, 0.08, '#15171C', { rx: Math.PI / 2, spec: 0.8 });
+  if (att && att.barrel === 2) GX.cyl(x, y + 0.02, z - len2 - 0.12, 0.03, 0.03, '#3A3F4A', { rx: Math.PI / 2, spec: 1.2 });
+  if (cls !== 'pi') {
+    const m = att ? att.mag : 0;
+    if (m === 3) GX.cyl(x, y - 0.09, z - 0.05, 0.06, 0.03, '#4A3AE0', { rz: Math.PI / 2, spec: 0.9 });
+    else part(0, -0.07 - (m === 2 ? 0.03 : 0) + (m === 1 ? 0.015 : 0), -0.05, 0.022, 0.06 * (m === 2 ? 1.5 : m === 1 ? 0.75 : 1), 0.03, 0.01, '#4A3AE0', { rx: 0.2 + rl });
+    const g = att ? att.grip : 0;
+    if (g === 1) part(0, -0.005, len2 + 0.09, 0.015, 0.03, 0.1, 0.008, '#3A3F4A');
+    else part(0, -0.01, len2 + 0.08, 0.03, 0.04, 0.09, 0.01, sk ? col : '#3A3F4A', sk ? opt : {});
+    if (g === 2) { part(0.04, 0, -len2 * 0.6, 0.012, 0.012, 0.04, 0.005, '#15171C'); GX.sphere(x + 0.04, y, z - len2 * 0.6 - 0.045, 0.008, '#FF2E2E', { emit: 1 }); }
+    if (g === 3) part(0, -0.07, -len2 * 0.55, 0.014, 0.045, 0.014, 0.006, '#15171C', { rx: -0.1 });
+  } else part(0, -0.07, 0.05, 0.025, 0.07, 0.03, 0.01, '#3A3F4A', { rx: -0.25 });
+  const optic = att ? att.optic : 0;
+  if (optic === 1) { part(0, 0.07, -0.02, 0.022, 0.02, 0.04, 0.008, '#15171C', { spec: 1.4 }); GX.sphere(x, y + 0.075, z - 0.06, 0.006, '#FF2E2E', { emit: 1 }); }
+  if (optic === 2) { part(0, 0.075, -0.02, 0.028, 0.03, 0.05, 0.008, '#15171C', { spec: 1.4 }); GX.torus(x, y + 0.08, z - 0.075, 0.018, '#3A3F4A', { rx: Math.PI / 2, tube: 0.004 }); }
+  if (optic === 3 || (s2.scope && cls === 'sn')) { GX.cyl(x, y + 0.08, z - 0.02, 0.022, 0.12, '#15171C', { rx: Math.PI / 2, spec: 1.4 }); GX.cyl(x, y + 0.08, z - 0.15, 0.028, 0.02, '#15171C', { rx: Math.PI / 2 }); }
+  const ch = charmId && skinInfo(charmId);
+  if (ch) {
+    const sw = Math.sin(t / 350) * 0.012, cx = x + 0.045, cy = y - 0.05 + sw * 0.3, cz = z + len2 * 0.35 + sw;
+    GX.cyl(cx, y - 0.02, z + len2 * 0.35, 0.002, 0.03, '#C9D2DC');
+    const co = { spec: 1.2, emit: ch[6] ? 0.4 + 0.3 * Math.sin(t / 250) : 0 };
+    if (ch[5] === 1) GX.box(cx, cy, cz, 0.014, 0.014, 0.014, 0.004, ch[3], co);
+    else if (ch[5] === 2) GX.cone(cx, cy, cz, 0.014, 0.018, ch[3], co);
+    else if (ch[5] === 3) GX.cyl(cx, cy, cz, 0.016, 0.004, ch[3], Object.assign({ rz: Math.PI / 2 }, co));
+    else if (ch[5] === 4) GX.torus(cx, cy, cz, 0.014, ch[3], Object.assign({ rz: Math.PI / 2, tube: 0.004 }, co));
+    else GX.sphere(cx, cy, cz, 0.016, ch[3], co);
+  }
+  return len2;
+}
+function drawViewmodel() {
+  const g = me.guns[me.cur], s2 = g.s;
+  if (!me.alive || (s2.scope && me.ads > 0.85)) return;
+  G.viewmodel();
+  const a2 = me.ads, bob = Math.sin(me.bob * 2.2) * 0.012 * (1 - a2), kick = (me.kick || 0) * 0.05;
+  const rl = me.reloadT > 0 ? 0.25 : 0, sw = me.swapT > 0 ? me.swapT * 0.6 : 0;
+  const x = 0.2 * (1 - a2), y = -0.2 + a2 * 0.085 + bob - rl * 0.3 - sw, z = -0.48 + kick;
+  const att = me.cur === 0 ? me.lo.att : null, camos = me.lo.camos || {};
+  const len2 = drawGun(G, [x, y, z], s2, att, camos[g.key], me.lo.charm, rl, performance.now());
+  const L2 = me.look || {};
+  G.sphere(x - 0.02, y - 0.09, z + 0.05, 0.05, L2.body || '#B98BFF', { ky: 1.2, spec: 0.8 });
+  G.cyl(x - 0.03, y - 0.13, z + 0.16, 0.055, 0.09, (L2.top && L2.top.c) || L2.body || '#B98BFF', { rx: 1.1 });
+  if (me.flashMuzzle > 0 && !s2.quiet) G.sphere(x, y + 0.02, z - len2 - 0.17, 0.06, '#FFD86B', { emit: 1, a: 0.9 });
 }
 function render() {
   G.begin();
@@ -1051,13 +1153,13 @@ function render() {
   for (const n of nades) G.sphere(n.p[0], n.p[1], n.p[2], n.kind === 'knife' ? 0.08 : 0.12, n.kind === 'frag' ? '#3A5A2A' : n.kind === 'semtex' ? '#E5484D' : n.kind === 'molotov' ? '#E39424' : n.kind === 'knife' ? '#C9D2DC' : '#9AA5B1', { spec: 1, ky: n.kind === 'knife' ? 2.4 : 1 });
   for (const sm of smokes) for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2; G.sphere(sm.p[0] + Math.cos(a) * 1.6, 1 + (i % 3) * 0.8, sm.p[2] + Math.sin(a) * 1.6, 1.7, '#D5DAE3', { a: 0.55 * Math.min(1, (sm.life - sm.t) / 2), spec: 0 }); }
   for (const p of fx) G.sphere(p.p[0], p.p[1], p.p[2], p.r * (p.boom ? (0.4 + p.t / p.life) : 1 - p.t / p.life * 0.5), p.c, { emit: p.boom ? 1 : 0.6, a: p.boom ? 0.7 * (1 - p.t / p.life) : 1 });
-  for (const t of tracers) for (let i = 1; i <= 6; i++) { const q = add(t.a, scl(sub(t.b, t.a), i / 7)); G.sphere(q[0], q[1], q[2], 0.02, '#FFE9A8', { emit: 1, a: 0.8 }); }
+  for (const t of tracers) for (let i = 1; i <= 6; i++) { const q = add(t.a, scl(sub(t.b, t.a), i / 7)); G.sphere(q[0], q[1], q[2], t.c === '#FFE9A8' ? 0.02 : 0.028, t.c || '#FFE9A8', { emit: 1, a: 0.85 }); }
   if (!attract) drawViewmodel();
 }
 window.__strikeLoaded = true;
 initFirebase();
 startAttract();
-if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, killMe: () => damage(me, 500, ents[1], 'gun'), mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); } };
+if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, killMe: () => damage(me, 500, ents[1], 'gun'), mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout };
 </script>
 </body>
 </html>
