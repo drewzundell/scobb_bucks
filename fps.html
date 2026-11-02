@@ -208,7 +208,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102j';
+import { create } from './scobb3d.js?v=20261102k';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -435,12 +435,6 @@ const MAPS = [
     spawns: [[-20, 0, -20], [20, 3, 18], [-20, 0, 20], [20, 3, -6], [0, 0, -20], [-4, 0, 20], [-20, 0, 4], [8, 3, 4]] }
 ];
 for (const m of MAPS) {
-  for (const sp of m.spawns) {
-    const [x, y, z] = sp, H = 0.8, T = 0.14, L = 1.5, alongX = Math.abs(x) > Math.abs(z), dir = alongX ? Math.sign(-x || 1) : Math.sign(-z || 1);
-    const col = '#4B5160', glow = '#7CC4F2';
-    if (alongX) { m.boxes.push([x - dir * L, y + H, z, T, H, L, col], [x, y + H, z - L, L, H, T, col], [x, y + H, z + L, L, H, T, col], [x - dir * L, y + 2 * H + 0.04, z, T + 0.02, 0.04, L, glow, 1]); }
-    else { m.boxes.push([x, y + H, z - dir * L, L, H, T, col], [x - L, y + H, z, T, H, L, col], [x + L, y + H, z, T, H, L, col], [x, y + 2 * H + 0.04, z - dir * L, L, 0.04, T + 0.02, glow, 1]); }
-  }
   m.solid = m.boxes.map(b => ({ min: [b[0] - b[3], b[1] - b[4], b[2] - b[5]], max: [b[0] + b[3], b[1] + b[4], b[2] + b[5]], b }));
   m.solid.push({ min: [-m.S, -1, -m.S], max: [m.S, 0, m.S], b: [0, -0.5, 0, m.S, 0.5, m.S, m.floor, 0, m.floorTex || 0, 0] });
   m.way = m.spawns.concat(m.boxes.filter(b => !b[7] && b[4] < 2.6 && b[3] > 1).map(b => [b[0], b[1] + b[4], b[2]]));
@@ -450,7 +444,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102j');
+    const cfg = await import('./firebase-config.js?v=20261102k');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -630,7 +624,7 @@ ui.addEventListener('click', e => {
 function openStore(kind) {
   if (document.querySelector('.store')) return;
   const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102j" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102k" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -689,7 +683,7 @@ function makeEnt(name, col, bot, lo, look) {
   return { name, col, bot, lo, look: look || botLook(col), guns: [{ key: lo.primary, s: prim, ammo: prim.mag }, { key: lo.secondary, s: sec, ammo: sec.mag }], cur: 0, p: [0, 0, 0], v: [0, 0, 0], yaw: 0, pitch: 0, hp: 100, alive: true, kills: 0, deaths: 0, tk: 0, td: 0, rounds: 0, fireT: 0, reloadT: 0, swapT: 0, lastHurt: -99, tac: 1, leth: 1, stimT: 0, flashT: 0, ground: false, stuck: 0, recoil: 0, ads: 0, cook: -1, bob: 0, prot: 0, walk: 0 };
 }
 function randomLoadout() { const c = pick(PRIM); return { primary: c + Math.floor(Math.random() * 3), secondary: 'pi' + Math.floor(Math.random() * 3), att: { optic: Math.floor(Math.random() * 3), barrel: Math.floor(Math.random() * 4), mag: Math.floor(Math.random() * 3), grip: Math.floor(Math.random() * 4) }, perks: [0, 1, 2].map(() => Math.floor(Math.random() * 3)), tac: pick(['stim', 'flash', 'smoke']), leth: pick(['frag', 'semtex', 'molotov', 'knife']) }; }
-const PROT = 3;
+const PROT = 3.5;
 // Gun Game: everyone starts on the same pistol. A gun kill moves you up one weapon; a kill with the last one wins.
 const GG = ['pi0', 'pi1', 'pi2', 'pi3', 'smg0', 'smg1', 'smg2', 'sg0', 'sg1', 'ar0', 'ar1', 'ar2', 'dmr0', 'dmr1', 'lmg0', 'lmg1', 'sn0', 'sn1', 'sg2', 'pi4'];
 function setTier(e, tier) {
@@ -1193,7 +1187,7 @@ function frame(now) {
 }
 function step(dt) {
   match.clock += dt;
-  if (match.phase === 'intro') { match.phaseT -= dt; if (match.phaseT <= 0) { match.phase = 'live'; say('Go!', ''); } }
+  if (match.phase === 'intro') { match.phaseT -= dt; if (match.phaseT <= 0) { match.phase = 'live'; for (const e of ents) if (e.alive) e.prot = PROT; say('Go!', ''); } }
   else if (match.phase === 'between') { match.phaseT -= dt; if (match.phaseT <= 0) { match.round++; match.phase = 'spin'; mapRandomizer(match.maps[match.round], () => startRound()); } return; }
   else if (match.phase === 'done' || match.phase === 'spin') return;
   else if (mode === 'match' || mode === 'gun') { match.t -= dt; if (match.t <= 0) { endRound(); return; } }
