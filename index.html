@@ -549,6 +549,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
 .seats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
 .seat { background: rgba(0,0,0,.18); border-radius: 16px; padding: 10px; text-align: center; }
 .seat.me { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.35); }
+.seat.turn { box-shadow: 0 0 0 2px #E8C26A inset; }
 .seat.out { opacity: .5; }
 .tag-s { display: inline-block; margin-top: 6px; font-size: 12.5px; font-weight: 600; padding: 2px 8px; border-radius: 8px; background: rgba(0,0,0,.25); }
 .tag-s.win { background: #E3F4EC; color: #147A52; }
@@ -622,6 +623,25 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
 .crate-box .crate-result { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px; font-size: 20px; }
 .crate-box .crate-result b { font-size: 22px; }
 .crate-box .btn { margin: 0 20px; width: calc(100% - 40px); }
+html.in-casino .felt { display: none !important; }
+html.in-casino .mini-status { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; justify-content: center; font-size: 16px; margin-bottom: 8px; }
+html.in-casino .mini-status b { font-size: 18px; color: #E8C26A; }
+html.in-casino .mini-seats { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+html.in-casino .mini-seats span { font-size: 12.5px; padding: 3px 9px; border-radius: 999px; background: rgba(36,22,26,.85); border: 1px solid rgba(232,194,106,.25); }
+html.in-casino .mini-seats span.turn { border-color: #E8C26A; color: #FFE9A8; }
+html.in-casino .mini-seats span.out { opacity: .5; }
+html.in-casino .tbl-head { font-size: 13px; }
+.mini-status, .mini-seats { display: none; }
+html.in-casino .mini-status, html.in-casino .mini-seats { display: flex; }
+/* ===== inside the 3D Scobbsino: the game floats over the room ===== */
+html.in-casino, html.in-casino body { background: transparent !important; }
+html.in-casino { color-scheme: dark; --bg: transparent; --card: rgba(20,12,14,.82); --card-2: rgba(36,22,26,.82); --ink: #F7F1E3; --soft: #CDBF9E; --line: rgba(232,194,106,.35); --grape: #B8860B; }
+html.in-casino #cas-root { background: linear-gradient(180deg, rgba(14,8,10,0) 0%, rgba(14,8,10,.55) 22%, rgba(14,8,10,.82) 100%) !important; padding: 18px 14px calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; justify-content: flex-end; }
+html.in-casino #cas-root > * { max-width: 720px; width: 100%; }
+html.in-casino #cas-root .arc-bar { display: none; }
+html.in-casino .felt { background: rgba(10,60,36,.72) !important; box-shadow: 0 0 0 2px rgba(232,194,106,.5) inset !important; }
+html.in-casino .btn-grape { background: linear-gradient(#E8C26A, #B8860B) !important; color: #1A0E08 !important; }
+html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { background: rgba(14,8,10,.7) !important; }
 </style>
 </head>
 <body>
@@ -1231,7 +1251,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     roulette: { name: 'Roulette', solo: true, blurb: 'European wheel with one zero. 2.7% house edge.' },
     plinko: { name: 'Plinko', solo: true, blurb: 'Drop the ball. Edges pay up to 22×. Returns about 97%.' },
     blackjack: { name: 'Blackjack', seats: 4, blurb: 'Beat the dealer. Blackjack pays 3:2, dealer stands on 17.' },
-    poker: { name: 'Hold’em', seats: 5, blurb: 'Ante, then call or fold twice. Best hand takes the pot, minus a 5% rake.' }
+    poker: { name: 'Hold’em', seats: 5, blurb: 'Real Texas Hold’em, fixed limit. Blinds, then four rounds of betting: check, bet, raise, call or fold. Best five-card hand wins the pot, minus a 5% rake if there’s a flop.' }
   };
   const SLOT_W = [30, 24, 18, 12, 8, 4], SLOT_P3 = [5, 10, 15, 30, 60, 150];
   const PLINKO_M = [22, 6, 3, 1.5, 1.1, 0.8, 0.4, 0.8, 1.1, 1.5, 3, 6, 22];
@@ -1291,6 +1311,79 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     return best;
   }
   const pkCat = score => Math.floor(score / Math.pow(15, 5));
+  // ===== Real Texas Hold'em (fixed limit), for tables opened with v: 2 =====
+  // Blinds are 1 and 2 bet units. Bets are 2 units before the flop and on the flop, 4 on the turn and river.
+  // Up to four bets a round (a bet and three raises). pay(seat, amount) puts chips in and says whether it could.
+  const PK2_CAP = 4;
+  const pk2Size = T => (T.round === 'turn' || T.round === 'river' ? 4 : 2) * T.n;
+  const pk2Live = T => T.seats.filter(x => !x.fold);
+  function pk2Pay(T, i, amt, pay) { if (amt <= 0) return true; const x = T.seats[i]; if (!pay(x, amt)) return false; x.in += amt; x.rb += amt; return true; }
+  function pk2Next(T, from) { const k = T.seats.length; for (let j = 1; j <= k; j++) { const i = (from + j) % k, x = T.seats[i]; if (!x.fold && (!x.acted || x.rb < T.bet)) return i; } return -1; }
+  function pk2Start(T, ent, pay) {
+    const deck = shuffled(DECK, ent, 'deck'), k = T.seats.length;
+    T.seats.forEach((x, i) => { x.hole = [deck[2 * i], deck[2 * i + 1]]; x.in = 0; x.rb = 0; x.acted = false; x.fold = false; x.last = ''; });
+    T.rest = deck.slice(2 * k); T.board = []; T.round = 'pre'; T.phase = 'pre';
+    T.btn = k - 1; T.sb = k === 2 ? T.btn : (T.btn + 1) % k; T.bb = (T.sb + 1) % k;
+    if (pk2Pay(T, T.sb, T.n, pay)) T.seats[T.sb].last = 'Small blind'; else { T.seats[T.sb].fold = true; T.seats[T.sb].last = 'Sat out'; }
+    if (pk2Pay(T, T.bb, 2 * T.n, pay)) T.seats[T.bb].last = 'Big blind'; else { T.seats[T.bb].fold = true; T.seats[T.bb].last = 'Sat out'; }
+    T.bet = 2 * T.n; T.raises = 1; T.cur = T.bb;
+    return pk2Advance(T, ent, pay);
+  }
+  function pk2Act(T, i, op, pay) {
+    const x = T.seats[i];
+    if (T.cur !== i || x.fold) return 'turn';
+    const need = T.bet - x.rb;
+    if (op === 'fold') { x.fold = true; x.last = 'Fold'; }
+    else if (op === 'check') { if (need > 0) return 'shape'; x.last = 'Check'; }
+    else if (op === 'call') { if (need <= 0) return 'shape'; if (!pk2Pay(T, i, need, pay)) return 'funds'; x.last = 'Call'; }
+    else if (op === 'raise') {
+      if (T.raises >= PK2_CAP) return 'cap';
+      const nb = T.bet + pk2Size(T);
+      if (!pk2Pay(T, i, nb - x.rb, pay)) return 'funds';
+      x.last = T.bet ? 'Raise' : 'Bet'; T.bet = nb; T.raises++;
+      T.seats.forEach((y, j) => { if (j !== i && !y.fold) y.acted = false; });
+    } else return 'shape';
+    x.acted = true;
+    return '';
+  }
+  // A simple house player: strong hands raise, decent ones call, weak ones check or fold, with the odd bluff.
+  function pk2Cpu(T, i, ent, pay) {
+    const x = T.seats[i], need = T.bet - x.rb, roll = hx(ent, 'pk2:' + i + ':' + T.round + ':' + T.raises + ':' + T.board.length) % 100;
+    let str;
+    if (!T.board.length) { const v = x.hole.map(c => (c.r === 1 ? 14 : c.r)).sort((a, b) => b - a); str = (v[0] === v[1] ? 55 + v[0] * 3 : v[0] * 2.4 + v[1] * 1.6) + (x.hole[0].s === x.hole[1].s ? 6 : 0) + (v[0] - v[1] === 1 ? 4 : 0); }
+    else str = [22, 52, 70, 80, 86, 89, 94, 97, 99][pkCat(best7(x.hole.concat(T.board)))];
+    let op;
+    if (str >= 75 && T.raises < PK2_CAP && roll < 70) op = 'raise';
+    else if (need <= 0) op = (roll < 12 && T.raises < PK2_CAP) ? 'raise' : 'check';
+    else if (str >= 48 || roll < 15 || (need <= T.n * 2 && str >= 36)) op = 'call';
+    else op = 'fold';
+    if (pk2Act(T, i, op, pay)) { if (pk2Act(T, i, need > 0 ? 'call' : 'check', pay)) pk2Act(T, i, 'fold', pay); }
+  }
+  // Moves the hand along: the next player to act, the next street, or the end. Returns 'wait' or 'end'.
+  function pk2Advance(T, ent, pay) {
+    for (let guard = 0; guard < 80; guard++) {
+      if (pk2Live(T).length <= 1) return 'end';
+      const nx = pk2Next(T, T.cur);
+      if (nx >= 0) { T.cur = nx; if (T.seats[nx].cpu) { pk2Cpu(T, nx, ent, pay); continue; } return 'wait'; }
+      if (T.round === 'river') return 'end';
+      const d = shuffled(T.rest, ent, T.round);
+      if (T.round === 'pre') { T.board = d.slice(0, 3); T.rest = d.slice(3); T.round = 'flop'; }
+      else { T.board = T.board.concat(d.slice(0, 1)); T.rest = d.slice(1); T.round = T.round === 'flop' ? 'turn' : 'river'; }
+      T.phase = T.round; T.bet = 0; T.raises = 0;
+      T.seats.forEach(y => { y.rb = 0; y.acted = false; if (!y.fold) y.last = ''; });
+      T.cur = T.btn;
+    }
+    return 'wait';
+  }
+  // Who wins and what everyone gets back. No flop, no rake.
+  function pk2Result(T) {
+    const pot = T.seats.reduce((a, y) => a + y.in, 0), rake = T.board.length >= 3 ? Math.floor(pot * CAS_RAKE) : 0, live = pk2Live(T);
+    let winners = live;
+    if (live.length > 1) { live.forEach(y => { y.score = best7(y.hole.concat(T.board)); }); const top = Math.max(...live.map(y => y.score)); winners = live.filter(y => y.score === top); }
+    const share = winners.length ? Math.floor((pot - rake) / winners.length) : 0;
+    T.seats.forEach(y => { y.ret = winners.includes(y) ? share : 0; });
+    T.winners = winners.map(y => y.u); T.pot = pot; T.rake = rake;
+  }
   function cpuCalls(hole, board, ent, tag) {
     const bluff = hx(ent, tag) % 100 < 12;
     const v = hole.map(c => (c.r === 1 ? 14 : c.r)).sort((a, b) => b - a);
@@ -1359,6 +1452,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       T.esc = 0; T.phase = 'done'; T.ended = t;
     }
     function casSeat(T, u) {
+      if (T.v === 2) { T.seats.push({ u, in: 0, rb: 0, hole: [], fold: false, acted: false, last: '' }); return; }
       escIn(T, u, T.n);
       if (T.g === 'blackjack') { escIn(T, issuer, 2 * T.n); T.seats.push({ u, bet: T.n, cards: [], done: false, dbl: false }); }
       else T.seats.push({ u, in: T.n, hole: [], fold: false, acted: false });
@@ -1417,7 +1511,22 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       T.board = T.board.concat(d.slice(0, 2)); T.rest = d.slice(2);
       pkFinish(T, ent, t);
     }
+    // Chips go into the pot as they're bet. House players are backed by the vault.
+    const pk2PayFor = T => (x, amt) => { const from = x.cpu ? issuer : x.u; if (!has(from, coinsOf(T.r, amt))) return false; escIn(T, from, amt); return true; };
+    function pk2Done(T, t) {
+      pk2Result(T);
+      const pay = {};
+      for (const y of T.seats) { if (y.cpu) continue; pay[y.u] = y.ret; events.push({ k: 'cas', key: T.id + ':' + y.u, a: y.u, g: 'poker', r: T.r, bet: y.in, ret: y.ret, t, tb: T.id }); }
+      tblFinish(T, pay, t);
+    }
+    function pk2Go(T, res, t) { if (res === 'end') pk2Done(T, t); else T.deadline = t + CAS_TURN; }
     function pkStart(T, ent, t) {
+      if (T.v === 2) {
+        const humans = T.seats.length;
+        for (let i = humans; i < 4; i++) T.seats.push({ u: 'cpu' + (i - humans + 1), cpu: true, in: 0, rb: 0, hole: [], fold: false, acted: false, last: '' });
+        T.started = t;
+        return pk2Go(T, pk2Start(T, ent, pk2PayFor(T)), t);
+      }
       const humans = T.seats.length, want = Math.max(0, 4 - humans);
       let cpus = 0;
       while (cpus < want && has(issuer, coinsOf(T.r, 3 * T.n * (cpus + 1)))) cpus++;
@@ -1431,6 +1540,12 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     function casStep(T, ent, t) {
       if (T.phase === 'lobby') return T.g === 'blackjack' ? bjStart(T, ent, t) : pkStart(T, ent, t);
       if (T.g === 'blackjack') { T.seats.forEach(s => { s.done = true; }); return bjDealer(T, ent, t); }
+      if (T.v === 2) {
+        // Out of time: check if you can, otherwise fold.
+        const pay = pk2PayFor(T), x = T.seats[T.cur];
+        if (x && !x.cpu && !x.fold) pk2Act(T, T.cur, x.rb >= T.bet ? 'check' : 'fold', pay);
+        return pk2Go(T, pk2Advance(T, ent, pay), t);
+      }
       T.seats.forEach(s => { if (!s.cpu && !s.fold && !s.acted) s.fold = true; });
       return pkStreet(T, ent, t);
     }
@@ -1464,7 +1579,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         if (!has(a, coinsOf(r, n))) { bad[key] = 'funds'; return; }
         if (e.g === 'blackjack' && !has(issuer, coinsOf(r, 2 * n))) { bad[key] = 'vault'; return; }
         if (Object.values(cas.tables).some(T => T.phase !== 'done' && T.seats.some(s => s.u === a))) { bad[key] = 'busy'; return; }
-        const T = { id: key, g: e.g, host: a, r, n, t0: e.t, phase: 'lobby', deadline: e.t + CAS_LOBBY, seats: [], dealer: [], board: [], esc: 0 };
+        const T = { id: key, g: e.g, host: a, r, n, t0: e.t, phase: 'lobby', deadline: e.t + CAS_LOBBY, seats: [], dealer: [], board: [], esc: 0, v: e.g === 'poker' && e.v === 2 ? 2 : 1 };
+        if (T.v === 2 && !has(a, coinsOf(r, 2 * n))) { bad[key] = 'funds'; return; }
         cas.tables[key] = T;
         casSeat(T, a);
         return;
@@ -1474,7 +1590,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       if (op === 'join') {
         if (T.phase !== 'lobby' || T.seats.some(s => s.u === a) || T.seats.length >= CAS_GAMES[T.g].seats) { bad[key] = 'full'; return; }
         if (Object.values(cas.tables).some(X => X.phase !== 'done' && X.seats.some(s => s.u === a))) { bad[key] = 'busy'; return; }
-        if (!has(a, coinsOf(T.r, T.n))) { bad[key] = 'funds'; return; }
+        if (!has(a, coinsOf(T.r, T.v === 2 ? 2 * T.n : T.n))) { bad[key] = 'funds'; return; }
         if (T.g === 'blackjack' && !has(issuer, coinsOf(T.r, 2 * T.n))) { bad[key] = 'vault'; return; }
         casSeat(T, a);
         return;
@@ -1491,6 +1607,12 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         } else { bad[key] = 'shape'; return; }
         if (T.seats.every(s => s.cpu || s.done)) bjDealer(T, ent, e.t);
         return;
+      }
+      if (T.v === 2) {
+        if (T.phase === 'lobby' || T.phase === 'done') { bad[key] = 'late'; return; }
+        const pay = pk2PayFor(T), why = pk2Act(T, T.seats.indexOf(S), op, pay);
+        if (why) { bad[key] = why; return; }
+        return pk2Go(T, pk2Advance(T, ent, pay), e.t);
       }
       if ((T.phase !== 'pre' && T.phase !== 'flop') || S.fold || S.acted) { bad[key] = 'late'; return; }
       if (op === 'call') { if (!has(a, coinsOf(T.r, T.n))) { bad[key] = 'funds'; return; } escIn(T, a, T.n); S.in += T.n; S.acted = true; }
@@ -2424,6 +2546,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   }
   const STORE_MODE = new URLSearchParams(location.search).has('store'), STORE_KIND = new URLSearchParams(location.search).get('store');
   // The 3D Scobbsino opens ScobbBucks with ?casino=<game> at a table to run that one game.
+  if (new URLSearchParams(location.search).has('casino')) document.documentElement.classList.add('in-casino');
   const CASINO_GAME = (g => (['slots', 'roulette', 'plinko', 'blackjack', 'poker'].includes(g) ? g : ''))(new URLSearchParams(location.search).get('casino'));
   function strikeShopHTML() {
     const av = availOf(uid), now = Date.now(), owner = uid === L.issuer;
@@ -3049,6 +3172,12 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       if (T.seats.every(s => s.cpu || s.done)) pBjDealer(T);
       return;
     }
+    if (T.v === 2) {
+      T.seats = T.seats.map(x => ({ u: x.u, in: 0, rb: 0, hole: [], fold: false, acted: false, last: '' }));
+      for (let i = 1; i <= 3; i++) T.seats.push({ u: 'cpu' + i, cpu: true, in: 0, rb: 0, hole: [], fold: false, acted: false, last: '' });
+      if (pk2Start(T, ent, () => true) === 'end') { pk2Result(T); T.phase = 'done'; }
+      return;
+    }
     for (let i = 1; i <= 3; i++) T.seats.push({ u: 'cpu' + i, cpu: true, in: T.n, hole: [], fold: false, acted: false });
     const deck = shuffled(DECK, ent, 'deck');
     T.seats.forEach((s, i) => { s.hole = [deck[2 * i], deck[2 * i + 1]]; });
@@ -3082,6 +3211,11 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       else if (op === 'stand') S.done = true;
       else if (op === 'double' && S.cards.length === 2) { S.bet += T.n; S.dbl = true; S.cards.push(cardOf(rndEnt(), 'dbl')); S.done = true; }
       if (T.seats.every(x => x.cpu || x.done)) pBjDealer(T);
+      return;
+    }
+    if (T.v === 2) {
+      if (pk2Act(T, T.seats.indexOf(S), op, () => true)) return;
+      if (pk2Advance(T, rndEnt(), () => true) === 'end') { pk2Result(T); T.phase = 'done'; }
       return;
     }
     if (S.fold || S.acted) return;
@@ -3158,7 +3292,9 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const r = casRoot(); r.hidden = true; r.innerHTML = ''; document.body.style.overflow = '';
     render();
   }
+  let casLastSpin = false;
   function casTick() {
+    if (CASINO_GAME && ui.cas) { const sp = !!ui.cas.wait || !!ui.cas.anim; if (sp !== casLastSpin) { casLastSpin = sp; casinoState(); } }
     if (!ui.cas || !L) return;
     const C = ui.cas, now = Date.now();
     $$('#cas-root [data-cd]').forEach(el => { el.textContent = secsLeft(Number(el.dataset.cd) - now); });
@@ -3201,6 +3337,15 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const r = casRoot();
     const back = `<div class="arc-bar"><button type="button" class="btn btn-ghost btn-sm" style="margin:0" data-act="cas-close">${C.view === 'table' ? 'Leave' : 'Back'}</button><b style="font-size:18px">${C.view === 'table' ? (casTableOf(C.tb) ? CAS_GAMES[casTableOf(C.tb).g].name : 'Table') : C.view === 'setup' ? CAS_GAMES[C.g].name : CAS_GAMES[C.view].name}${C.practice ? ' <span class="status">Practice</span>' : ''}</b></div>`;
     r.innerHTML = back + (C.view === 'slots' ? slotsView() : C.view === 'roulette' ? rouletteView() : C.view === 'plinko' ? plinkoView() : C.view === 'setup' ? setupView() : tableView());
+    if (CASINO_GAME) casinoState();
+  }
+  function casinoState() {
+    const C = ui.cas; if (!C) return;
+    const T = C.view === 'table' ? casTableOf(C.tb) : null, me = T ? T.seats.find(x => x.u === uid) : null;
+    const st = { type: 'scobbsino-state', g: CASINO_GAME, phase: T ? T.phase : C.view, spinning: !!C.wait || !!C.anim };
+    if (T && T.g === 'poker') { st.board = T.board; st.mine = me ? me.hole : []; st.pot = T.seats.reduce((a, x) => a + x.in, 0); }
+    if (T && T.g === 'blackjack') { st.mine = me ? me.cards : []; st.dealer = T.dealer; st.hideHole = T.phase !== 'done'; }
+    try { window.parent.postMessage(st, location.origin); } catch (e) { /* not inside the casino */ }
   }
   const lastSpin = g => { const k = ui.cas && ui.cas.landed; const s = casSpinOf(k); return s && s.g === g ? s : null; };
   function spinResultLine(s) {
@@ -3355,7 +3500,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const C = ui.cas, T = casTableOf(C.tb), now = Date.now();
     if (!T) return `<p class="soft mt">Setting up the table…</p>`;
     const me = T.seats.find(s => s.u === uid), G = CAS_GAMES[T.g], P = !!T.prac;
-    let h = `<div class="tbl-head"><span>${casAmt(T.r, T.n, P)} ${T.g === 'poker' ? 'ante and calls' : 'bet'}</span>${P ? `<span>${T.phase === 'done' ? 'Round over' : 'Practice against CPUs'}</span>` : T.phase === 'lobby' ? `<span>Starts in <b data-cd="${T.deadline}">${secsLeft(T.deadline - now)}</b></span>` : T.phase !== 'done' ? `<span>${now > T.deadline ? 'Waiting for the table…' : `Time left <b data-cd="${T.deadline}">${secsLeft(T.deadline - now)}</b>`}</span>` : '<span>Round over</span>'}</div>`;
+    let h = `<div class="tbl-head"><span>${T.v === 2 ? `Blinds ${fmtInt(T.n)}/${fmtInt(2 * T.n)} · bets ${fmtInt(2 * T.n)}/${fmtInt(4 * T.n)} ${P ? 'practice chips' : RN[T.r]}` : `${casAmt(T.r, T.n, P)} ${T.g === 'poker' ? 'ante and calls' : 'bet'}`}</span>${P ? `<span>${T.phase === 'done' ? 'Round over' : 'Practice against CPUs'}</span>` : T.phase === 'lobby' ? `<span>Starts in <b data-cd="${T.deadline}">${secsLeft(T.deadline - now)}</b></span>` : T.phase !== 'done' ? `<span>${now > T.deadline ? 'Waiting for the table…' : `Time left <b data-cd="${T.deadline}">${secsLeft(T.deadline - now)}</b>`}</span>` : '<span>Round over</span>'}</div>`;
     if (T.phase === 'lobby') {
       h += `<div class="lpanel">${T.seats.map(s => `<div class="lrow">${headBubble(s.u, 34)}<span class="lt"><b>${esc(nameOf(s.u))}${s.u === uid ? ' (you)' : ''}</b><span>Seated</span></span></div>`).join('')}${Array.from({ length: G.seats - T.seats.length }, () => `<div class="lrow"><span class="sq">${icon('plus')}</span><span class="lt"><b class="soft">Open seat</b><span>CPUs fill empty seats if nobody joins</span></span></div>`).join('')}</div><p class="small soft mt">Friends can join from the Scobbsino screen. The game starts when the timer hits zero.</p>`;
       return h;
@@ -3369,7 +3514,34 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         h += `<div class="seat${mine ? ' me' : ''}"><span class="small">${esc(casName(s.u))}${mine ? ' (you)' : ''} · ${v}</span><div class="hand">${s.cards.map(c => pcard(c)).join('')}</div><span class="tag-s ${T.phase === 'done' ? s.out : ''}">${st}</span></div>`;
       }
       h += `</div></div>`;
+      if (CASINO_GAME && me) h += `<div class="mini-status"><b>Blackjack</b><span>You ${bjVal(me.cards)}</span><span>Dealer ${T.phase === 'done' ? bjVal(T.dealer) : 'shows ' + (T.dealer[0] ? bjVal([T.dealer[0]]) : '?')}</span></div>`;
       if (me && T.phase === 'play' && !me.done) h += `<div class="acts" style="grid-template-columns:1fr 1fr 1fr"><button type="button" class="btn btn-grape" data-act="cas-act" data-op="hit"${casPending() ? ' disabled' : ''}>Hit</button><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="stand"${casPending() ? ' disabled' : ''}>Stand</button><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="double"${me.cards.length !== 2 || (!P && availOf(uid)[T.r] < T.n) || casPending() ? ' disabled' : ''}>Double</button></div>${P ? '' : '<p class="small soft mt">If you don’t move in time, you stand.</p>'}`;
+    } else if (T.v === 2) {
+      const done = T.phase === 'done', pot = T.seats.reduce((x, y) => x + y.in, 0), meI = T.seats.indexOf(me), myTurn = !!me && !done && T.cur === meI && !me.fold;
+      const need = me ? Math.max(0, T.bet - me.rb) : 0, size = pk2Size(T), raiseTo = T.bet + size, raiseCost = me ? raiseTo - me.rb : 0, have = P ? 1e9 : availOf(uid)[T.r];
+      const ROUND = { pre: 'Before the flop', flop: 'Flop', turn: 'Turn', river: 'River', done: 'Showdown' };
+      h += `<div class="felt"><div class="dealer"><span class="small">${ROUND[T.phase] || ''} · Pot ${fmtInt(pot)} · ${T.bet ? `Bet ${fmtInt(T.bet)}` : 'No bet yet'}</span><div class="hand">${T.board.map(c => pcard(c)).join('')}${Array.from({ length: 5 - T.board.length }, () => pcard(null, true)).join('')}</div></div><div class="seats">`;
+      T.seats.forEach((x, i) => {
+        const mine = x.u === uid, show = mine || (done && !x.fold && pk2Live(T).length > 1);
+        const role = [i === T.btn ? 'D' : '', i === T.sb ? 'SB' : '', i === T.bb ? 'BB' : ''].filter(Boolean).join(' ');
+        const st = done ? (T.winners.includes(x.u) ? `Won ${fmtInt(x.ret)}` : x.fold ? 'Folded' : 'Lost') : x.fold ? 'Folded' : i === T.cur ? (mine ? 'Your turn' : 'Thinking') : (x.last || 'Waiting');
+        const hand = done && !x.fold && T.board.length === 5 && pk2Live(T).length > 1 ? PK_NAMES[pkCat(best7(x.hole.concat(T.board)))] : '';
+        h += `<div class="seat${mine ? ' me' : ''}${x.fold ? ' out' : ''}${i === T.cur && !done ? ' turn' : ''}"><span class="small">${esc(casName(x.u))}${mine ? ' (you)' : ''}${role ? ` · <b>${role}</b>` : ''} · in ${fmtInt(x.in)}</span><div class="hand">${x.hole.map(c => pcard(c, !show)).join('')}</div><span class="tag-s ${done && T.winners.includes(x.u) ? 'win' : ''}">${st}${hand ? ' · ' + hand : ''}</span></div>`;
+      });
+      h += `</div></div>`;
+      if (CASINO_GAME) {
+        const myHand = me && T.board.length >= 3 ? PK_NAMES[pkCat(best7(me.hole.concat(T.board)))] : '';
+        h += `<div class="mini-status"><b>${ROUND[T.phase] || ''}</b><span>Pot ${fmtInt(pot)}</span><span>${T.bet ? `Bet ${fmtInt(T.bet)}` : 'No bet'}</span>${myHand ? `<span>You have ${myHand.toLowerCase()}</span>` : ''}</div>`;
+        h += `<div class="mini-seats">${T.seats.map((x, i) => `<span class="${x.fold ? 'out' : ''}${i === T.cur && !done ? ' turn' : ''}">${esc(casName(x.u))}${x.u === uid ? ' (you)' : ''}${i === T.btn ? ' · D' : ''} · ${done ? (T.winners.includes(x.u) ? 'won ' + fmtInt(x.ret) : x.fold ? 'folded' : 'lost') : (x.fold ? 'folded' : x.last ? x.last.toLowerCase() : 'waiting')} · ${fmtInt(x.in)}</span>`).join('')}</div>`;
+      }
+      if (done && pk2Live(T).length === 1) h += `<p class="small soft mt" style="text-align:center">Everyone else folded, so ${esc(casName(pk2Live(T)[0].u))} took the pot.</p>`;
+      if (myTurn) {
+        const pend = casPending();
+        h += `<div class="acts" style="grid-template-columns:1fr 1fr 1fr"><button type="button" class="btn btn-ghost" data-act="cas-act" data-op="fold"${pend ? ' disabled' : ''}>Fold</button>`;
+        h += need > 0 ? `<button type="button" class="btn btn-grape" data-act="cas-act" data-op="call"${pend || have < need ? ' disabled' : ''}>Call ${fmtInt(need)}</button>` : `<button type="button" class="btn btn-grape" data-act="cas-act" data-op="check"${pend ? ' disabled' : ''}>Check</button>`;
+        h += `<button type="button" class="btn btn-grape" data-act="cas-act" data-op="raise"${pend || T.raises >= PK2_CAP || have < raiseCost ? ' disabled' : ''}>${T.bet ? 'Raise' : 'Bet'} ${fmtInt(raiseCost)}</button></div>`;
+        h += `<p class="small soft mt">${T.raises >= PK2_CAP ? 'Betting is capped this round, so you can only call or fold.' : `A ${T.bet ? 'raise' : 'bet'} this round is ${fmtInt(size)}.`}${P ? '' : ' If you run out of time, you check if you can and fold if you can’t.'}</p>`;
+      } else if (me && !me.fold && !done) h += `<p class="small soft mt">Waiting for ${esc(casName((T.seats[T.cur] || {}).u || ''))}.</p>`;
     } else {
       const done = T.phase === 'done';
       const pot = T.seats.reduce((x, s) => x + s.in, 0);
@@ -3396,7 +3568,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const C = ui.cas, G = CAS_GAMES[C.g], mine = casMyTable();
     let h = `<p class="small soft">${G.blurb}${C.practice ? '' : ' After you open a table, friends get 25 seconds to join. CPUs fill any empty seats.'}</p>`;
     h += casBetPicker(C.g === 'blackjack' ? 3 : 1);
-    if (C.g === 'poker') h += `<p class="small soft mt">Your bet goes in to start, and you can call it two more times. The most you can lose is 3 times your bet.</p>`;
+    if (C.g === 'poker') h += `<p class="small soft mt">Your bet sets the stakes. Blinds are 1 and 2 of it, bets are 2 before and on the flop and 4 on the turn and river, with up to four bets a round. You need at least the big blind to sit down.</p>`;
     if (C.practice) return h + `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-host" data-g="${C.g}">Start a practice hand for ${casAmt(0, ui.casN || 1, true)}</button><p class="small soft mt">Practice tables skip the 25-second wait and put you straight in with CPUs.</p>`;
     h += `<button type="button" class="btn btn-grape btn-block mt" data-act="cas-host" data-g="${C.g}"${(mine && mine.phase !== 'done') || casPending() ? ' disabled' : ''}>Open a table for ${coinsAmt(ui.casR || 0, ui.casN || 1)}</button>`;
     if (mine && mine.phase !== 'done') h += `<p class="small soft mt">You’re already at a table. Finish that one first.</p>`;
@@ -3407,7 +3579,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102n'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102o'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -3913,7 +4085,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102n" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102o" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -3961,7 +4133,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'cas-host': b => {
       if (ui.cas && ui.cas.practice) {
         const id = 'practice:' + rndEnt(), n = ui.casN || 1;
-        const T = { id, g: b.dataset.g, host: uid, r: 0, n, phase: 'lobby', seats: [], dealer: [], board: [], prac: true, t0: Date.now(), deadline: Infinity };
+        const T = { id, g: b.dataset.g, host: uid, r: 0, n, phase: 'lobby', seats: [], dealer: [], board: [], prac: true, t0: Date.now(), deadline: Infinity, v: b.dataset.g === 'poker' ? 2 : 1 };
         T.seats.push(T.g === 'blackjack' ? { u: uid, bet: n, cards: [], done: false, dbl: false } : { u: uid, in: n, hole: [], fold: false, acted: false });
         casPrac.tables[id] = T;
         pStart(T);
@@ -3971,7 +4143,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       const g = b.dataset.g, r = ui.casR, n = ui.casN || 1;
       if (availOf(uid)[r] < n) return toast(`You only have ${fmtInt(availOf(uid)[r])} ${RN[r]}.`);
       if (g === 'blackjack' && availOf(L.issuer)[r] < 2 * n) return toast('The vault can’t cover that table. Try a smaller bet.');
-      const e = newEntry('cas', { op: 'open', g, r, n });
+      const e = newEntry('cas', g === 'poker' ? { op: 'open', g, r, n, v: 2 } : { op: 'open', g, r, n });
       casShow({ view: 'table', tb: uid + ':' + e.i });
     },
     'cas-act': b => {
@@ -4143,13 +4315,13 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102n'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102o'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
     BANK = bank;
     FARM_LIVE = cfgMod.FARM_LIVE === true;
-    try { FSK = await import('./farm-skins.js?v=20261102n'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
+    try { FSK = await import('./farm-skins.js?v=20261102o'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     FARM_TESTERS = Array.isArray(cfgMod.FARM_TESTERS) ? cfgMod.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(cfg);
