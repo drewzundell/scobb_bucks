@@ -108,6 +108,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .dcard .dlbl { margin: 0; color: #FF8A8E; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 13px; }
 .dcard h2 { margin: 4px 0 12px; font-size: 34px; font-weight: 900; }
 .dcard h3 { margin: 18px 0 8px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--soft); }
+.dk { float: right; font: 800 11px var(--font); color: var(--soft); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
+.opt[aria-pressed="true"] .dk { color: #3A3F4A; border-color: #C9CDD6; }
+.dhint { margin: 10px 0 0; }
+.dhint kbd { display: inline-block; padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,.1); border: 1px solid var(--line); font: 800 12px var(--font); color: #fff; }
 .dpick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; text-align: left; }
 .ccard { position: relative; overflow: hidden; height: 74px; border-radius: 12px; padding: 12px 14px; text-align: left; display: flex; flex-direction: column; justify-content: center; border: 1px solid rgba(255,255,255,.18); background-size: 200% 200%; }
 .ccard b { position: relative; font-size: 20px; font-weight: 900; letter-spacing: .02em; text-transform: uppercase; text-shadow: 0 2px 6px rgba(0,0,0,.5); }
@@ -167,7 +171,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102b';
+import { create } from './scobb3d.js?v=20261102c';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -322,7 +326,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102b');
+    const cfg = await import('./firebase-config.js?v=20261102c');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -398,7 +402,7 @@ ui.addEventListener('click', e => {
 });
 function openStore() {
   const d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102b" title="Inventory" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102c" title="Inventory" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -671,20 +675,31 @@ function drawMini() {
   x.restore();
 }
 function classPicker(sel) {
-  return `<div class="dpick">${PRIM.map(c => { const best = [4, 3, 2, 1, 0].map(t => c + t).find(id => ownsW(id)); return `<button type="button" class="opt" data-pick="${best}" aria-pressed="${WEAPONS[sel].ck === c}">${CLASSES[c].name}<small>${WEAPONS[best].name}</small></button>`; }).join('')}</div>`;
+  return `<div class="dpick">${PRIM.map((c, i) => { const best = [4, 3, 2, 1, 0].map(t => c + t).find(id => ownsW(id)); return `<button type="button" class="opt" data-pick="${best}" aria-pressed="${WEAPONS[sel].ck === c}"><kbd class="dk">${i + 1}</kbd>${CLASSES[c].name}<small>${WEAPONS[best].name}</small></button>`; }).join('')}</div>`;
 }
 function showDeath() {
   if (document.getElementById('death') || mode === 'range') return;
-  if (document.exitPointerLock) document.exitPointerLock();
   const k = me.killer, d = document.createElement('div'); d.id = 'death'; d.className = 'death';
-  d.innerHTML = `<div class="dcard"><p class="dlbl">${k ? 'Killed by' : 'You died'}</p>${k ? `<h2>${k.name}</h2>${cardHTML(k.card || 'rookie', k.name)}` : '<h2>Your own grenade</h2>'}<h3>Switch class</h3>${classPicker(loadout.primary)}<button type="button" class="btn block" id="d-go" disabled>Respawn</button></div>`;
+  d.innerHTML = `<div class="dcard"><p class="dlbl">${k ? 'Killed by' : 'You died'}</p>${k ? `<h2>${k.name}</h2>${cardHTML(k.card || 'rookie', k.name)}` : '<h2>Your own grenade</h2>'}<h3>Switch class</h3>${classPicker(loadout.primary)}<button type="button" class="btn block" id="d-go" disabled>Respawn</button>${touchDev ? '' : '<p class="small soft dhint">Press <kbd>Space</kbd> to respawn · <kbd>1</kbd> to <kbd>6</kbd> to switch class · <kbd>Esc</kbd> to use the mouse</p>'}</div>`;
   $('#hud').appendChild(d);
   d.addEventListener('click', e => {
     const b = e.target.closest('[data-pick]');
     if (b) { setPrimary(b.dataset.pick); d.querySelectorAll('[data-pick]').forEach(x => x.setAttribute('aria-pressed', x === b)); return; }
-    if (e.target.id === 'd-go' && !e.target.disabled) { me.wantSpawn = true; if (!TEST && !touchDev && cv.requestPointerLock) cv.requestPointerLock(); }
+    if (e.target.id === 'd-go') respawnNow();
   });
   setTimeout(() => { const g = document.getElementById('d-go'); if (g) g.disabled = false; }, TEST ? 50 : 1500);
+}
+function respawnNow() {
+  const go = document.getElementById('d-go');
+  if (!go || go.disabled) return;
+  me.wantSpawn = true; keys.Space = false; mouse.l = false;
+  if (!TEST && !touchDev && document.pointerLockElement !== cv && cv.requestPointerLock) cv.requestPointerLock();
+}
+function pickClass(i) {
+  const b = document.querySelectorAll('#death [data-pick]')[i];
+  if (!b) return;
+  setPrimary(b.dataset.pick);
+  document.querySelectorAll('#death [data-pick]').forEach(x => x.setAttribute('aria-pressed', x === b));
 }
 function hideDeath() { const d = document.getElementById('death'); if (d) d.remove(); }
 function setPrimary(id) {
@@ -732,6 +747,11 @@ let boardOpen = false;
 document.addEventListener('keydown', e => {
   if (e.code === 'Tab') e.preventDefault();
   if (!running || attract) return;
+  if (me && !me.alive && document.getElementById('death')) {
+    if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); respawnNow(); return; }
+    const n = /^Digit([1-6])$/.exec(e.code);
+    if (n) { pickClass(Number(n[1]) - 1); return; }
+  }
   keys[e.code] = true;
   if (e.code === 'KeyR') reload(me);
   if (e.code === 'KeyB' && mode === 'range') { const ids = PRIM.flatMap(c => [0, 1, 2, 3, 4].map(t => c + t)).filter(ownsW); const i = ids.indexOf(me.guns[0].key); setPrimary(ids[(i + 1) % ids.length]); lastHit = null; shots = []; }
@@ -751,7 +771,7 @@ cv.addEventListener('mousedown', e => { if (!running || attract) return; if (!TE
 document.addEventListener('mouseup', e => { if (e.button === 0) mouse.l = false; if (e.button === 2) mouse.r = false; });
 cv.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('mousemove', e => { if (!running || attract || paused || !me) return; if (document.pointerLockElement === cv || TEST) { const sens = 0.0022 / (me.ads > 0.6 ? me.guns[me.cur].s.zoom * 0.7 : 1); me.yaw += e.movementX * sens; me.pitch = Math.max(-1.45, Math.min(1.45, me.pitch - e.movementY * sens)); } });
-document.addEventListener('pointerlockchange', () => { if (running && !attract && document.pointerLockElement !== cv && !TEST && match && match.phase !== 'done') togglePause(true); });
+document.addEventListener('pointerlockchange', () => { if (running && !attract && document.pointerLockElement !== cv && !TEST && match && match.phase !== 'done' && me && me.alive) togglePause(true); });
 function togglePause(on) { paused = on; if (hudEls.pause) hudEls.pause.hidden = !on; }
 let touchMove = [0, 0], touchFire = false, touchAds = false;
 function wireTouch() {

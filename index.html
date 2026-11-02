@@ -1152,6 +1152,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
 
   // Upgrade coins with the vault: SWAP[r] coins of rarity r buy 1 coin of rarity r + 1.
   const SWAP = [3, 3, 3, 4, 5];
+  const PRESS_END = Date.UTC(2026, 10, 3, 5, 0, 0);
   // Coin press: makes coins from the vault over time. Level 1 is free; upgrades are paid to the vault.
   const PRESS = [
     { rate: 3, cap: 9 },
@@ -1542,6 +1543,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         e.c.forEach((n, r) => { b[r] += n; total[r] += n; });
         events.push({ k: 'mint', key, a, c: e.c.slice(), t: e.t });
       } else if (e.k === 'press') {
+        // The coin press was retired. Coins it already made stay where they are; nothing new after this.
+        if (e.t > PRESS_END) { bad[key] = 'gone'; continue; }
         if (a === issuer) { bad[key] = 'who'; continue; }
         const pr = press[a];
         if (e.op === 'start') {
@@ -2077,7 +2080,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       const own = (L && L.fpsOwned && L.fpsOwned[uid]) || new Set(), av = availOf(uid);
       const row = (it, name, sub) => {
         const pr = fpsPrice(it), have = !pr || own.has(it), can = pr && av[pr[0]] >= pr[1];
-        return `<div class="ev"><div class="main"><div class="t"><b>${esc(name)}</b></div><div class="s">${sub}</div></div>${have ? '<span class="status done">Owned</span>' : `<button type="button" class="chipbtn" data-act="fps-buy" data-it="${it}"${can && uid !== L.issuer ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button>`}</div>`;
+        return `<div class="ev"><div class="main"><div class="t"><b>${esc(name)}</b></div><div class="s">${sub}</div></div>${have ? '<span class="status done">Owned</span>' : `<button type="button" class="chipbtn" data-act="fps-buy" data-it="${it}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button>`}</div>`;
       };
       let h = sheetHead('Scobb Strike Armory', 'Unlock guns and attachments for Scobb Strike. Higher tiers are better and cost more. Coins go to the bank.');
       h += `<p class="small soft">Your K/D: <b>${kdOf(uid) || '0.00'}</b>${fpsStats[uid] ? ` · ${fpsStats[uid].k || 0} kills · ${fpsStats[uid].wins || 0} match wins` : ''}</p>`;
@@ -2230,7 +2233,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const draw = () => {
       const av = availOf(uid), owner = uid === L.issuer;
       let h = sheetHead('Skin crates', 'Cosmetic gun skins for Scobb Strike. The coins go to the bank. Rarer crates have better skins, and the best ones are very hard to pull.');
-      h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = !owner && av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
+      h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
       const mine = mySkins(uid);
       h += `<h3>Your skins</h3>`;
       h += mine.length ? `<div class="list">${mine.map(x => { const inf = sknInfo(x.s); return `<div class="ev">${sknSw(x.s, 'skw-sm')}<div class="main"><div class="t"><b>${esc(inf[1])}</b> <span class="small" style="color:${SKN_RC[x.r]}">${RN[x.r]}</span></div></div><button type="button" class="chipbtn" data-act="skin-list" data-sk="${x.key}">List</button></div>`; }).join('')}</div>` : `<p class="small soft">No skins yet. Open a crate to get some.</p>`;
@@ -2339,10 +2342,10 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const shop = skinShopAt(now, config.salt), reset = WEEK0 + (arcDay(now) + 1) * DAY;
     let h = `<header class="top" style="justify-content:flex-start"><h1>Scobb Strike inventory</h1></header>`;
     h += `<div class="chips" style="margin-bottom:6px">${coinChips(av)}</div>`;
-    if (owner) h += `<p class="small soft">You’re the bank, so you can look but not buy.</p>`;
-    h += `<h3>Skin shop</h3><p class="small soft">Four skins a day. New ones in ${Math.max(1, Math.round((reset - now) / 3600000))} hours.</p><div class="skgrid">${shop.map(id => { const inf = sknInfo(id), pr = SKN_PRICE[inf[2]], can = !owner && av[pr[0]] >= pr[1]; return `<div class="skcell">${sknSw(id)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-buy" data-s="${id}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
+    if (owner) h += `<p class="small soft">You’re the bank, so anything you buy here goes straight back into your vault.</p>`;
+    h += `<h3>Skin shop</h3><p class="small soft">Four skins a day. New ones in ${Math.max(1, Math.round((reset - now) / 3600000))} hours.</p><div class="skgrid">${shop.map(id => { const inf = sknInfo(id), pr = SKN_PRICE[inf[2]], can = av[pr[0]] >= pr[1]; return `<div class="skcell">${sknSw(id)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-buy" data-s="${id}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
     h += `<h3>Crates</h3><p class="small soft">A random skin each time. Rarer crates have better odds. The best skins are very hard to pull.</p>`;
-    h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = !owner && av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
+    h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
     const mine = mySkins(uid);
     h += `<h3>Your skins (${mine.length})</h3>`;
     h += mine.length ? `<div class="skgrid">${mine.map(x => { const inf = sknInfo(x.s); return `<div class="skcell">${sknSw(x.s)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[x.r]}">${RN[x.r]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-list" data-sk="${x.key}">Sell on market</button></div>`; }).join('')}</div><p class="small soft">Equip a skin in Scobb Strike under Loadout. Skins you sell go to the Market tab in ScobbBucks.</p>` : `<p class="small soft">No skins yet. Buy one from the shop or open a crate.</p>`;
@@ -2498,7 +2501,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       h += `<button type="button" class="banner gift" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
     }
     if (inc.length) h += `<button type="button" class="banner" data-act="tab" data-tab="trades">${headBubble(inc[0].from, 34)}<span class="bt">${inc.length === 1 ? `${esc(nameOf(inc[0].from))} sent you a trade offer` : `${inc.length} trade offers are waiting on you`}</span><span class="pill">View</span></button>`;
-    h += `<div class="lpanel">${owner ? '' : pressRow()}${arcadeRow()}${casinoRow()}<a class="lrow" href="./fps.html" target="_blank" rel="noopener"><span class="sq">${icon('aim')}</span><span class="lt"><b>Scobb Strike</b><span>3D shooter in a new tab · K/D ${kdOf(uid) || '0.00'}</span></span><span class="chipbtn">Play</span></a><button type="button" class="lrow" data-act="fps-armory"><span class="sq">${icon('aim')}</span><span class="lt"><b>Strike Armory</b><span>Unlock guns and attachments with ScobbBucks</span></span><span class="chipbtn">Open</span></button>${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
+    h += `<div class="lpanel">${arcadeRow()}${casinoRow()}<a class="lrow" href="./fps.html" target="_blank" rel="noopener"><span class="sq">${icon('aim')}</span><span class="lt"><b>Scobb Strike</b><span>3D shooter in a new tab · K/D ${kdOf(uid) || '0.00'}</span></span><span class="chipbtn">Play</span></a><button type="button" class="lrow" data-act="fps-armory"><span class="sq">${icon('aim')}</span><span class="lt"><b>Strike Armory</b><span>Unlock guns and attachments with ScobbBucks</span></span><span class="chipbtn">Open</span></button>${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
     h += `<h2>Activity</h2>${activityHTML()}`;
     return h;
   }
