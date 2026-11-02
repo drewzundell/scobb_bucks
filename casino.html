@@ -36,6 +36,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .card3 { position: absolute; transform: translate(-50%, -50%); width: 34px; height: 48px; border-radius: 5px; background: #FFFFFF; color: #15171C; font: 800 14px var(--font); display: grid; place-items: center; box-shadow: 0 3px 8px rgba(0,0,0,.6); line-height: 1; }
 .card3.red { color: #C0392B; }
 .card3.back { background: repeating-linear-gradient(45deg, #7A1E28 0 5px, #5A1520 5px 10px); border: 2px solid #E8C26A; }
+.reel3 { position: absolute; transform: translate(-50%, -50%); width: 78px; height: 92px; border-radius: 10px; background: linear-gradient(#FFFFFF, #E8E4DA); display: grid; place-items: center; font-size: 50px; font-weight: 900; color: #C0392B; box-shadow: inset 0 6px 8px -6px rgba(0,0,0,.5), inset 0 -6px 8px -6px rgba(0,0,0,.5), 0 4px 10px rgba(0,0,0,.6); }
+.reel3.roll { filter: blur(1.2px); }
 .potlbl { position: absolute; transform: translate(-50%, -50%); font: 900 13px var(--font); color: #FFE9A8; background: rgba(18,10,12,.7); padding: 2px 8px; border-radius: 8px; }
 .stick { position: fixed; left: 22px; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); touch-action: none; }
 .stick i { position: absolute; left: 40px; top: 40px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.35); }
@@ -55,7 +57,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 window.addEventListener('error', function (e) { if (document.getElementById('fatal')) return; var d = document.createElement('div'); d.id = 'fatal'; d.className = 'err'; d.innerHTML = '<div><h2>The Scobbsino couldn\u2019t open</h2><p style="color:#CDBF9E">' + String(e.message || 'Unknown error').replace(/</g, '&lt;') + '</p><p style="color:#CDBF9E;font-size:13px">In Safari, hold Option and Command and press R to reload fresh files.</p><a class="pill" href="./">Back to ScobbBucks</a></div>'; document.body.appendChild(d); });
 </script>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102p';
+import { create } from './scobb3d.js?v=20261102q';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 const touchDev = matchMedia('(pointer: coarse)').matches;
@@ -83,7 +85,7 @@ function slot(x, z, face) {
   D(x + f * 0.44, 0.78, z, 0.06, 0.05, 0.36, '#E8C26A', 0, 0.3);
   D(x, 2.02, z, 0.42, 0.12, 0.42, '#FF4F8B', 0, 1);
   D(x + f * 1.0, 0, z, 0.24, 0.36, 0.24, '#7A1E28', 0, 0, 1);
-  STATIONS.push({ game: 'slots', name: 'Slots', seat: [x + f * 1.0, z], yaw: f > 0 ? -Math.PI / 2 : Math.PI / 2, i: slotN++, screen: [x + f * 0.43, z] });
+  STATIONS.push({ game: 'slots', name: 'Slots', seat: [x + f * 1.0, z], yaw: f > 0 ? -Math.PI / 2 : Math.PI / 2, i: slotN++, screen: [x + f * 0.43, z], face: f });
 }
 for (let i = 0; i < 7; i++) slot(-16.9, -9 + i * 3, 1);
 for (let i = 0; i < 6; i++) slot(-10.8, -7.5 + i * 3, -1);
@@ -108,8 +110,10 @@ STATIONS.push({ game: 'poker', name: "Hold'em", seat: [10.4, 0], yaw: Math.PI / 
 SIGNS.push({ p: [12, 2.3, 0], t: "Hold'em" });
 // plinko machine on the east wall
 S(17.4, 0, -8, 0.3, 1.9, 1.3, '#1B2A4A');
-for (let r = 0; r < 9; r++) for (let k = 0; k <= r; k++) D(17.08, 3.2 - r * 0.28, -8 + (k - r / 2) * 0.26, 0.02, 0.025, 0.025, '#FFE9A8', 0, 1);
-for (let k = 0; k < 9; k++) D(17.08, 0.55, -8 + (k - 4) * 0.27, 0.02, 0.1, 0.1, k === 4 ? '#5BE38A' : k % 2 ? '#FF4F8B' : '#3EC1FF', 0, 1);
+const PK_TOP = 3.45, PK_ROW = 0.22, PK_COL = 0.2;
+for (let r = 0; r < 12; r++) for (let k = 0; k <= r; k++) D(17.08, PK_TOP - r * PK_ROW, -8 + (k - r / 2) * PK_COL, 0.02, 0.022, 0.022, '#FFE9A8', 0, 1);
+const PK_MULT = [22, 6, 3, 1.5, 1.1, 0.8, 0.4, 0.8, 1.1, 1.5, 3, 6, 22];
+for (let k = 0; k < 13; k++) D(17.08, PK_TOP - 12 * PK_ROW - 0.18, -8 + (k - 6) * PK_COL, 0.02, 0.09, 0.085, PK_MULT[k] >= 6 ? '#FF4F8B' : PK_MULT[k] >= 1.5 ? '#F2B356' : PK_MULT[k] >= 1 ? '#3EC1FF' : '#5C6370', 0, 0.8);
 STATIONS.push({ game: 'plinko', name: 'Plinko', seat: [15.8, -8], yaw: Math.PI / 2 });
 SIGNS.push({ p: [17, 4.2, -8], t: 'Plinko' });
 // bar and cashier on the north wall
@@ -144,7 +148,8 @@ const slotStations = STATIONS.filter(s => s.game === 'slots');
 [1, 3, 5, 8, 10].forEach(i => { const st = slotStations[i]; st.taken = true; people.push({ kind: 'player', p: st.seat.slice(), yaw: st.yaw, look: randLook(), walk: 0, seated: true, t: Math.random() * 10 }); });
 people.push({ kind: 'player', p: [-3.5 - 0.8, 5 + 1.6], yaw: 0, look: randLook(), walk: 0, seated: true, t: 2 }, { kind: 'player', p: [0.7, -11.2], yaw: Math.PI, look: randLook(), walk: 0, seated: true, t: 4 });
 // walkers follow the aisles
-const NODES = [], XS = [-13.9, -8, 0, 8, 15], ZS = [-10, -1, 10];
+// Walkers keep to the main aisles, so nobody wanders between you and the Plinko board.
+const NODES = [], XS = [-13.9, -8, 0, 8], ZS = [-10, -1, 10];
 XS.forEach(x => ZS.forEach(z => NODES.push([x, z])));
 const blocked = (a, b) => (a[1] === -1 && b[1] === -1 && (a[0] === -13.9 || b[0] === -13.9));
 const nbrs = i => NODES.map((n, j) => j).filter(j => { const a = NODES[i], b = NODES[j]; if (i === j) return false; const sameRow = a[1] === b[1] && Math.abs(XS.indexOf(a[0]) - XS.indexOf(b[0])) === 1, sameCol = a[0] === b[0] && Math.abs(ZS.indexOf(a[1]) - ZS.indexOf(b[1])) === 1; return (sameRow || sameCol) && !blocked(a, b); });
@@ -191,6 +196,7 @@ function personDraw(e, t) {
     else { G.sphere(top[0], top[1] - 0.05, top[2], 0.32, hc, Object.assign({ ky: 0.7, spec: 0.6 }, patOf(hat))); const br = P(0.24, head[1] + 0.15, 0); G.box(br[0], br[1], br[2], 0.19, 0.02, 0.21, 0.02, hc, { ry }); }
   } else if (L.hair) { G.sphere(top[0], top[1] - 0.02, top[2], 0.29, L.hair.c, { ky: 0.55 }); }
 }
+let roomDt = 0.016;
 function drawRoom(t) {
   const draw = b => {
     const o = { spec: b[7] === 15 ? 1.0 : b[7] === 11 ? 1.1 : b[7] === 2 ? 0.35 : 0.3, shiny: b[7] === 15 ? 80 : 30, tex: b[7], texS: 1, emit: b[8] || 0 };
@@ -200,7 +206,8 @@ function drawRoom(t) {
   // slot screens flicker, the roulette wheels spin, chips stack on blackjack tables
   for (const st of STATIONS) {
     if (st.screen) { const k = (Math.sin(t / (sitting === st && tableState && tableState.spinning ? 60 : 300) + st.i * 1.7) + 1) / 2; G.box(st.screen[0], 1.12, st.screen[1], 0.025, 0.28, 0.3, 0.01, k > 0.5 ? '#FFD86B' : '#FF7A1A', { emit: 0.7 + k * 0.3 }); }
-    if (st.wheel) { const a = t / (sitting === st && tableState && tableState.spinning ? 90 : 600); G.torus(st.wheel[0], 0.9, st.wheel[1], 0.46, '#E8C26A', { tube: 0.035, spec: 1.4 }); for (let k = 0; k < 4; k++) G.box(st.wheel[0], 0.92, st.wheel[1], 0.4, 0.012, 0.025, 0.006, '#E8C26A', { ry: a + k * Math.PI / 4, spec: 1.4 }); G.cone(st.wheel[0], 0.98, st.wheel[1], 0.06, 0.06, '#E8C26A', { spec: 1.4 }); }
+    if (st.game === 'plinko') drawPlinko(st, t);
+    if (st.wheel) { drawWheel(st, t, roomDt); const a = st.wa; G.torus(st.wheel[0], 0.9, st.wheel[1], 0.46, '#E8C26A', { tube: 0.035, spec: 1.4 }); for (let k = 0; k < 4; k++) G.box(st.wheel[0], 0.92, st.wheel[1], 0.4, 0.012, 0.025, 0.006, '#E8C26A', { ry: a + k * Math.PI / 4, spec: 1.4 }); G.cone(st.wheel[0], 0.98, st.wheel[1], 0.06, 0.06, '#E8C26A', { spec: 1.4 }); }
     if (st.chips) for (let k = 0; k < 5; k++) G.cyl(st.chips[0] - 0.4 + k * 0.2, 0.9 + 0.03, st.chips[1], 0.07, 0.03 + (k % 3) * 0.015, ['#E5484D', '#2F74E8', '#23A26F', '#15171C', '#F2C14E'][k], { spec: 0.6 });
   }
   for (const [x, z] of LAMPS) { G.sphere(x, 4.45, z, 0.32, '#FFE9A8', { emit: 1 }); G.torus(x, 4.3, z, 0.7, '#E8C26A', { tube: 0.05, spec: 1.4 }); for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; G.sphere(x + Math.cos(a) * 0.7, 4.22, z + Math.sin(a) * 0.7, 0.1, '#FFF2C0', { emit: 1 }); } G.blob(x, 0.03, z, 2.6, 0.12); }
@@ -251,7 +258,7 @@ function sit(st) {
   if (!st || sitting) return;
   sitting = st; me.p = st.seat.slice(); me.yaw = st.yaw; me.seated = st.game === 'slots' || st.game === 'plinko' ? true : true;
   $('#table-name').textContent = st.name;
-  $('#table-frame').src = `./?casino=${st.game}&v=20261102p`; tableState = null;
+  $('#table-frame').src = `./?casino=${st.game}&v=20261102q`; tableState = null;
   $('#table').hidden = false; prompt.hidden = true; keys = {}; $('#help').style.display = 'none';
   pushPresence(true);
 }
@@ -267,8 +274,75 @@ let tableState = null;
 window.addEventListener('message', e => {
   if (e.origin !== location.origin || !e.data) return;
   if (e.data.type === 'scobbsino-leave') stand();
-  if (e.data.type === 'scobbsino-state') tableState = e.data;
+  if (e.data.type === 'scobbsino-state') { if (sitting && e.data.spinning && !(tableState && tableState.spinning)) sitting.done = false; tableState = e.data; }
+  if (e.data.type === 'scobbsino-spin' && sitting && e.data.g === sitting.game) { sitting.anim = { res: e.data.res, t0: performance.now() }; sitting.lastRes = e.data.res; }
 });
+// ===== machines in the room play out your real spin =====
+const SLOT_GLYPH = ['🍒', '🍋', '🔔', '⭐', '💎', '7'];
+const RL_ORDER = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+const RL_RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
+const ease = u => 1 - Math.pow(1 - Math.min(1, Math.max(0, u)), 3);
+// A spin counts as running from the moment you press the button until the machine in the room has landed it.
+const spinningHere = st => sitting === st && tableState && tableState.spinning && !st.done;
+function reelsHTML(st, t) {
+  const f = st.face, out = [], A = st.anim, sp = spinningHere(st);
+  if (!A && !sp && st.lastRes == null) return '';
+  for (let k = 0; k < 3; k++) {
+    const p = G.toScreen(st.screen[0] + f * 0.03, 1.12, st.screen[1] + (k - 1) * 0.2 * -f);
+    if (!p) continue;
+    let sym, rolling = false;
+    if (A) { const stopAt = 250 + k * 380; if (t - A.t0 >= stopAt) sym = SLOT_GLYPH[A.res[k]]; else { rolling = true; sym = SLOT_GLYPH[Math.floor((t / 70 + k * 2) % 6)]; } }
+    else if (sp) { rolling = true; sym = SLOT_GLYPH[Math.floor((t / 70 + k * 2) % 6)]; }
+    else sym = SLOT_GLYPH[st.lastRes[k]];
+    out.push(`<div class="reel3${rolling ? ' roll' : ''}" style="left:${p[0].toFixed(0)}px;top:${p[1].toFixed(0)}px">${sym}</div>`);
+  }
+  if (A && t - A.t0 > 1500) { st.anim = null; st.done = true; }
+  return out.join('');
+}
+// The wheel turns, the ball races the other way around the rim and drops into the real pocket.
+function drawWheel(st, t, dt) {
+  const [wx, wz] = st.wheel, sp = spinningHere(st), A = st.anim;
+  st.wv = st.wv == null ? 0.6 : st.wv;
+  const targetV = A ? 0.6 + 3.4 * (1 - ease((t - A.t0) / 3400)) : sp ? 4 : 0.6;
+  st.wv += (targetV - st.wv) * Math.min(1, dt * 3);
+  st.wa = (st.wa || 0) + st.wv * dt;
+  for (let k = 0; k < 37; k++) {
+    const a = st.wa + k / 37 * Math.PI * 2, n = RL_ORDER[k], col = n === 0 ? '#1E8F4E' : RL_RED.has(n) ? '#C0392B' : '#15171C';
+    G.box(wx + Math.cos(a) * 0.36, 0.932, wz + Math.sin(a) * 0.36, 0.028, 0.012, 0.014, 0.004, col, { ry: -a, spec: 0.6 });
+  }
+  let ballA = null, ballR = 0.43, ballY = 0.965;
+  const pocketA = n => st.wa + RL_ORDER.indexOf(n) / 37 * Math.PI * 2;
+  if (A) {
+    const u = (t - A.t0) / 3400;
+    if (u >= 1) { st.anim = null; st.rlRes = A.res; st.done = true; }
+    else { const target = pocketA(A.res); ballA = target - (1 - ease(u)) * Math.PI * 7; const drop = Math.min(1, Math.max(0, (u - 0.7) / 0.3)); ballR = 0.43 - drop * 0.07; ballY = 0.965 + Math.abs(Math.sin(u * 40)) * 0.03 * drop * (1 - drop); }
+  } else if (sp) { st.ballSpin = (st.ballSpin || 0) - dt * 9; ballA = st.ballSpin; }
+  if (ballA == null && st.rlRes != null) { ballA = pocketA(st.rlRes); ballR = 0.36; }
+  if (ballA != null) G.sphere(wx + Math.cos(ballA) * ballR, ballY, wz + Math.sin(ballA) * ballR, 0.028, '#FFFFFF', { spec: 1.6, shiny: 90, emit: 0.25 });
+}
+function wheelLabel(st) {
+  if (st.anim || st.rlRes == null || sitting !== st) return '';
+  const n = st.rlRes, col = n === 0 ? 'Green' : RL_RED.has(n) ? 'Red' : 'Black';
+  return label('sign', st.wheel[0], 1.45, st.wheel[1], `${n} · ${col}`);
+}
+// The Plinko ball hops from peg to peg down the real path and lands in its slot.
+function drawPlinko(st, t) {
+  const A = st.anim, sp = spinningHere(st);
+  const zAt = (rights, row) => -8 + (rights - row / 2) * PK_COL;
+  if (A) {
+    const per = 190, el = t - A.t0, step = Math.floor(el / per), u = (el % per) / per;
+    if (step >= 12) { st.anim = null; st.pkRes = A.res.reduce((a, b) => a + b, 0); st.done = true; }
+    else {
+      const before = A.res.slice(0, step).reduce((a, b) => a + b, 0), after = before + A.res[step];
+      const z = zAt(before, step) + (zAt(after, step + 1) - zAt(before, step)) * u;
+      const y = PK_TOP - step * PK_ROW + 0.05 - u * PK_ROW + Math.sin(u * Math.PI) * 0.06;
+      G.sphere(16.96, y, z, 0.065, '#B98BFF', { spec: 1.4, shiny: 80, emit: 0.2 });
+      return;
+    }
+  }
+  if (sp) { G.sphere(16.96, PK_TOP + 0.2, -8, 0.065, '#B98BFF', { spec: 1.4, emit: 0.2 }); return; }
+  if (st.pkRes != null) G.sphere(16.96, PK_TOP - 12 * PK_ROW - 0.12, -8 + (st.pkRes - 6) * PK_COL, 0.065, '#B98BFF', { spec: 1.4, emit: 0.2 });
+}
 prompt.addEventListener('click', () => sit(nearest()));
 
 /* ================= input ================= */
@@ -306,7 +380,7 @@ let FB = null, db = null, myRef = null, lastPush = 0, pushT = 0, rtOk = true;
 const note = msg => { const n = $('#note'); n.textContent = msg; n.hidden = !msg; };
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102p');
+    const cfg = await import('./firebase-config.js?v=20261102q');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs, rd] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js'), import(base + 'firebase-database.js')]);
     FB = Object.assign({}, app, au, fs, { r: rd });
@@ -363,12 +437,18 @@ function frame(now) {
     if (!sitting) pushPresence(false);
     // camera: behind you while walking, over the table while seated
     let eye, tgt;
-    if (sitting) { const f = [Math.sin(sitting.yaw), -Math.cos(sitting.yaw)]; eye = [me.p[0] - f[0] * 0.9, 2.05, me.p[1] - f[1] * 0.9]; tgt = [me.p[0] + f[0] * 2.2, 0.55, me.p[1] + f[1] * 2.2]; }
+    if (sitting) {
+      const f = [Math.sin(sitting.yaw), -Math.cos(sitting.yaw)], g = sitting.game;
+      if (g === 'slots') { eye = [me.p[0] - f[0] * 0.5, 1.75, me.p[1] - f[1] * 0.5]; tgt = [me.p[0] + f[0] * 1.0, 0.95, me.p[1] + f[1] * 1.0]; }
+      else if (g === 'plinko') { eye = [17.1 - 5.6, 1.8, -8]; tgt = [17.1, 0.75, -8]; }
+      else if (g === 'roulette') { eye = [me.p[0] - f[0] * 0.3 - 0.4, 2.0, me.p[1] - f[1] * 0.3]; tgt = [sitting.wheel[0], 0.6, sitting.wheel[1]]; }
+      else { eye = [me.p[0] - f[0] * 0.9, 2.05, me.p[1] - f[1] * 0.9]; tgt = [me.p[0] + f[0] * 2.2, 0.55, me.p[1] + f[1] * 2.2]; }
+    }
     else { const cp = Math.cos(camPitch), d = 5.2; eye = [me.p[0] - Math.sin(camYaw) * d * cp, 1.4 + Math.sin(camPitch) * d, me.p[1] + Math.cos(camYaw) * d * cp]; tgt = [me.p[0], 1.25, me.p[1]]; eye[0] = Math.max(-RX + 0.4, Math.min(RX - 0.4, eye[0])); eye[2] = Math.max(-RZ + 0.4, Math.min(RZ - 0.4, eye[2])); eye[1] = Math.min(H - 0.3, eye[1]); }
     const dv = [tgt[0] - eye[0], tgt[1] - eye[1], tgt[2] - eye[2]], dl = Math.hypot(dv[0], dv[1], dv[2]);
     G.begin(); G.time(now);
     G.view(eye, Math.atan2(dv[0], -dv[2]), Math.asin(dv[1] / dl), 60, 0.05, 120);
-    drawRoom(now);
+    roomDt = dt; drawRoom(now);
     for (const e of people) personDraw(e, now);
     for (const id in others) personDraw(others[id], now);
     if (!sitting) personDraw(me, now);
@@ -378,6 +458,8 @@ function frame(now) {
     for (const id in others) { const o = others[id]; h += label('tag', o.p[0], o.seated ? 1.85 : 2.25, o.p[1], o.name.replace(/</g, '&lt;')); }
     if (ME_UID && !sitting) h += label('tag me', me.p[0], 2.25, me.p[1], myName.replace(/</g, '&lt;'));
     if (sitting && tableState) h += feltCards(sitting, tableState);
+    if (sitting && sitting.game === 'slots') h += reelsHTML(sitting, now);
+    if (sitting && sitting.wheel) h += wheelLabel(sitting);
     tags.innerHTML = h;
     const st = sitting ? null : nearest();
     if (st) { prompt.innerHTML = `<kbd>${touchDev ? 'Tap' : 'E'}</kbd>Sit down and play ${st.name}`; prompt.hidden = false; } else prompt.hidden = true;
@@ -394,7 +476,7 @@ let rT = 0;
 window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (G) G.resize(window.innerWidth, window.innerHeight); }, 60); });
 start();
 if (!TEST) initFirebase();
-if (TEST) window.__cas = { me, stations: STATIONS.map(s => s.name), go: (x, z) => { me.p = [x, z]; }, sit: i => sit(STATIONS[i]), stand, sitting: () => sitting && sitting.name, nearest: () => { const s = nearest(); return s && s.name; }, look: (y, p) => { camYaw = y; camPitch = p; }, addOther: (id, o) => { others[id] = Object.assign({ p: [o.x, o.z], yaw: 0, walk: 0, tx: o.x, tz: o.z, ty: 0, name: o.n, look: randLook(), seated: false }, {}); } };
+if (TEST) window.__cas = { me, stations: STATIONS.map(s => s.name), go: (x, z) => { me.p = [x, z]; }, sit: i => sit(STATIONS[i]), stand, anim: () => sitting && { anim: !!sitting.anim, pk: sitting.pkRes, rl: sitting.rlRes, st: tableState && tableState.spinning }, sitting: () => sitting && sitting.name, nearest: () => { const s = nearest(); return s && s.name; }, look: (y, p) => { camYaw = y; camPitch = p; }, addOther: (id, o) => { others[id] = Object.assign({ p: [o.x, o.z], yaw: 0, walk: 0, tx: o.x, tz: o.z, ty: 0, name: o.n, look: randLook(), seated: false }, {}); } };
 </script>
 </body>
 </html>

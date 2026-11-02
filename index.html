@@ -633,6 +633,9 @@ html.in-casino .mini-seats span.out { opacity: .5; }
 html.in-casino .tbl-head { font-size: 13px; }
 .mini-status, .mini-seats { display: none; }
 html.in-casino .mini-status, html.in-casino .mini-seats { display: flex; }
+html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko, html.in-casino .paytable, html.in-casino .slot-pay { display: none !important; }
+html.in-casino #cas-root { justify-content: flex-start !important; overflow-y: auto !important; }
+html.in-casino #cas-root::before { content: ""; flex: 1 1 auto; }
 /* ===== inside the 3D Scobbsino: the game floats over the room ===== */
 html.in-casino, html.in-casino body { background: transparent !important; }
 html.in-casino { color-scheme: dark; --bg: transparent; --card: rgba(20,12,14,.82); --card-2: rgba(36,22,26,.82); --ink: #F7F1E3; --soft: #CDBF9E; --line: rgba(232,194,106,.35); --grape: #B8860B; }
@@ -3409,6 +3412,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   function casLand(key, res, badWhy) {
     const C = ui.cas;
     if (!C) return;
+    if (CASINO_GAME && res && !badWhy) { try { window.parent.postMessage({ type: 'scobbsino-spin', g: res.g, res: res.res, key }, location.origin); } catch (e) { /* not in the casino */ } }
     if (res && res.g !== 'slots') clearInterval(C.reelT);
     if (badWhy || !res) { clearInterval(C.reelT); C.anim = null; toast(badWhy === 'vault' ? 'The vault couldn’t cover that bet.' : 'That bet didn’t go through.'); drawCas(true); return; }
     if (res.g === 'slots') {
@@ -3601,7 +3605,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102p'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102q'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -4107,7 +4111,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102p" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102q" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -4337,13 +4341,13 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102p'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102q'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
     BANK = bank;
     FARM_LIVE = cfgMod.FARM_LIVE === true;
-    try { FSK = await import('./farm-skins.js?v=20261102p'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
+    try { FSK = await import('./farm-skins.js?v=20261102q'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     FARM_TESTERS = Array.isArray(cfgMod.FARM_TESTERS) ? cfgMod.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(cfg);
