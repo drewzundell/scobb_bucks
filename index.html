@@ -599,6 +599,11 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   .sheet, .backdrop, .toast { animation: none; }
   .rv .face { transition: none; }
 }
+.skgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.skcell { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.skcell b { font-size: 15px; }
+.skcell span { font-size: 12.5px; font-weight: 700; }
+.skcell .chipbtn { margin-top: 4px; }
 /* ===== skins, crates and market ===== */
 .skw { display: block; width: 100%; aspect-ratio: 1; border-radius: 16px; background-size: 200% 200%; box-shadow: inset 0 -8px 14px rgba(0,0,0,.28), inset 0 4px 8px rgba(255,255,255,.35), 0 10px 18px -10px rgba(0,0,0,.55); flex: none; }
 .skw.skw-sm { width: 46px; height: 46px; border-radius: 12px; }
@@ -1577,6 +1582,13 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         move(a, issuer, price);
         skins[key] = { s, o: a, c: e.c };
         events.push({ k: 'crate', key, a, c: e.c, s, t: e.t });
+      } else if (e.k === 'skinbuy') {
+        if (typeof e.s !== 'string' || !skinShopAt(e.t, cfg.salt).includes(e.s)) { bad[key] = 'gone'; continue; }
+        const pr = SKN_PRICE[sknInfo(e.s)[2]], price = coinsOf(pr[0], pr[1]);
+        if (!has(a, price)) { bad[key] = 'funds'; continue; }
+        move(a, issuer, price);
+        skins[key] = { s: e.s, o: a, c: -1 };
+        events.push({ k: 'skinbuy', key, a, s: e.s, t: e.t });
       } else if (e.k === 'list') {
         const sk = typeof e.sk === 'string' ? skins[e.sk] : null;
         if (!sk || sk.o !== a) { bad[key] = 'skin'; continue; }
@@ -2097,7 +2109,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   function render() {
     const s = route();
     ui.screen = s;
-    const tabsOn = s === 'main';
+    const tabsOn = s === 'main' && !STORE_MODE;
     $('#tabs').hidden = !tabsOn;
     document.body.classList.toggle('has-tabs', tabsOn);
     if (s === 'main') { renderTab(); renderTabs(); return; }
@@ -2181,6 +2193,14 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   // Chance out of 1000 for each skin rarity (Common to Mythic) when a crate opens. Each row adds to 1000.
   const SKN_ODDS = [[860, 110, 25, 4, 1, 0], [600, 300, 80, 16, 3, 1], [250, 380, 250, 90, 25, 5], [80, 230, 340, 250, 80, 20], [0, 100, 290, 340, 200, 70], [0, 0, 150, 300, 330, 220]];
   const SKN_MKT = '_mkt';
+  // Price to buy a skin straight from the daily shop, by skin rarity. Nothing costs more than Epic coins.
+  const SKN_PRICE = [[0, 6], [1, 6], [2, 5], [3, 4], [3, 10], [3, 18]];
+  // Four skins a day, one from each band, rotating at midnight Eastern like the arcade.
+  function skinShopAt(t, salt) {
+    const d = arcDay(t), rnd = rng(hash32('skinshop:' + d + ':' + (salt || '')));
+    const bands = [[0, 1], [1, 2], [2, 3], [3, 4, 5, 4, 3]];
+    return bands.map(b => { const r = b[Math.floor(rnd() * b.length)], list = SKN.filter(x => x[2] === r); return list[Math.floor(rnd() * list.length)][0]; }).filter((v, i, a) => a.indexOf(v) === i);
+  }
   const SKN_N = 42, SKN_WIN = 34, SKN_CW = 124;
   const sknInfo = id => SKN.find(x => x[0] === id) || SKN[0];
   const sknRand = () => SKN[Math.floor(Math.random() * SKN.length)][0];
@@ -2313,6 +2333,21 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       : `<button type="button" class="chipbtn" data-act="mkt-bid" data-lot="${l.id}">Bid</button><button type="button" class="chipbtn" data-act="mkt-buy" data-lot="${l.id}">Buy now ${coinsAmt(l.r, l.buy)}</button>`;
     return `<div class="ev">${sknSw(sk, 'skw-sm')}<div class="main"><div class="t"><b>${esc(inf[1])}</b> <span class="small" style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span></div><div class="s">${mine ? 'Yours' : `From ${esc(nameOf(l.seller))}`} · Start ${coinsAmt(l.r, l.start)} · ${top}</div><div class="chips">${acts}</div></div></div>`;
   }
+  const STORE_MODE = new URLSearchParams(location.search).has('store');
+  function storeTab() {
+    const av = availOf(uid), owner = uid === L.issuer, now = Date.now();
+    const shop = skinShopAt(now, config.salt), reset = WEEK0 + (arcDay(now) + 1) * DAY;
+    let h = `<header class="top" style="justify-content:flex-start"><h1>Scobb Strike inventory</h1></header>`;
+    h += `<div class="chips" style="margin-bottom:6px">${coinChips(av)}</div>`;
+    if (owner) h += `<p class="small soft">You’re the bank, so you can look but not buy.</p>`;
+    h += `<h3>Skin shop</h3><p class="small soft">Four skins a day. New ones in ${Math.max(1, Math.round((reset - now) / 3600000))} hours.</p><div class="skgrid">${shop.map(id => { const inf = sknInfo(id), pr = SKN_PRICE[inf[2]], can = !owner && av[pr[0]] >= pr[1]; return `<div class="skcell">${sknSw(id)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-buy" data-s="${id}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
+    h += `<h3>Crates</h3><p class="small soft">A random skin each time. Rarer crates have better odds. The best skins are very hard to pull.</p>`;
+    h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = !owner && av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
+    const mine = mySkins(uid);
+    h += `<h3>Your skins (${mine.length})</h3>`;
+    h += mine.length ? `<div class="skgrid">${mine.map(x => { const inf = sknInfo(x.s); return `<div class="skcell">${sknSw(x.s)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[x.r]}">${RN[x.r]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-list" data-sk="${x.key}">Sell on market</button></div>`; }).join('')}</div><p class="small soft">Equip a skin in Scobb Strike under Loadout. Skins you sell go to the Market tab in ScobbBucks.</p>` : `<p class="small soft">No skins yet. Buy one from the shop or open a crate.</p>`;
+    return h;
+  }
   function marketTab() {
     const open = Object.values(L.lots).filter(l => l.status === 'open').sort((a, b) => b.t - a.t);
     let h = `<header class="top" style="justify-content:flex-start"><h1>Market</h1></header>`;
@@ -2339,7 +2374,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const t = ui.tab;
     const inp = $('#dm-input'), had = !!inp && document.activeElement === inp;
     if (inp) ui.dmDraft = inp.value;
-    app.innerHTML = t === 'shop' ? shopTab() : t === 'market' ? marketTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
+    app.innerHTML = STORE_MODE ? storeTab() : t === 'shop' ? shopTab() : t === 'market' ? marketTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
     const ni = $('#dm-input');
     if (ni) { ni.value = ui.dmDraft || ''; if (had) { ni.focus(); ni.setSelectionRange(ni.value.length, ni.value.length); } }
     if (t === 'chats' && ui.dmWith) {
@@ -2463,7 +2498,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       h += `<button type="button" class="banner gift" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
     }
     if (inc.length) h += `<button type="button" class="banner" data-act="tab" data-tab="trades">${headBubble(inc[0].from, 34)}<span class="bt">${inc.length === 1 ? `${esc(nameOf(inc[0].from))} sent you a trade offer` : `${inc.length} trade offers are waiting on you`}</span><span class="pill">View</span></button>`;
-    h += `<div class="lpanel">${owner ? '' : pressRow()}${arcadeRow()}${casinoRow()}<a class="lrow" href="./fps.html" target="_blank" rel="noopener"><span class="sq">${icon('aim')}</span><span class="lt"><b>Scobb Strike</b><span>3D shooter in a new tab · K/D ${kdOf(uid) || '0.00'}</span></span><span class="chipbtn">Play</span></a><button type="button" class="lrow" data-act="fps-armory"><span class="sq">${icon('aim')}</span><span class="lt"><b>Strike Armory</b><span>Unlock guns and attachments with ScobbBucks</span></span><span class="chipbtn">Open</span></button><button type="button" class="lrow" data-act="skin-crates"><span class="sq">${icon('crate')}</span><span class="lt"><b>Skin crates</b><span>Open crates for cosmetic gun skins, or list one on the market</span></span><span class="chipbtn">Open</span></button>${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
+    h += `<div class="lpanel">${owner ? '' : pressRow()}${arcadeRow()}${casinoRow()}<a class="lrow" href="./fps.html" target="_blank" rel="noopener"><span class="sq">${icon('aim')}</span><span class="lt"><b>Scobb Strike</b><span>3D shooter in a new tab · K/D ${kdOf(uid) || '0.00'}</span></span><span class="chipbtn">Play</span></a><button type="button" class="lrow" data-act="fps-armory"><span class="sq">${icon('aim')}</span><span class="lt"><b>Strike Armory</b><span>Unlock guns and attachments with ScobbBucks</span></span><span class="chipbtn">Open</span></button>${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
     h += `<h2>Activity</h2>${activityHTML()}`;
     return h;
   }
@@ -2507,6 +2542,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       else if (ev.k === 'fps' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'fpsbuy' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'crate' && ev.a === uid) rows.push(ev);
+      else if (ev.k === 'skinbuy' && ev.a === uid) rows.push(ev);
       else if ((ev.k === 'list' || ev.k === 'lotend' || ev.k === 'bid') && ev.a === uid) rows.push(ev);
       else if (ev.k === 'sold' && (ev.buyer === uid || ev.seller === uid)) rows.push(ev);
     }
@@ -2519,7 +2555,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     }
     {
     }
-    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap' || e.k === 'crate' || e.k === 'list' || e.k === 'bid' || e.k === 'buy_now' || e.k === 'accept' || e.k === 'cancel')) rows.push({ k: 'bad', e, t: e.t }); }
+    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap' || e.k === 'crate' || e.k === 'skinbuy' || e.k === 'list' || e.k === 'bid' || e.k === 'buy_now' || e.k === 'accept' || e.k === 'cancel')) rows.push({ k: 'bad', e, t: e.t }); }
     rows.sort((a, b) => b.t - a.t);
     if (!rows.length) return `<p class="empty">Nothing here yet. Coins you send and get will show up here.</p>`;
     return `<div class="list">${rows.slice(0, 40).map(ev => {
@@ -2550,6 +2586,11 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         const inf = sknInfo(ev.s);
         t = `You opened a ${SKN_CRATE_NAME[ev.c]} and got <b>${esc(inf[1])}</b>`;
         more = `<div class="chips"><span class="status" style="background:${SKN_RC[inf[2]]}33;color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span><span class="small soft">Cost ${coinsAmt(SKN_CRATE[ev.c][0], SKN_CRATE[ev.c][1])}</span></div>`;
+      } else if (ev.k === 'skinbuy') {
+        other = uid;
+        const inf = sknInfo(ev.s), pr = SKN_PRICE[inf[2]];
+        t = `You bought the <b>${esc(inf[1])}</b> skin from the skin shop`;
+        more = `<div class="chips"><span class="status" style="background:${SKN_RC[inf[2]]}33;color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span><span class="small soft">Cost ${coinsAmt(pr[0], pr[1])}</span></div>`;
       } else if (ev.k === 'list') {
         other = uid;
         t = `You listed <b>${esc(skinName(ev.sk))}</b> on the market`;
@@ -2713,7 +2754,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const list = Object.keys(players).filter(u => players[u] && players[u].username && players[u].avatar).sort((a, b) => (players[a].joinedAt || 0) - (players[b].joinedAt || 0));
     let h = `<header class="top"><h1>Feed</h1></header>`;
     h += `<h3 style="margin-top:0">Players</h3><div class="hscroll players">${list.map(u => `<button type="button" class="pl" data-act="profile" data-u="${esc(u)}">${headBubble(u, 58)}<span>${esc(nameOf(u))}</span></button>`).join('')}</div>`;
-    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && ev.k !== 'cas' && ev.k !== 'fps' && ev.k !== 'fpsbuy' && ev.k !== 'crate' && ev.k !== 'list' && ev.k !== 'bid' && ev.k !== 'sold' && ev.k !== 'lotend').sort((a, b) => b.t - a.t).slice(0, 100);
+    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && ev.k !== 'cas' && ev.k !== 'fps' && ev.k !== 'fpsbuy' && ev.k !== 'crate' && ev.k !== 'skinbuy' && ev.k !== 'list' && ev.k !== 'bid' && ev.k !== 'sold' && ev.k !== 'lotend').sort((a, b) => b.t - a.t).slice(0, 100);
     if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades and shop buys show up here.</p>';
     h += `<div class="list">${evs.map(ev => {
       let t = '', more = '', hot = false, face = ev.a;
@@ -3259,7 +3300,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102a'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -3762,8 +3803,15 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'swap': () => openSwap(),
     'fps-armory': () => openArmory(),
     'skin-crates': () => crateSheet(),
+    'skin-buy': b => {
+      if (!guardWrite()) return;
+      const id = b.dataset.s, pr = SKN_PRICE[sknInfo(id)[2]];
+      if (!skinShopAt(Date.now(), config.salt).includes(id)) { toast('That skin left the shop.'); render(); return; }
+      if (availOf(uid)[pr[0]] < pr[1]) { toast(`You need ${pr[1]} ${RN[pr[0]]} coins.`); return; }
+      newEntry('skinbuy', { s: id }); toast(`Bought ${sknInfo(id)[1]}. Equip it in Scobb Strike.`); render();
+    },
     'crate-open': b => openCrate(Number(b.dataset.c)),
-    'crate-close': () => { if (ui.crate) clearInterval(ui.crate.spin); ui.crate = null; crateReveal(); },
+    'crate-close': () => { if (ui.crate) clearInterval(ui.crate.spin); ui.crate = null; crateReveal(); render(); },
     'skin-list': b => { if (ui.crate) { clearInterval(ui.crate.spin); ui.crate = null; crateReveal(); } closeSheet(true); listSheet(b.dataset.sk); },
     'mkt-list': () => listSheet(''),
     'mkt-bid': b => bidSheet(b.dataset.lot),
@@ -3973,7 +4021,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102a'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }

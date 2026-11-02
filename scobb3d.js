@@ -135,7 +135,7 @@ export function create(canvas, W, H, opts) {
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
   canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
   const big = canvas.width * canvas.height > MAX_PIX * 0.6;
-  const ctxOpts = { antialias: !big, alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: false };
+  const ctxOpts = { antialias: !big, alpha: !opts.opaque, premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: false };
   const gl = canvas.getContext('webgl', ctxOpts) || canvas.getContext('experimental-webgl', ctxOpts);
   if (!gl) { create.lastError = 'This browser could not start WebGL. In Safari, check Settings > Advanced > Feature Flags and make sure WebGL is on.'; return null; }
   canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); create.lastError = 'The graphics card reset. Reload the page.'; if (opts.onLost) opts.onLost(); }, false);
@@ -191,7 +191,8 @@ export function create(canvas, W, H, opts) {
   }
   const api = {
     W, H, gl, wx, wy,
-    begin() { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); },
+    bg: [0, 0, 0],
+    begin() { if (opts.opaque) gl.clearColor(api.bg[0], api.bg[1], api.bg[2], 1); else gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); },
     sphere(x, y, z, r, c, o) { o = o || {}; draw('sphere', Object.assign({ x, y, z, sx: r * (o.kx || 1), sy: r * (o.ky || 1), sz: r * (o.kz || 1), c }, o)); },
     box(x, y, z, hx, hy, hz, rad, c, o) {
       o = o || {};
@@ -229,10 +230,16 @@ export function create(canvas, W, H, opts) {
       const f = [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)];
       const P = persp((fovDeg || 75) * Math.PI / 180, W / H, near || 0.05, far || 400);
       api.P = P; api.fwd = f;
-      gl.uniformMatrix4fv(U.uVP, false, mul(P, lookAt(e, [e[0] + f[0], e[1] + f[1], e[2] + f[2]], [0, 1, 0])));
+      api.VPm = mul(P, lookAt(e, [e[0] + f[0], e[1] + f[1], e[2] + f[2]], [0, 1, 0]));
+      gl.uniformMatrix4fv(U.uVP, false, api.VPm);
       gl.uniform3fv(U.uEye, e);
     },
-    fog(color, density) { gl.uniform3fv(U.uFogC, hex(color)); gl.uniform1f(U.uFogD, density); },
+    fog(color, density) { api.bg = hex(color); gl.uniform3fv(U.uFogC, api.bg); gl.uniform1f(U.uFogD, density); },
+    // World point to screen pixels for the free camera. Returns null if the point is behind the camera.
+    toScreen(x, y, z) { const m = api.VPm; if (!m) return null; const cx = m[0] * x + m[4] * y + m[8] * z + m[12], cy = m[1] * x + m[5] * y + m[9] * z + m[13], cw = m[3] * x + m[7] * y + m[11] * z + m[15]; if (cw <= 0.01) return null; return [(cx / cw * 0.5 + 0.5) * W, (1 - (cy / cw * 0.5 + 0.5)) * H]; },
+    // Draws one frame's worth of nothing and reads back a pixel, to catch browsers that render a blank canvas.
+    selfTest() { try { const px = new Uint8Array(4); gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); return Array.from(px); } catch (e) { return null; } },
+    info() { const d = gl.getExtension('WEBGL_debug_renderer_info'); return { version: gl.getParameter(gl.VERSION), renderer: d ? gl.getParameter(d.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER), size: canvas.width + 'x' + canvas.height }; },
     // Draws in camera space (x right, y up, -z forward) on top of the world, for a held weapon.
     viewmodel() { gl.clear(gl.DEPTH_BUFFER_BIT); gl.uniformMatrix4fv(U.uVP, false, api.P); gl.uniform3fv(U.uEye, [0, 0, 0]); gl.uniform1f(U.uFogD, 0); },
     blob(x, y, z, r, a) { gl.depthMask(false); draw('quad', { x, y, z, rx: -Math.PI / 2, sx: r, sy: r, sz: 1, a: a == null ? 0.35 : a }, 2); gl.depthMask(true); },
