@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Scobbsino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap">
+<style>
+:root { --ink: #F7F1E3; --soft: #CDBF9E; --gold: #E8C26A; --line: rgba(232,194,106,.35); --font: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #120A0C; color: var(--ink); font: 400 16px/1.4 var(--font); overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; }
+#cv { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+#tags { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; }
+.tag { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; font-weight: 800; font-size: 14px; padding: 2px 8px; border-radius: 8px; background: rgba(18,10,12,.7); border: 1px solid var(--line); }
+.tag.me { color: #FFE9A8; }
+.sign { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; font: 900 13px var(--font); letter-spacing: .14em; text-transform: uppercase; color: #FFE9A8; text-shadow: 0 0 10px rgba(255,200,90,.9), 0 2px 3px rgba(0,0,0,.8); }
+.marquee { position: absolute; transform: translate(-50%, -50%); font: 900 44px "Playfair Display", Georgia, serif; letter-spacing: .08em; color: #FFD86B; text-shadow: 0 0 18px rgba(255,170,60,.95), 0 0 40px rgba(255,90,60,.7), 0 3px 4px rgba(0,0,0,.9); white-space: nowrap; }
+.top { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: 14px; display: flex; gap: 10px; align-items: center; }
+.logo { font: 900 26px "Playfair Display", Georgia, serif; color: var(--gold); letter-spacing: .04em; text-shadow: 0 2px 8px rgba(0,0,0,.6); }
+.pill { background: rgba(18,10,12,.72); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: 14px; text-decoration: none; color: var(--ink); }
+.prompt { position: fixed; left: 50%; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: rgba(18,10,12,.85); border: 1px solid var(--gold); border-radius: 14px; padding: 10px 18px; font-weight: 800; font-size: 17px; pointer-events: auto; }
+.prompt kbd { display: inline-block; padding: 1px 8px; border-radius: 6px; background: var(--gold); color: #1A0E08; font: 900 14px var(--font); margin-right: 6px; }
+.prompt[hidden], .help[hidden], .table[hidden], .note[hidden] { display: none; }
+.help { position: fixed; right: 14px; top: calc(12px + env(safe-area-inset-top, 0px)); max-width: 280px; background: rgba(18,10,12,.72); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; font-size: 13.5px; color: var(--soft); }
+.help b { color: var(--ink); }
+.note { position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); background: rgba(18,10,12,.85); border: 1px solid var(--line); border-radius: 12px; padding: 8px 14px; font-size: 14px; max-width: 92vw; text-align: center; }
+.table { position: fixed; top: 0; right: 0; bottom: 0; width: min(520px, 100vw); display: flex; flex-direction: column; background: #0F0B0C; border-left: 1px solid var(--line); box-shadow: -20px 0 40px rgba(0,0,0,.5); }
+.table-bar { display: flex; align-items: center; justify-content: space-between; padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px; border-bottom: 1px solid var(--line); }
+.table-bar b { font: 900 22px "Playfair Display", Georgia, serif; color: var(--gold); }
+.btn { border: 1px solid var(--gold); background: transparent; color: var(--ink); border-radius: 10px; padding: 7px 14px; font-weight: 800; }
+.table iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+.stick { position: fixed; left: 22px; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); touch-action: none; }
+.stick i { position: absolute; left: 40px; top: 40px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.35); }
+.err { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: grid; place-items: center; text-align: center; padding: 24px; background: #120A0C; z-index: 50; }
+@media (max-width: 720px) { .help { display: none; } .marquee { font-size: 30px; } }
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="tags"></div>
+<div class="top"><span class="logo">Scobbsino</span><a class="pill" href="./">Back to ScobbBucks</a><span class="pill" id="online">Just you</span></div>
+<div class="help" id="help"><b>Walk</b> with WASD or the arrow keys. <b>Look around</b> by dragging with the mouse. Walk up to any game and press <b>E</b> to sit down and play. Press <b>Esc</b> to stand up.</div>
+<div class="note" id="note" hidden></div>
+<div class="prompt" id="prompt" hidden></div>
+<div class="table" id="table" hidden><div class="table-bar"><b id="table-name">Table</b><button class="btn" id="stand">Stand up</button></div><iframe id="table-frame" title="Game"></iframe></div>
+<script>
+window.addEventListener('error', function (e) { if (document.getElementById('fatal')) return; var d = document.createElement('div'); d.id = 'fatal'; d.className = 'err'; d.innerHTML = '<div><h2>The Scobbsino couldn\u2019t open</h2><p style="color:#CDBF9E">' + String(e.message || 'Unknown error').replace(/</g, '&lt;') + '</p><p style="color:#CDBF9E;font-size:13px">In Safari, hold Option and Command and press R to reload fresh files.</p><a class="pill" href="./">Back to ScobbBucks</a></div>'; document.body.appendChild(d); });
+</script>
+<script type="module">
+import { create } from './scobb3d.js?v=20261102n';
+const $ = s => document.querySelector(s);
+const TEST = new URLSearchParams(location.search).has('test');
+const touchDev = matchMedia('(pointer: coarse)').matches;
+
+/* ================= the room ================= */
+// Solid pieces block walking: [x, y0, z, hx, hy, hz, color, texture, emissive, shape]. Shapes: 1 upright cylinder.
+// Textures: 2 wood, 3 concrete, 11 glass, 13 carpet, 14 felt, 15 marble.
+const SOL = [], DEC = [], STATIONS = [], SIGNS = [];
+const S = (x, y0, z, hx, hy, hz, c, tex, emit, shape) => SOL.push([x, y0 + hy, z, hx, hy, hz, c, tex || 0, emit || 0, shape || 0]);
+const D = (x, y0, z, hx, hy, hz, c, tex, emit, shape) => DEC.push([x, y0 + hy, z, hx, hy, hz, c, tex || 0, emit || 0, shape || 0]);
+const RX = 18, RZ = 14, H = 5;
+// walls: dark wood wainscot, deep red panels, gold trim
+for (const [x, z, hx, hz] of [[0, -RZ, RX, 0.3], [-RX, 0, 0.3, RZ], [RX, 0, 0.3, RZ], [-10, RZ, 8, 0.3], [10, RZ, 8, 0.3]]) { S(x, 0, z, hx, H / 2, hz, '#5A1A24', 2); D(x, 1.15, z, hx + 0.02, 0.05, hz + 0.02, '#E8C26A', 0, 0.35); D(x, 0, z, hx + 0.03, 0.55, hz + 0.03, '#3A2418', 2); }
+D(0, 3.2, RZ, 2.2, 0.9, 0.3, '#5A1A24', 2);
+D(0, 0, RZ, 2.1, 1.6, 0.05, '#9FB4C8', 11);
+D(0, H, 0, RX, 0.05, RZ, '#1E0E12');
+// pillars
+for (const [x, z] of [[-6, -6.5], [6, -6.5], [-6, 6.5], [6, 6.5]]) { S(x, 0, z, 0.45, H / 2, 0.45, '#E8E2D6', 15); D(x, 0, z, 0.55, 0.15, 0.55, '#E8C26A', 0, 0.2); D(x, H - 0.3, z, 0.55, 0.15, 0.55, '#E8C26A', 0, 0.2); }
+// slot machines along the west wall (facing east) and on an island (facing west)
+let slotN = 0;
+function slot(x, z, face) {
+  const f = face;
+  S(x, 0, z, 0.42, 1.0, 0.42, '#24163A');
+  D(x + f * 0.43, 1.12, z, 0.02, 0.3, 0.32, '#FFB347', 0, 1);
+  D(x + f * 0.44, 0.78, z, 0.06, 0.05, 0.36, '#E8C26A', 0, 0.3);
+  D(x, 2.02, z, 0.42, 0.12, 0.42, '#FF4F8B', 0, 1);
+  D(x + f * 1.0, 0, z, 0.24, 0.36, 0.24, '#7A1E28', 0, 0, 1);
+  STATIONS.push({ game: 'slots', name: 'Slots', seat: [x + f * 1.0, z], yaw: f > 0 ? -Math.PI / 2 : Math.PI / 2, i: slotN++, screen: [x + f * 0.43, z] });
+}
+for (let i = 0; i < 7; i++) slot(-16.9, -9 + i * 3, 1);
+for (let i = 0; i < 6; i++) slot(-10.8, -7.5 + i * 3, -1);
+SIGNS.push({ p: [-14, 2.9, 0], t: 'Slots' });
+// roulette tables
+function roulette(x, z) {
+  S(x, 0, z, 1.6, 0.4, 0.9, '#4A2A18', 2); D(x, 0.8, z, 1.55, 0.04, 0.85, '#0E6B3A', 14);
+  D(x - 1.0, 0.84, z, 0.48, 0.04, 0.48, '#5A3418', 2, 0, 1);
+  STATIONS.push({ game: 'roulette', name: 'Roulette', seat: [x + 0.4, z + 1.6], yaw: 0, wheel: [x - 1.0, z], dealer: [x - 0.2, z - 1.6, Math.PI] });
+  SIGNS.push({ p: [x, 2.3, z], t: 'Roulette' });
+}
+roulette(-3.5, -5.5); roulette(-3.5, 5);
+function blackjack(x, z) {
+  S(x, 0, z, 1.45, 0.42, 1.45, '#4A2A18', 2, 0, 1); D(x, 0.84, z, 1.5, 0.04, 1.5, '#0E5C3A', 14, 0, 1);
+  STATIONS.push({ game: 'blackjack', name: 'Blackjack', seat: [x, z + 1.95], yaw: 0, dealer: [x, z - 1.95, Math.PI], chips: [x, z - 0.9] });
+  SIGNS.push({ p: [x, 2.3, z], t: 'Blackjack' });
+}
+blackjack(3.8, -5.5); blackjack(3.8, 5);
+// poker table
+S(12, 0, 0, 1.0, 0.42, 2.2, '#4A2A18', 2); D(12, 0.84, 0, 0.95, 0.04, 2.15, '#0E5C3A', 14);
+STATIONS.push({ game: 'poker', name: "Hold'em", seat: [10.4, 0], yaw: -Math.PI / 2, dealer: [13.55, 0, Math.PI / 2] });
+SIGNS.push({ p: [12, 2.3, 0], t: "Hold'em" });
+// plinko machine on the east wall
+S(17.4, 0, -8, 0.3, 1.9, 1.3, '#1B2A4A');
+for (let r = 0; r < 9; r++) for (let k = 0; k <= r; k++) D(17.08, 3.2 - r * 0.28, -8 + (k - r / 2) * 0.26, 0.02, 0.025, 0.025, '#FFE9A8', 0, 1);
+for (let k = 0; k < 9; k++) D(17.08, 0.55, -8 + (k - 4) * 0.27, 0.02, 0.1, 0.1, k === 4 ? '#5BE38A' : k % 2 ? '#FF4F8B' : '#3EC1FF', 0, 1);
+STATIONS.push({ game: 'plinko', name: 'Plinko', seat: [15.8, -8], yaw: -Math.PI / 2 });
+SIGNS.push({ p: [17, 4.2, -8], t: 'Plinko' });
+// bar and cashier on the north wall
+S(2, 0, -12.4, 6, 0.55, 0.5, '#4A2A18', 2); D(2, 1.1, -12.4, 6.1, 0.04, 0.6, '#E8E2D6', 15);
+D(2, 1.2, -13.55, 6, 0.04, 0.3, '#3A2418', 2); D(2, 1.9, -13.55, 6, 0.04, 0.3, '#3A2418', 2);
+for (let i = 0; i < 22; i++) { const bx = -3.6 + i * 0.52, row = i % 2; D(bx, 1.24 + row * 0.7, -13.55, 0.05, 0.16, 0.05, ['#5BE38A', '#FFB347', '#FF4F8B', '#9EF6FF', '#E8C26A'][i % 5], 0, 0.6, 1); }
+for (let i = 0; i < 6; i++) D(-2.5 + i * 1.8, 0, -11.2, 0.24, 0.38, 0.24, '#7A1E28', 0, 0, 1);
+SIGNS.push({ p: [2, 3.0, -13.2], t: 'Bar' });
+S(-14.5, 0, -12.2, 2.5, 1.2, 0.6, '#3A2418', 2); D(-14.5, 1.2, -11.6, 2.5, 0.9, 0.04, '#9FB4C8', 11);
+SIGNS.push({ p: [-14.5, 3.0, -12.2], t: 'Cashier' });
+// plants by the door
+for (const x of [-3.6, 3.6]) { S(x, 0, 12.6, 0.4, 0.4, 0.4, '#E8E2D6', 15, 0, 1); D(x, 0.9, 12.6, 0.55, 0.55, 0.55, '#2F8F5B', 0, 0, 1); }
+// chandeliers
+const LAMPS = [[-8, -3], [8, -3], [0, 8], [-8, 8], [8, 8], [0, -8]];
+// floor
+const FLOOR = [0, -0.05, 0, RX, 0.05, RZ, '#4A0C18', 13, 0, 0];
+const SOLID = SOL.map(b => ({ x0: b[0] - b[3], x1: b[0] + b[3], z0: b[2] - b[5], z1: b[2] + b[5], top: b[1] + b[4], b }));
+for (const st of STATIONS) { if (st.dealer) continue; }
+
+/* ================= people ================= */
+const CLOTH = ['#E5484D', '#2F74E8', '#23A26F', '#F2C14E', '#7C4DEB', '#33333B', '#EDEDF0', '#F27BB0', '#1F2A44', '#B87333'];
+const BODY = ['#FF5DA2', '#FFC233', '#5BE38A', '#3EC1FF', '#FF7A1A', '#9EF6FF', '#B98BFF', '#7EDDB0', '#F78C3B'];
+const HATS = ['cap', 'beanie', 'top hat', 'cowboy', '', '', ''];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const randLook = () => ({ body: pick(BODY), top: { c: pick(CLOTH) }, pants: { c: pick(CLOTH) }, hat: Math.random() < 0.45 ? { c: pick(CLOTH), kind: pick(HATS) } : null, eyes: Math.random() < 0.2 ? { c: '#15171C' } : null });
+const staff = () => ({ body: pick(BODY), top: { c: '#15171C' }, pants: { c: '#15171C' }, vest: true });
+const people = [];
+for (const st of STATIONS) if (st.dealer) people.push({ kind: 'dealer', p: [st.dealer[0], st.dealer[1]], yaw: st.dealer[2], look: staff(), walk: 0, t: Math.random() * 10 });
+people.push({ kind: 'dealer', p: [2, -13.2], yaw: 0, look: staff(), walk: 0, t: 0 }, { kind: 'dealer', p: [-14.5, -13.2], yaw: 0, look: staff(), walk: 0, t: 0 });
+// a few bots playing slots, one at a roulette table and one at the bar
+const slotStations = STATIONS.filter(s => s.game === 'slots');
+[1, 3, 5, 8, 10].forEach(i => { const st = slotStations[i]; st.taken = true; people.push({ kind: 'player', p: st.seat.slice(), yaw: st.yaw, look: randLook(), walk: 0, seated: true, t: Math.random() * 10 }); });
+people.push({ kind: 'player', p: [-3.5 - 0.8, 5 + 1.6], yaw: 0, look: randLook(), walk: 0, seated: true, t: 2 }, { kind: 'player', p: [0.7, -11.2], yaw: Math.PI, look: randLook(), walk: 0, seated: true, t: 4 });
+// walkers follow the aisles
+const NODES = [], XS = [-13.9, -8, 0, 8, 15], ZS = [-10, -1, 10];
+XS.forEach(x => ZS.forEach(z => NODES.push([x, z])));
+const blocked = (a, b) => (a[1] === -1 && b[1] === -1 && (a[0] === -13.9 || b[0] === -13.9));
+const nbrs = i => NODES.map((n, j) => j).filter(j => { const a = NODES[i], b = NODES[j]; if (i === j) return false; const sameRow = a[1] === b[1] && Math.abs(XS.indexOf(a[0]) - XS.indexOf(b[0])) === 1, sameCol = a[0] === b[0] && Math.abs(ZS.indexOf(a[1]) - ZS.indexOf(b[1])) === 1; return (sameRow || sameCol) && !blocked(a, b); });
+for (let i = 0; i < 9; i++) { const n = Math.floor(Math.random() * NODES.length); people.push({ kind: 'walker', p: NODES[n].slice(), node: n, next: pick(nbrs(n)), yaw: 0, look: randLook(), walk: 0, pause: Math.random() * 3, t: Math.random() * 10 }); }
+
+/* ================= you ================= */
+const me = { p: [0, 11.5], yaw: 0, look: { body: '#B98BFF', top: { c: '#2F74E8' }, pants: { c: '#1F2A44' } }, walk: 0, seated: false, name: 'You' };
+let camYaw = 0, camPitch = 0.45, sitting = null, keys = {}, drag = null, others = {}, ME_UID = null, myName = '';
+
+/* ================= drawing ================= */
+let G = null;
+const cv = $('#cv');
+function personDraw(e, t) {
+  const L = e.look || {}, body = L.body || '#B98BFF', yaw = e.yaw;
+  const f = [Math.sin(yaw), -Math.cos(yaw)], r = [Math.cos(yaw), Math.sin(yaw)];
+  const P = (fw, up, rt) => [e.p[0] + f[0] * fw + r[0] * rt, up, e.p[1] + f[1] * fw + r[1] * rt];
+  const seat = e.seated ? 0.32 : 0, ry = -yaw, sway = e.seated ? 0 : Math.sin(e.walk * 5) * 0.14;
+  const bob = e.kind === 'dealer' ? Math.sin(t / 900 + (e.t || 0)) * 0.01 : 0;
+  G.blob(e.p[0], 0.02, e.p[1], 0.5, 0.35);
+  const legC = L.pants ? L.pants.c : body, topC = L.top ? L.top.c : body;
+  for (const sg of [-1, 1]) {
+    if (e.seated) { const q = P(0.2, 0.42, 0.13 * sg); G.box(q[0], q[1], q[2], 0.1, 0.09, 0.24, 0.05, legC, { ry }); const sh = P(0.42, 0.22, 0.13 * sg); G.box(sh[0], sh[1], sh[2], 0.09, 0.22, 0.09, 0.04, legC, { ry }); }
+    else { const q = P(sway * sg, 0.3, 0.13 * sg); G.cyl(q[0], q[1], q[2], 0.1, 0.27, legC, { ry, spec: 0.4 }); const ft = P(sway * sg + 0.05, 0.06, 0.13 * sg); G.sphere(ft[0], ft[1], ft[2], 0.12, '#2A2D33', { ky: 0.55, kz: 1.2, ry }); }
+  }
+  const tor = P(0, 0.88 - seat * 0.6 + bob, 0);
+  G.sphere(tor[0], tor[1], tor[2], 0.38, topC, { ky: 1.15, spec: 0.5 });
+  if (L.vest) { const sh2 = P(0.27, tor[1] + 0.12, 0); G.box(sh2[0], sh2[1], sh2[2], 0.03, 0.18, 0.08, 0.02, '#FFFFFF', { ry }); const bt = P(0.31, tor[1] + 0.3, 0); G.box(bt[0], bt[1], bt[2], 0.03, 0.035, 0.09, 0.015, '#C0392B', { ry }); }
+  const arm = e.seated ? 0.3 : 0;
+  for (const sg of [-1, 1]) { const sh = P(0.06 + arm, tor[1] + 0.05, 0.36 * sg); G.sphere(sh[0], sh[1], sh[2], 0.12, topC, { spec: 0.4 }); const hd = P(0.16 + arm * 1.2, tor[1] - 0.18 + (e.seated && sg > 0 ? Math.max(0, Math.sin(t / 600 + (e.t || 0))) * 0.15 : 0), 0.38 * sg); G.sphere(hd[0], hd[1], hd[2], 0.085, body, { spec: 0.6 }); }
+  const head = P(0, tor[1] + 0.55, 0);
+  G.sphere(head[0], head[1], head[2], 0.31, body, { spec: 0.9, shiny: 60 });
+  for (const sg of [-1, 1]) { const ey = P(0.27, head[1] + 0.04, 0.11 * sg); G.sphere(ey[0], ey[1], ey[2], 0.05, '#15171C', { spec: 1.4, ky: 1.3 }); const ck = P(0.25, head[1] - 0.06, 0.18 * sg); G.sphere(ck[0], ck[1], ck[2], 0.045, '#FF8FB0', { spec: 0.1, kz: 0.5 }); }
+  if (L.eyes) { const gl = P(0.3, head[1] + 0.04, 0); G.box(gl[0], gl[1], gl[2], 0.03, 0.045, 0.19, 0.02, L.eyes.c || '#15171C', { ry, spec: 1.4 }); }
+  const hat = L.hat, hk = hat ? (hat.kind || '') : '', top = [head[0], head[1] + 0.19, head[2]];
+  if (hat) {
+    const hc = hat.c;
+    if (/crown/.test(hk)) G.cyl(top[0], top[1] + 0.06, top[2], 0.25, 0.08, '#E3B341', { spec: 1.4 });
+    else if (/top/.test(hk)) { G.cyl(top[0], top[1] + 0.2, top[2], 0.2, 0.2, hc, { spec: 0.7 }); G.cyl(top[0], top[1] + 0.01, top[2], 0.32, 0.02, hc); }
+    else if (/cowboy/.test(hk)) { G.cyl(top[0], top[1] + 0.03, top[2], 0.46, 0.025, hc); G.sphere(top[0], top[1] + 0.1, top[2], 0.23, hc, { ky: 0.7 }); }
+    else if (/beanie|knit/.test(hk)) G.sphere(top[0], top[1] - 0.04, top[2], 0.32, hc, { ky: 0.75 });
+    else { G.sphere(top[0], top[1] - 0.05, top[2], 0.32, hc, { ky: 0.7, spec: 0.6 }); const br = P(0.24, head[1] + 0.15, 0); G.box(br[0], br[1], br[2], 0.19, 0.02, 0.21, 0.02, hc, { ry }); }
+  } else if (L.hair) { G.sphere(top[0], top[1] - 0.02, top[2], 0.29, L.hair.c, { ky: 0.55 }); }
+}
+function drawRoom(t) {
+  const draw = b => {
+    const o = { spec: b[7] === 15 ? 1.0 : b[7] === 11 ? 1.1 : b[7] === 2 ? 0.35 : 0.3, shiny: b[7] === 15 ? 80 : 30, tex: b[7], texS: 1, emit: b[8] || 0 };
+    if (b[9] === 1) G.cyl(b[0], b[1], b[2], b[3], b[4], b[6], o); else G.box(b[0], b[1], b[2], b[3], b[4], b[5], Math.min(0.05, b[3], b[4], b[5]), b[6], o);
+  };
+  draw(FLOOR); SOL.forEach(draw); DEC.forEach(draw);
+  // slot screens flicker, the roulette wheels spin, chips stack on blackjack tables
+  for (const st of STATIONS) {
+    if (st.screen) { const k = (Math.sin(t / 300 + st.i * 1.7) + 1) / 2; G.box(st.screen[0], 1.12, st.screen[1], 0.025, 0.28, 0.3, 0.01, k > 0.5 ? '#FFD86B' : '#FF7A1A', { emit: 0.7 + k * 0.3 }); }
+    if (st.wheel) { const a = t / 600; G.torus(st.wheel[0], 0.9, st.wheel[1], 0.46, '#E8C26A', { tube: 0.035, spec: 1.4 }); for (let k = 0; k < 4; k++) G.box(st.wheel[0], 0.92, st.wheel[1], 0.4, 0.012, 0.025, 0.006, '#E8C26A', { ry: a + k * Math.PI / 4, spec: 1.4 }); G.cone(st.wheel[0], 0.98, st.wheel[1], 0.06, 0.06, '#E8C26A', { spec: 1.4 }); }
+    if (st.chips) for (let k = 0; k < 5; k++) G.cyl(st.chips[0] - 0.4 + k * 0.2, 0.9 + 0.03, st.chips[1], 0.07, 0.03 + (k % 3) * 0.015, ['#E5484D', '#2F74E8', '#23A26F', '#15171C', '#F2C14E'][k], { spec: 0.6 });
+  }
+  for (const [x, z] of LAMPS) { G.sphere(x, 4.45, z, 0.32, '#FFE9A8', { emit: 1 }); G.torus(x, 4.3, z, 0.7, '#E8C26A', { tube: 0.05, spec: 1.4 }); for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; G.sphere(x + Math.cos(a) * 0.7, 4.22, z + Math.sin(a) * 0.7, 0.1, '#FFF2C0', { emit: 1 }); } G.blob(x, 0.03, z, 2.6, 0.12); }
+}
+
+/* ================= movement and collision ================= */
+const R = 0.32;
+function pushOut(p) {
+  for (const s of SOLID) {
+    if (s.top < 0.3) continue;
+    const cx = Math.max(s.x0, Math.min(p[0], s.x1)), cz = Math.max(s.z0, Math.min(p[1], s.z1)), dx = p[0] - cx, dz = p[1] - cz, d = Math.hypot(dx, dz);
+    if (d < R) { if (d > 1e-4) { p[0] = cx + dx / d * R; p[1] = cz + dz / d * R; } else { p[0] += R; } }
+  }
+  p[0] = Math.max(-RX + 0.6, Math.min(RX - 0.6, p[0])); p[1] = Math.max(-RZ + 0.6, Math.min(RZ - 0.6, p[1]));
+}
+function stepMe(dt) {
+  if (sitting) return;
+  let mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0) + touchMove[0], mz = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0) - touchMove[1];
+  const l = Math.hypot(mx, mz); if (l > 1) { mx /= l; mz /= l; }
+  if (l > 0.05) {
+    const f = [Math.sin(camYaw), -Math.cos(camYaw)], r = [Math.cos(camYaw), Math.sin(camYaw)];
+    const v = [(f[0] * mz + r[0] * mx), (f[1] * mz + r[1] * mx)], sp = (keys.ShiftLeft ? 4.6 : 3.0) * dt;
+    me.p[0] += v[0] * sp; me.p[1] += v[1] * sp; pushOut(me.p);
+    const want = Math.atan2(v[0], -v[1]); let dy = want - me.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; me.yaw += dy * Math.min(1, dt * 10);
+    me.walk += dt * 1.6 * (keys.ShiftLeft ? 1.5 : 1);
+  }
+}
+function stepPeople(dt) {
+  for (const e of people) {
+    if (e.kind !== 'walker') continue;
+    if (e.pause > 0) { e.pause -= dt; continue; }
+    const tgt = NODES[e.next], d = [tgt[0] - e.p[0], tgt[1] - e.p[1]], dist = Math.hypot(d[0], d[1]);
+    if (dist < 0.15) { e.node = e.next; const n = nbrs(e.node); e.next = pick(n); if (Math.random() < 0.3) e.pause = 1 + Math.random() * 3; continue; }
+    const sp = Math.min(dist, 1.3 * dt);
+    e.p[0] += d[0] / dist * sp; e.p[1] += d[1] / dist * sp; e.walk += dt * 1.4;
+    const want = Math.atan2(d[0], -d[1]); let dy = want - e.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; e.yaw += dy * Math.min(1, dt * 6);
+  }
+}
+
+/* ================= sitting down to play ================= */
+const prompt = $('#prompt');
+function nearest() {
+  let best = null, bd = 2.2;
+  for (const st of STATIONS) { if (st.taken) continue; const d = Math.hypot(st.seat[0] - me.p[0], st.seat[1] - me.p[1]); if (d < bd) { bd = d; best = st; } }
+  return best;
+}
+function sit(st) {
+  if (!st || sitting) return;
+  sitting = st; me.p = st.seat.slice(); me.yaw = st.yaw; me.seated = st.game === 'slots' || st.game === 'plinko' ? true : true;
+  $('#table-name').textContent = st.name;
+  $('#table-frame').src = `./?casino=${st.game}&v=20261102n`;
+  $('#table').hidden = false; prompt.hidden = true; keys = {};
+  pushPresence(true);
+}
+function stand() {
+  if (!sitting) return;
+  const st = sitting; sitting = null; me.seated = false;
+  $('#table').hidden = true; $('#table-frame').src = 'about:blank';
+  const back = [Math.sin(st.yaw), -Math.cos(st.yaw)]; me.p = [st.seat[0] - back[0] * 0.9, st.seat[1] - back[1] * 0.9]; pushOut(me.p);
+  pushPresence(true);
+}
+$('#stand').onclick = stand;
+window.addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.type === 'scobbsino-leave') stand(); });
+prompt.addEventListener('click', () => sit(nearest()));
+
+/* ================= input ================= */
+document.addEventListener('keydown', e => {
+  if (e.code === 'Escape') { stand(); return; }
+  if (e.code === 'KeyE' || e.code === 'Enter') { if (!sitting) sit(nearest()); return; }
+  keys[e.code] = true;
+  if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+window.addEventListener('blur', () => { keys = {}; });
+cv.addEventListener('mousedown', e => { drag = [e.clientX, e.clientY]; });
+document.addEventListener('mouseup', () => { drag = null; });
+document.addEventListener('mousemove', e => { if (!drag || sitting) return; camYaw += (e.clientX - drag[0]) * 0.006; camPitch = Math.max(0.05, Math.min(1.1, camPitch + (e.clientY - drag[1]) * 0.004)); drag = [e.clientX, e.clientY]; });
+cv.addEventListener('contextmenu', e => e.preventDefault());
+let touchMove = [0, 0];
+if (touchDev) {
+  const st = document.createElement('div'); st.className = 'stick'; st.innerHTML = '<i></i>'; document.body.appendChild(st);
+  const knob = st.querySelector('i'); let sid = null, lid = null, lx = 0, ly = 0;
+  st.addEventListener('touchstart', e => { sid = e.changedTouches[0].identifier; e.preventDefault(); }, { passive: false });
+  cv.addEventListener('touchstart', e => { const t = e.changedTouches[0]; lid = t.identifier; lx = t.clientX; ly = t.clientY; }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    for (const t of e.changedTouches) {
+      if (t.identifier === sid) { const r = st.getBoundingClientRect(); const dx = (t.clientX - r.left - 60) / 50, dy = (t.clientY - r.top - 60) / 50; const k = Math.min(1, Math.hypot(dx, dy)) / (Math.hypot(dx, dy) || 1); touchMove = [dx * k, dy * k]; knob.style.transform = `translate(${touchMove[0] * 40}px, ${touchMove[1] * 40}px)`; }
+      else if (t.identifier === lid && !sitting) { camYaw += (t.clientX - lx) * 0.008; camPitch = Math.max(0.05, Math.min(1.1, camPitch + (t.clientY - ly) * 0.005)); lx = t.clientX; ly = t.clientY; }
+    }
+    if (!sitting) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchend', e => { for (const t of e.changedTouches) { if (t.identifier === sid) { sid = null; touchMove = [0, 0]; knob.style.transform = ''; } if (t.identifier === lid) lid = null; } });
+  $('#help').hidden = true;
+}
+
+/* ================= real players: your account, your look, and everyone else here ================= */
+let FB = null, db = null, myRef = null, lastPush = 0, pushT = 0, rtOk = true;
+const note = msg => { const n = $('#note'); n.textContent = msg; n.hidden = !msg; };
+async function initFirebase() {
+  try {
+    const cfg = await import('./firebase-config.js?v=20261102n');
+    const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
+    const [app, au, fs, rd] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js'), import(base + 'firebase-database.js')]);
+    FB = Object.assign({}, app, au, fs, { r: rd });
+    const a = FB.initializeApp(cfg.FIREBASE_CONFIG);
+    const auth = FB.getAuth(a), fsdb = FB.getFirestore(a);
+    db = rd.getDatabase(a);
+    FB.onAuthStateChanged(auth, u => {
+      if (!u) { note('Log in on ScobbBucks to play and to be seen by other players. You can still look around.'); return; }
+      ME_UID = u.uid; myName = '@' + String(u.email || '').split('@')[0]; me.name = myName;
+      FB.onSnapshot(FB.doc(fsdb, 'fpsStats/' + u.uid), d => { const s = d.data() || {}; if (s.look) me.look = Object.assign({ body: '#B98BFF' }, s.look); pushPresence(true); }, () => {});
+      myRef = rd.ref(db, 'casino/presence/' + u.uid);
+      rd.onDisconnect(myRef).remove().catch(() => {});
+      pushPresence(true);
+      rd.onValue(rd.ref(db, 'casino/presence'), snap => {
+        const v = snap.val() || {}, now = Date.now(), next = {};
+        for (const id in v) { if (id === ME_UID) continue; const o = v[id]; if (!o || typeof o.x !== 'number' || (o.t && now - o.t > 20000)) continue; const prev = others[id]; next[id] = Object.assign(prev || { p: [o.x, o.z], yaw: o.y || 0, walk: 0 }, { tx: o.x, tz: o.z, ty: o.y || 0, name: String(o.n || 'Player').slice(0, 24), look: o.l || prev && prev.look || randLook(), seated: !!o.s }); }
+        others = next;
+        const n = Object.keys(others).length; $('#online').textContent = n ? `${n + 1} people here` : 'Just you';
+      }, () => { rtOk = false; note('Other players can’t be shown yet. The bank needs to add the casino rule in Firebase (Realtime Database > Rules).'); });
+    });
+  } catch (e) { note('Couldn’t connect to ScobbBucks. You can still look around.'); }
+}
+function pushPresence(force) {
+  if (!myRef || !rtOk || !FB) return;
+  const now = Date.now();
+  if (!force && now - lastPush < 150) return;
+  lastPush = now;
+  FB.r.set(myRef, { n: myName, x: Math.round(me.p[0] * 100) / 100, z: Math.round(me.p[1] * 100) / 100, y: Math.round(me.yaw * 100) / 100, s: sitting ? sitting.game : '', l: me.look, t: FB.r.serverTimestamp() }).catch(() => { rtOk = false; });
+}
+
+/* ================= main loop ================= */
+const tags = $('#tags');
+function label(cls, x, y, z, text) {
+  const p = G.toScreen(x, y, z); if (!p) return '';
+  return `<div class="${cls}" style="left:${p[0].toFixed(0)}px;top:${p[1].toFixed(0)}px">${text}</div>`;
+}
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (G && !G.lost) {
+    stepMe(dt); stepPeople(dt);
+    for (const id in others) { const o = others[id]; const k = Math.min(1, dt * 10); const ox = o.p[0], oz = o.p[1]; o.p[0] += (o.tx - o.p[0]) * k; o.p[1] += (o.tz - o.p[1]) * k; let dy = o.ty - o.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; o.yaw += dy * k; o.walk += Math.hypot(o.p[0] - ox, o.p[1] - oz) * 1.2; }
+    if (!sitting) pushPresence(false);
+    // camera: behind you while walking, over the table while seated
+    let eye, tgt;
+    if (sitting) { const f = [Math.sin(sitting.yaw), -Math.cos(sitting.yaw)]; eye = [me.p[0] - f[0] * 1.3 - 0.6, 2.2, me.p[1] - f[1] * 1.3 + 0.2]; tgt = [me.p[0] + f[0] * 1.6, 0.9, me.p[1] + f[1] * 1.6]; }
+    else { const cp = Math.cos(camPitch), d = 5.2; eye = [me.p[0] - Math.sin(camYaw) * d * cp, 1.4 + Math.sin(camPitch) * d, me.p[1] + Math.cos(camYaw) * d * cp]; tgt = [me.p[0], 1.25, me.p[1]]; eye[0] = Math.max(-RX + 0.4, Math.min(RX - 0.4, eye[0])); eye[2] = Math.max(-RZ + 0.4, Math.min(RZ - 0.4, eye[2])); eye[1] = Math.min(H - 0.3, eye[1]); }
+    const dv = [tgt[0] - eye[0], tgt[1] - eye[1], tgt[2] - eye[2]], dl = Math.hypot(dv[0], dv[1], dv[2]);
+    G.begin(); G.time(now);
+    G.view(eye, Math.atan2(dv[0], -dv[2]), Math.asin(dv[1] / dl), 60, 0.05, 120);
+    drawRoom(now);
+    for (const e of people) personDraw(e, now);
+    for (const id in others) personDraw(others[id], now);
+    personDraw(me, now);
+    // labels: your name, other players' names, game signs and the marquee
+    let h = label('marquee', 0, 4.2, RZ - 0.35, 'SCOBBSINO');
+    for (const s of SIGNS) h += label('sign', s.p[0], s.p[1], s.p[2], s.t);
+    for (const id in others) { const o = others[id]; h += label('tag', o.p[0], o.seated ? 1.85 : 2.25, o.p[1], o.name.replace(/</g, '&lt;')); }
+    if (ME_UID) h += label('tag me', me.p[0], me.seated ? 1.85 : 2.25, me.p[1], myName.replace(/</g, '&lt;'));
+    tags.innerHTML = h;
+    const st = sitting ? null : nearest();
+    if (st) { prompt.innerHTML = `<kbd>${touchDev ? 'Tap' : 'E'}</kbd>Sit down and play ${st.name}`; prompt.hidden = false; } else prompt.hidden = true;
+  }
+  requestAnimationFrame(frame);
+}
+function start() {
+  G = create(cv, window.innerWidth, window.innerHeight, { free: true, opaque: true, onLost: () => { const d = document.createElement('div'); d.className = 'err'; d.innerHTML = '<div><h2>3D stopped</h2><p>Reload the page.</p></div>'; document.body.appendChild(d); }, onRestore: () => location.reload() });
+  if (!G) { const d = document.createElement('div'); d.className = 'err'; d.innerHTML = `<div><h2>3D couldn’t start</h2><p style="color:#CDBF9E">${create.lastError || 'WebGL is not available.'}</p><a class="pill" href="./">Back to ScobbBucks</a></div>`; document.body.appendChild(d); return; }
+  G.setSky('#FFE2B0', '#3A1418'); G.fog('#1A0C10', 0.018); G.light([-0.3, 0.9, 0.35]);
+  requestAnimationFrame(frame);
+}
+let rT = 0;
+window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (G) G.resize(window.innerWidth, window.innerHeight); }, 60); });
+start();
+if (!TEST) initFirebase();
+if (TEST) window.__cas = { me, stations: STATIONS.map(s => s.name), go: (x, z) => { me.p = [x, z]; }, sit: i => sit(STATIONS[i]), stand, sitting: () => sitting && sitting.name, nearest: () => { const s = nearest(); return s && s.name; }, look: (y, p) => { camYaw = y; camPitch = p; }, addOther: (id, o) => { others[id] = Object.assign({ p: [o.x, o.z], yaw: 0, walk: 0, tx: o.x, tz: o.z, ty: 0, name: o.n, look: randLook(), seated: false }, {}); } };
+</script>
+</body>
+</html>

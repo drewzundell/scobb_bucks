@@ -76,6 +76,22 @@ vec3 surf(int t, vec3 c, vec3 wp, vec3 n) {
     float r = 0.5 + 0.5 * sin(uv.x * 20.0); vec2 f = fract(uv / 0.6);
     return c * (0.8 + r * 0.25) * (0.93 + nz * 0.1) * (1.0 - (1.0 - step(0.04, length(f - 0.08))) * 0.3);
   }
+  if (t == 13) { // casino carpet: deep color with a gold diamond lattice and little medallions
+    vec2 g = uv / 0.55; vec2 f = fract(g) - 0.5; float dia = abs(f.x) + abs(f.y);
+    float line = smoothstep(0.018, 0.0, abs(dia - 0.46)); float dot2 = smoothstep(0.06, 0.035, length(f));
+    vec2 f2 = fract(g + 0.5) - 0.5; float ring = smoothstep(0.02, 0.0, abs(length(f2) - 0.14));
+    vec3 gold = vec3(0.62, 0.46, 0.2), teal = vec3(0.08, 0.28, 0.3);
+    vec3 col = c * (0.8 + nz * 0.25);
+    col = mix(col, gold, line * 0.75); col = mix(col, gold, dot2 * 0.8); col = mix(col, teal, ring * 0.6);
+    return col;
+  }
+  if (t == 14) { // table felt
+    return c * (0.88 + vnoise(wp * 30.0) * 0.16);
+  }
+  if (t == 15) { // polished marble
+    float v = vnoise(wp * 1.2 + vec3(vnoise(wp * 3.0) * 2.0));
+    return mix(c, c * 0.72, smoothstep(0.45, 0.7, v)) * (0.96 + nz * 0.06);
+  }
   return c;
 }
 uniform vec3 uColor; uniform vec3 uEye; uniform vec3 uL; uniform vec3 uSky; uniform vec3 uGround;

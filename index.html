@@ -2138,7 +2138,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   function render() {
     const s = route();
     ui.screen = s;
-    const tabsOn = s === 'main' && !STORE_MODE;
+    const tabsOn = s === 'main' && !STORE_MODE && !CASINO_GAME;
     $('#tabs').hidden = !tabsOn;
     document.body.classList.toggle('has-tabs', tabsOn);
     if (s === 'main') { renderTab(); renderTabs(); return; }
@@ -2423,6 +2423,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     return `<div class="ev">${sknSw(sk, 'skw-sm')}<div class="main"><div class="t"><b>${esc(inf[1])}</b> <span class="small" style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span></div><div class="s">${mine ? 'Yours' : `From ${esc(nameOf(l.seller))}`} · Start ${coinsAmt(l.r, l.start)} · ${top}</div><div class="chips">${acts}</div></div></div>`;
   }
   const STORE_MODE = new URLSearchParams(location.search).has('store'), STORE_KIND = new URLSearchParams(location.search).get('store');
+  // The 3D Scobbsino opens ScobbBucks with ?casino=<game> at a table to run that one game.
+  const CASINO_GAME = (g => (['slots', 'roulette', 'plinko', 'blackjack', 'poker'].includes(g) ? g : ''))(new URLSearchParams(location.search).get('casino'));
   function strikeShopHTML() {
     const av = availOf(uid), now = Date.now(), owner = uid === L.issuer;
     const shop = cosShopAt(now, config.salt), reset = WEEK0 + (arcDay(now) + 1) * DAY;
@@ -2475,7 +2477,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const t = ui.tab;
     const inp = $('#dm-input'), had = !!inp && document.activeElement === inp;
     if (inp) ui.dmDraft = inp.value;
-    app.innerHTML = STORE_MODE ? (STORE_KIND === 'armory' ? armoryHTML(true) : storeTab()) : t === 'shop' ? shopTab() : t === 'market' ? marketTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
+    if (CASINO_GAME && !ui.casOpened) { ui.casOpened = true; const owner = uid === L.issuer; setTimeout(() => casShow(CAS_GAMES[CASINO_GAME].solo ? { view: CASINO_GAME, practice: owner } : { view: 'setup', g: CASINO_GAME, practice: owner }), 0); }
+    app.innerHTML = CASINO_GAME ? '' : STORE_MODE ? (STORE_KIND === 'armory' ? armoryHTML(true) : storeTab()) : t === 'shop' ? shopTab() : t === 'market' ? marketTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
     const ni = $('#dm-input');
     if (ni) { ni.value = ui.dmDraft || ''; if (had) { ni.focus(); ni.setSelectionRange(ni.value.length, ni.value.length); } }
     if (t === 'chats' && ui.dmWith) {
@@ -3106,7 +3109,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   function casinoRow() {
     const T = casMyTable();
     const sub = uid === L.issuer ? 'You’re the house. Practice any game for free' : T && T.phase !== 'done' ? `You’re at a ${CAS_GAMES[T.g].name} table` : 'Slots, roulette, blackjack and more';
-    return `<button type="button" class="lrow" data-act="tab" data-tab="casino"><span class="sq">${icon('dice')}</span><span class="lt"><b>Scobbsino</b><span>${sub}</span></span><span class="chipbtn${T && T.phase !== 'done' ? ' go' : ''}">${T && T.phase !== 'done' ? 'Return' : 'Enter'}</span></button>`;
+    return `<a class="lrow" href="./casino.html" target="_blank" rel="noopener"><span class="sq">${icon('dice')}</span><span class="lt"><b>Scobbsino</b><span>3D casino in a new tab · ${sub}</span></span><span class="chipbtn${T && T.phase !== 'done' ? ' go' : ''}">${T && T.phase !== 'done' ? 'Return' : 'Enter'}</span></a>`;
   }
   function casinoTab() {
     const owner = uid === L.issuer, now = Date.now();
@@ -3150,6 +3153,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   }
   function casClose() {
     clearInterval(casTimer); casTimer = 0;
+    if (CASINO_GAME) { try { window.parent.postMessage({ type: 'scobbsino-leave' }, location.origin); } catch (e) { /* ignore */ } }
     ui.cas = null;
     const r = casRoot(); r.hidden = true; r.innerHTML = ''; document.body.style.overflow = '';
     render();
@@ -3403,7 +3407,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102j'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102n'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -3909,7 +3913,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102j" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102n" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -4139,13 +4143,13 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102j'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102n'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
     BANK = bank;
     FARM_LIVE = cfgMod.FARM_LIVE === true;
-    try { FSK = await import('./farm-skins.js?v=20261102m'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
+    try { FSK = await import('./farm-skins.js?v=20261102n'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     FARM_TESTERS = Array.isArray(cfgMod.FARM_TESTERS) ? cfgMod.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(cfg);

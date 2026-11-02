@@ -1662,7 +1662,7 @@ input[type="text"]:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(-
     BANK = bank;
     LIVE = cfg.FARM_LIVE === true;
     ENV = LIVE ? 'farm' : 'farmPreview';
-    try { FSK = await import('./farm-skins.js?v=20261102m'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
+    try { FSK = await import('./farm-skins.js?v=20261102n'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     TESTERS = Array.isArray(cfg.FARM_TESTERS) ? cfg.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(fc);
