@@ -43,8 +43,29 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .stats b { display: block; font-size: 15px; color: #fff; }
 .stats em { display: block; font-style: normal; font-size: 11.5px; font-weight: 800; }
 .stats em.up { color: #4FCB96; } .stats em.down { color: #FF8A8E; }
+.panel.wide, .panel.smith { width: min(860px, calc(100vw - 440px)); }
+@media (max-width: 1100px) { .panel.wide, .panel.smith { width: 100vw; } }
+.wgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.wcard { text-align: left; border: 1px solid var(--line); background: rgba(255,255,255,.04); border-radius: 12px; padding: 6px 6px 8px; }
+.wcard img { display: block; width: 100%; aspect-ratio: 300 / 140; border-radius: 8px; background: #1A1D25; margin-bottom: 6px; }
+.wcard b { display: block; font-size: 14.5px; padding: 0 4px; }
+.wcard span { display: block; font-size: 12px; color: var(--soft); padding: 0 4px; }
+.wcard.lock { opacity: .55; } .wcard.lock span { color: var(--gold); }
+.wcard.eq { border-color: #B8B0FF; background: rgba(74,58,224,.25); }
+.wcard:hover { border-color: rgba(255,255,255,.4); }
+.smith-top { display: flex; align-items: center; gap: 12px; }
+.smith-top > div { flex: 1; }
+.smith-top h2 { margin: 0; }
+.eqtag { color: #9ED8FF; font-weight: 800; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+.gprev.big .gcv { height: 300px !important; }
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin: 14px 0 10px; }
+.slotb { text-align: left; border: 1px solid var(--line); background: rgba(255,255,255,.04); border-radius: 10px; padding: 7px 10px; }
+.slotb span { display: block; font-size: 11.5px; color: var(--soft); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.slotb b { display: block; font-size: 14px; }
+.slotb.on { border-color: #fff; background: rgba(255,255,255,.12); }
+.sopts { border-top: 1px solid var(--line); padding-top: 12px; }
 .gprev { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); margin: 10px 0 8px; background: #12141A; }
-.gcv { display: block; width: 100% !important; height: 230px !important; }
+.gcv { display: block; width: 100% !important; height: 300px !important; }
 .gcap { position: absolute; left: 12px; bottom: 10px; right: 12px; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
 .gcap b { display: block; font-size: 17px; }
 .gcap span { font-size: 13px; color: #D5DAE3; }
@@ -187,7 +208,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102e';
+import { create } from './scobb3d.js?v=20261102f';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -258,7 +279,7 @@ const PERKS = [
 ];
 const TACT = { stim: ['Stim shot', 'Heals you to full'], flash: ['Flashbang', 'Blinds anyone looking at it'], smoke: ['Smoke grenade', 'Blocks sight for 8 seconds'] };
 const LETH = { frag: ['Frag grenade', 'Cook and throw. It can kill you too'], semtex: ['Semtex', 'Sticks to what it hits'], molotov: ['Molotov', 'Burns an area'], knife: ['Throwing knife', 'One hit kill if it lands'] };
-const DEFAULT_LOADOUT = { primary: 'ar0', secondary: 'pi0', att: { optic: 0, barrel: 0, mag: 0, grip: 0 }, perks: [0, 0, 1], tac: 'stim', leth: 'frag', skin: '', camos: {}, charm: '', tracer: '' };
+const DEFAULT_LOADOUT = { primary: 'ar0', secondary: 'pi0', att: { optic: 0, barrel: 0, mag: 0, grip: 0 }, perks: [0, 0, 1], tac: 'stim', leth: 'frag', skin: '', camos: {}, charm: '', tracer: '', atts: {} };
 let loadout = (() => { try { return Object.assign({}, DEFAULT_LOADOUT, JSON.parse(localStorage.getItem('scobbstrike-loadout2') || '{}')); } catch (e) { return Object.assign({}, DEFAULT_LOADOUT); } })();
 const saveLoadout = () => { try { localStorage.setItem('scobbstrike-loadout2', JSON.stringify(loadout)); } catch (e) { /* private mode */ } };
 let owned = new Set(), myLook = null, stats = {}, skinsOwned = new Set();
@@ -268,12 +289,16 @@ function fixLoadout() {
   if (!WEAPONS[loadout.primary] || !CLASSES[WEAPONS[loadout.primary].ck].p) loadout.primary = 'ar0';
   if (!ownsW(loadout.primary)) loadout.primary = WEAPONS[loadout.primary].ck + '0';
   if (!WEAPONS[loadout.secondary] || WEAPONS[loadout.secondary].ck !== 'pi' || !ownsW(loadout.secondary)) loadout.secondary = 'pi0';
-  loadout.att = Object.assign({ optic: 0, barrel: 0, mag: 0, grip: 0 }, loadout.att);
+  loadout.atts = Object.assign({}, loadout.atts || {});
+  if (!loadout.atts[loadout.primary] && loadout.att) loadout.atts[loadout.primary] = Object.assign({}, loadout.att);
+  for (const g in loadout.atts) { const a = Object.assign({ optic: 0, barrel: 0, mag: 0, grip: 0 }, loadout.atts[g]); for (const s2 in ATT) if (!ownsA(s2, a[s2] || 0)) a[s2] = 0; loadout.atts[g] = a; }
+  loadout.att = attOf(loadout.primary);
   loadout.camos = Object.assign({}, loadout.camos || {});
   if (loadout.skin) { if (!loadout.camos[loadout.primary]) loadout.camos[loadout.primary] = loadout.skin; loadout.skin = ''; }
   if (skinsOwned.size || ME_UID) { for (const g in loadout.camos) if (!skinsOwned.has(loadout.camos[g])) delete loadout.camos[g]; if (loadout.charm && !skinsOwned.has(loadout.charm)) loadout.charm = ''; if (loadout.tracer && !skinsOwned.has(loadout.tracer)) loadout.tracer = ''; }
   for (const s in ATT) if (!ownsA(s, loadout.att[s] || 0)) loadout.att[s] = 0;
 }
+function attOf(id) { return Object.assign({ optic: 0, barrel: 0, mag: 0, grip: 0 }, (loadout.atts && loadout.atts[id]) || {}); }
 function gunStats(key, att) {
   const w = Object.assign({}, WEAPONS[key]);
   if (!att) return w;
@@ -364,7 +389,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102e');
+    const cfg = await import('./firebase-config.js?v=20261102f');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -402,27 +427,23 @@ function drawUI() {
     <div class="kd"><div><b>${kdText()}</b><span>K/D</span></div><div><b>${stats.k || 0}</b><span>Kills</span></div><div><b>${stats.pts || 0}</b><span>Points</span></div><div><b>${stats.wins || 0}</b><span>Match wins</span></div></div>
     <p class="small soft" style="margin-top:22px">${ME_UID ? 'Your K/D shows on your ScobbBucks profile.' : 'Log in on ScobbBucks to track your K/D and use the gear you unlock.'} <a href="./" style="color:#C9C2FF">Back to ScobbBucks</a></p></div>`;
   if (view === 'loadout') {
-    const g = gunStats(loadout.primary, loadout.att), base = gunStats(loadout.primary, null), pn = WEAPONS[loadout.primary].name, sn = WEAPONS[loadout.secondary].name;
-    const attNames = ['optic', 'barrel', 'mag', 'grip'].map(k => ATT[k][loadout.att[k] || 0][0]).filter((n, i) => (loadout.att[['optic', 'barrel', 'mag', 'grip'][i]] || 0) > 0);
-    h += `<div class="panel"><h2>Loadout</h2>`;
-    h += `<div class="gprev"><div id="gprev-slot"></div><div class="gcap" id="gcap">${capText()}</div></div>`;
-    // stat cards show the change from the bare gun, green when it helps and red when it hurts
+    const card = id => { const w = WEAPONS[id], own = ownsW(id), eq = loadout.primary === id || loadout.secondary === id; return `<button type="button" class="wcard${own ? '' : ' lock'}${eq ? ' eq' : ''}" data-act="smith" data-v="${id}"${own ? '' : ' data-locked="1"'}><img alt="" src="${gunThumb(id)}"><b>${w.name}</b><span>${eq ? (loadout.primary === id ? 'Equipped primary' : 'Equipped secondary') : own ? 'Tier ' + (w.tier + 1) : 'Locked · ' + priceText(WPRICE[w.tier])}</span></button>`; };
+    h += `<div class="panel wide"><h2>Weapons</h2><p class="small soft">Pick a gun to customize it. Each gun keeps its own attachments and camo.</p>`;
+    for (const c in CLASSES) h += `<h3>${CLASSES[c].name}</h3><div class="wgrid">${[0, 1, 2, 3, 4].map(t => card(c + t)).join('')}</div>`;
+    h += `</div>`;
+  } else if (view === 'smith') {
+    const id = smithGun, w = WEAPONS[id], isP = CLASSES[w.ck].p, at = attOf(id), g = gunStats(id, isP ? at : null), base = gunStats(id, null);
+    const eq = isP ? loadout.primary === id : loadout.secondary === id;
     const st = (label, v, b0, unit, lowGood, fmt) => { const f = fmt || (x => Math.round(x)); const d = v - b0, better = lowGood ? d < 0 : d > 0, same = Math.abs(d) < 1e-6; return `<div>${label}<b>${f(v)}${unit || ''}</b>${same ? '' : `<em class="${better ? 'up' : 'down'}">${d > 0 ? '+' : '−'}${f(Math.abs(d))}${unit || ''}</em>`}</div>`; };
+    const nm = x => (x ? skinInfo(x)[1] : 'None');
+    const slots = (isP ? [['optic', 'Optic', ATT.optic[at.optic][0]], ['barrel', 'Barrel', ATT.barrel[at.barrel][0]], ['mag', 'Magazine', ATT.mag[at.mag][0]], ['grip', 'Stock and grip', ATT.grip[at.grip][0]]] : [])
+      .concat([['camo', 'Camo', nm(loadout.camos[id])], ['charm', 'Charm', nm(loadout.charm)], ['tracer', 'Tracers', loadout.tracer ? nm(loadout.tracer) : 'Standard'], ['perk0', 'Perk 1', PERKS[0][loadout.perks[0]][0]], ['perk1', 'Perk 2', PERKS[1][loadout.perks[1]][0]], ['perk2', 'Perk 3', PERKS[2][loadout.perks[2]][0]], ['tac', 'Tactical', TACT[loadout.tac][0]], ['leth', 'Lethal', LETH[loadout.leth][0]]]);
+    if (!slots.some(x => x[0] === smithSlot)) smithSlot = slots[0][0];
+    h += `<div class="panel smith"><div class="smith-top"><button type="button" class="btn ghost" data-act="view" data-v="loadout">← Weapons</button><div><h2>${w.name}</h2><span class="small soft">${w.cls} · Tier ${w.tier + 1}</span></div>${eq ? `<span class="eqtag">Equipped</span>` : `<button type="button" class="btn" data-act="equip" data-v="${id}">Equip</button>`}</div>`;
+    h += `<div class="gprev big"><div id="gprev-slot"></div><div class="gcap" id="gcap">${capText()}</div></div>`;
     h += `<div class="stats">${st('Damage', g.dmg, base.dmg)}${st('Fire rate', g.rpm, base.rpm)}${st('Magazine', g.mag, base.mag)}${st('Range', g.range, base.range, ' m')}${st('Reload', g.reload, base.reload, ' s', true, x => x.toFixed(1))}${st('Move', g.move * 100, base.move * 100, '%')}${st('Aim time', g.ads * 1000, base.ads * 1000, ' ms', true)}${st('Kick', g.recoil * 1000, base.recoil * 1000, '', true)}${st('Zoom', g.zoom, base.zoom, '×', false, x => x.toFixed(1))}</div>`;
-    h += `<p class="small soft" style="margin:8px 0 0">${pn}${attNames.length ? ' with ' + attNames.join(', ') : ' with no attachments'}. Changes are compared to the bare gun. Point at an attachment to preview it.</p>`;
-    h += `<h3>Primary</h3>${PRIM.map(c => `<div class="row" style="margin-bottom:6px">${[0, 1, 2, 3, 4].map(t => { const id = c + t; return opt('primary', id, loadout.primary === id, WEAPONS[id].name, t === 0 ? CLASSES[c].name : 'Tier ' + (t + 1), !ownsW(id), priceText(WPRICE[t])); }).join('')}</div>`).join('')}`;
-    for (const slot of ['optic', 'barrel', 'mag', 'grip']) h += `<h3>${slot === 'mag' ? 'Magazine' : slot}</h3><div class="row">${ATT[slot].map((a2, i) => opt('att-' + slot, i, (loadout.att[slot] || 0) === i, a2[0], a2[2], !ownsA(slot, i), priceText(APRICE[a2[3]]))).join('')}</div>`;
-    const camos = ownedOf('camo'), charms = ownedOf('charm'), tracersOwned = ownedOf('tracer');
-    const cosRow = (act, cur, list, none) => `<div class="row">${opt(act, '', !cur, none, '')}${list.map(x => opt(act, x[0], cur === x[0], `<i class="swatch" style="background:${x[3]}"></i>${x[1]}`, RN[x[2]] + (x[6] ? ' · animated' : ''))).join('')}</div>`;
-    h += `<h3>Camo for ${pn}</h3>${cosRow('camo-p', loadout.camos[loadout.primary] || '', camos, 'No camo')}`;
-    h += `<h3>Charm</h3>${cosRow('charm', loadout.charm, charms, 'No charm')}`;
-    h += `<h3>Tracers</h3>${cosRow('tracer', loadout.tracer, tracersOwned, 'Standard')}`;
-    if (!camos.length && !charms.length && !tracersOwned.length) h += `<p class="small soft" style="margin-top:8px">Get camos, charms and tracers from the Inventory here, or the Shop and crates in ScobbBucks.</p>`;
-    h += `<h3>Secondary</h3><div class="row">${[0, 1, 2, 3, 4].map(t => opt('secondary', 'pi' + t, loadout.secondary === 'pi' + t, WEAPONS['pi' + t].name, '', !ownsW('pi' + t), priceText(WPRICE[t]))).join('')}</div>`;
-    h += `<h3>Camo for ${sn}</h3>${cosRow('camo-s', loadout.camos[loadout.secondary] || '', camos, 'No camo')}`;
-    PERKS.forEach((list, i) => { h += `<h3>Perk ${i + 1}</h3><div class="row">${list.map((pk, j) => opt('perk-' + i, j, loadout.perks[i] === j, pk[0], pk[1])).join('')}</div>`; });
-    h += `<h3>Tactical</h3><div class="row">${Object.keys(TACT).map(k => opt('tac', k, loadout.tac === k, TACT[k][0], TACT[k][1])).join('')}</div>`;
-    h += `<h3>Lethal</h3><div class="row">${Object.keys(LETH).map(k => opt('leth', k, loadout.leth === k, LETH[k][0], LETH[k][1])).join('')}</div></div>`;
+    h += `<div class="slots">${slots.map(([k, label, cur]) => `<button type="button" class="slotb${smithSlot === k ? ' on' : ''}" data-act="slot" data-v="${k}"><span>${label}</span><b>${cur}</b></button>`).join('')}</div>`;
+    h += `<div class="sopts">${slotOptions(id, smithSlot, at)}</div></div>`;
   } else if (view === 'armory') {
     h += `<div class="panel"><h2>Armory</h2><p class="small soft">Each class has 5 guns. Higher tiers hit harder and handle better. Unlock them with ScobbBucks in the ScobbBucks app under Scobb Strike Armory, and they show up here.</p>`;
     for (const c in CLASSES) h += `<h3>${CLASSES[c].name}</h3><div class="row">${[0, 1, 2, 3, 4].map(t => { const w = WEAPONS[c + t]; return `<div class="opt${ownsW(c + t) ? '' : ' lock'}" style="min-width:150px">${w.name}<small>Damage ${w.dmg}${w.pellets ? '×' + w.pellets : ''} · ${w.rpm} rpm · Mag ${w.mag}</small><span class="price">${ownsW(c + t) ? 'Owned' : priceText(WPRICE[t])}</span></div>`; }).join('')}</div>`;
@@ -436,23 +457,53 @@ function drawUI() {
   const slot = document.getElementById('gprev-slot');
   if (slot) { slot.appendChild(prevCv); ensurePreview(); }
 }
-// ---- the 3D gun preview in the loadout ----
+// ---- gun pictures for the weapon list, drawn once with the same 3D model ----
+let smithGun = 'ar0', smithSlot = 'optic', hl = null;
+const thumbCv = document.createElement('canvas'), thumbs = {};
+let G3 = null;
+function gunThumb(id) {
+  const camo = loadout.camos[id] || '', at = CLASSES[WEAPONS[id].ck].p ? attOf(id) : null, key = id + '|' + camo + '|' + JSON.stringify(at);
+  if (thumbs[key]) return thumbs[key];
+  try {
+    if (!G3) G3 = create(thumbCv, 300, 140, { free: true, opaque: true });
+    if (!G3) return '';
+    const s2 = gunStats(id, at), dist = s2.ck === 'sn' ? 0.82 : s2.ck === 'pi' ? 0.38 : 0.62, e = [dist * 0.97, 0.12, 0.04 + dist * 0.26], c = [0, 0, s2.ck === 'pi' ? 0.03 : 0.04], d = sub(c, e);
+    G3.begin(); G3.setSky('#FFFFFF', '#5C6370'); G3.fog('#1A1D25', 0); G3.light([-0.35, 0.85, 0.5]);
+    G3.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 42, 0.02, 20);
+    drawGun(G3, [0, 0, 0], s2, at, camo, '', 0, 0);
+    thumbs[key] = thumbCv.toDataURL('image/png');
+  } catch (e2) { thumbs[key] = ''; }
+  return thumbs[key];
+}
+// The choices for one slot of the gun you're customizing.
+function slotOptions(id, slot, at) {
+  if (ATT[slot]) return `<div class="row">${ATT[slot].map((a2, i) => opt('att-' + slot, i, at[slot] === i, a2[0], a2[2], !ownsA(slot, i), priceText(APRICE[a2[3]]))).join('')}</div>`;
+  const cos = (act, cur, type, none) => { const list = ownedOf(type); return `<div class="row">${opt(act, '', !cur, none, '')}${list.map(x => opt(act, x[0], cur === x[0], `<i class="swatch" style="background:${x[3]}"></i>${x[1]}`, RN[x[2]] + (x[6] ? ' · animated' : ''))).join('')}</div>${list.length ? '' : `<p class="small soft">You don’t have any yet. Get them from Inventory, or the Shop and crates in ScobbBucks.</p>`}`; };
+  if (slot === 'camo') return cos('camo-g', loadout.camos[id] || '', 'camo', 'No camo');
+  if (slot === 'charm') return cos('charm', loadout.charm, 'charm', 'No charm');
+  if (slot === 'tracer') return cos('tracer', loadout.tracer, 'tracer', 'Standard');
+  if (slot.startsWith('perk')) { const i = Number(slot.slice(4)); return `<div class="row">${PERKS[i].map((pk, j) => opt('perk-' + i, j, loadout.perks[i] === j, pk[0], pk[1])).join('')}</div>`; }
+  if (slot === 'tac') return `<div class="row">${Object.keys(TACT).map(k => opt('tac', k, loadout.tac === k, TACT[k][0], TACT[k][1])).join('')}</div>`;
+  if (slot === 'leth') return `<div class="row">${Object.keys(LETH).map(k => opt('leth', k, loadout.leth === k, LETH[k][0], LETH[k][1])).join('')}</div>`;
+  return '';
+}
+// ---- the 3D gun preview in the gunsmith ----
 const prevCv = document.createElement('canvas'); prevCv.className = 'gcv';
-let G2 = null, hoverAtt = null, lastAdded = '';
-function ensurePreview() { if (!G2) G2 = create(prevCv, 500, 230, { free: true, opaque: true }); }
+let G2 = null, hoverAtt = null, hoverCos = null, lastAdded = '';
+function ensurePreview() { const w = Math.max(300, Math.min(900, (prevCv.parentElement && prevCv.parentElement.clientWidth) || 500)); if (!G2) G2 = create(prevCv, w, 300, { free: true, opaque: true }); else if (G2.W !== w) G2.resize(w, 300); }
 function capText() {
-  const w = WEAPONS[loadout.primary];
+  const w = WEAPONS[smithGun];
   if (hoverAtt) { const k = Object.keys(hoverAtt)[0], a2 = ATT[k][hoverAtt[k]]; return `<b>Previewing ${a2[0]}</b><span>${a2[2]}</span>`; }
   return lastAdded ? `<b>${w.name}</b><span>${lastAdded}</span>` : `<b>${w.name}</b><span>${w.cls} · Tier ${w.tier + 1}</span>`;
 }
 function renderPreview(t) {
   if (!G2 || !prevCv.isConnected || G2.lost) return;
-  const att = Object.assign({}, loadout.att, hoverAtt || {}), s2 = gunStats(loadout.primary, att);
+  const isP = CLASSES[WEAPONS[smithGun].ck].p, att = isP ? Object.assign({}, attOf(smithGun), hoverAtt || {}) : null, s2 = gunStats(smithGun, att);
   G2.begin(); G2.setSky('#FFFFFF', '#5C6370'); G2.fog('#12141A', 0); G2.light([-0.35, 0.85, 0.5]);
   const ang = 1.25 + Math.sin(t / 2400) * 0.5, dist = s2.ck === 'sn' ? 0.88 : s2.ck === 'pi' ? 0.42 : 0.66, c = [0, 0.0, s2.ck === 'pi' ? 0.03 : 0.04];
   const e = [c[0] + Math.sin(ang) * dist, c[1] + 0.16, c[2] + Math.cos(ang) * dist], d = sub(c, e);
   G2.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 42, 0.02, 20);
-  drawGun(G2, [0, 0, 0], s2, att, loadout.camos[loadout.primary], loadout.charm, 0, t);
+  drawGun(G2, [0, 0, 0], s2, att, hoverCos && hoverCos.type === 'camo' ? hoverCos.id : loadout.camos[smithGun], hoverCos && hoverCos.type === 'charm' ? hoverCos.id : loadout.charm, 0, t, hl);
 }
 ui.addEventListener('mouseover', e => {
   const b = e.target.closest('[data-act^="att-"]');
@@ -460,16 +511,24 @@ ui.addEventListener('mouseover', e => {
   if (JSON.stringify(next) === JSON.stringify(hoverAtt)) return;
   hoverAtt = next; const cap = document.getElementById('gcap'); if (cap) cap.innerHTML = capText();
 });
+ui.addEventListener('mouseover', e => {
+  const b = e.target.closest('[data-act="camo-g"],[data-act="charm"]');
+  hoverCos = b && b.dataset.v ? { type: b.dataset.act === 'charm' ? 'charm' : 'camo', id: b.dataset.v } : null;
+});
 ui.addEventListener('click', e => {
   const b = e.target.closest('[data-act]');
   if (!b || b.disabled) return;
   const a = b.dataset.act, v = b.dataset.v;
   if (b.dataset.locked) { flashMsg('Unlock that in ScobbBucks under Scobb Strike Armory.'); return; }
+  if (a === 'smith') { smithGun = v; smithSlot = CLASSES[WEAPONS[v].ck].p ? 'optic' : 'camo'; view = 'smith'; lastAdded = ''; hl = null; drawUI(); return; }
+  if (a === 'slot') { smithSlot = v; drawUI(); return; }
+  if (a === 'equip') { if (CLASSES[WEAPONS[v].ck].p) loadout.primary = v; else loadout.secondary = v; loadout.att = attOf(loadout.primary); lastAdded = `Equipped ${WEAPONS[v].name}`; saveLoadout(); drawUI(); return; }
   if (a === 'view') view = view === v ? 'home' : v;
   else if (a === 'primary' || a === 'secondary' || a === 'tac' || a === 'leth') { loadout[a] = v; if (a === 'primary') lastAdded = ''; }
-  else if (a.startsWith('att-')) { const k = a.slice(4), a2 = ATT[k][Number(v)]; loadout.att = Object.assign({}, loadout.att, { [k]: Number(v) }); lastAdded = Number(v) ? `Added ${a2[0]}: ${a2[2]}` : `Took off the ${k === 'mag' ? 'magazine' : k}`; hoverAtt = null; }
+  else if (a.startsWith('att-')) { const k = a.slice(4), a2 = ATT[k][Number(v)]; loadout.atts = Object.assign({}, loadout.atts, { [smithGun]: Object.assign(attOf(smithGun), { [k]: Number(v) }) }); loadout.att = attOf(loadout.primary); lastAdded = Number(v) ? `Added ${a2[0]}: ${a2[2]}` : `Took off the ${k === 'mag' ? 'magazine' : k}`; hoverAtt = null; hl = { slot: k, t: performance.now() }; }
+  else if (a === 'camo-g') { loadout.camos = Object.assign({}, loadout.camos); if (v) loadout.camos[smithGun] = v; else delete loadout.camos[smithGun]; lastAdded = v ? `Camo: ${skinInfo(v)[1]}` : 'No camo'; hl = { slot: 'camo', t: performance.now() }; hoverCos = null; }
   else if (a === 'camo-p' || a === 'camo-s') { const gid = a === 'camo-p' ? loadout.primary : loadout.secondary; loadout.camos = Object.assign({}, loadout.camos); if (v) loadout.camos[gid] = v; else delete loadout.camos[gid]; lastAdded = v ? `Camo: ${skinInfo(v)[1]}` : 'No camo'; }
-  else if (a === 'charm' || a === 'tracer') { loadout[a] = v; lastAdded = v ? `${a === 'charm' ? 'Charm' : 'Tracers'}: ${skinInfo(v)[1]}` : (a === 'charm' ? 'No charm' : 'Standard tracers'); }
+  else if (a === 'charm' || a === 'tracer') { loadout[a] = v; lastAdded = v ? `${a === 'charm' ? 'Charm' : 'Tracers'}: ${skinInfo(v)[1]}` : (a === 'charm' ? 'No charm' : 'Standard tracers'); if (a === 'charm') { hl = { slot: 'charm', t: performance.now() }; hoverCos = null; } }
   else if (a.startsWith('perk-')) { loadout.perks = loadout.perks.slice(); loadout.perks[Number(a.slice(5))] = Number(v); }
   else if (a === 'practice') return beginPractice();
   else if (a === 'range') return beginRange();
@@ -479,7 +538,7 @@ ui.addEventListener('click', e => {
 });
 function openStore() {
   const d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102e" title="Inventory" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102f" title="Inventory" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -793,8 +852,8 @@ function pickClass(i) {
 function hideDeath() { const d = document.getElementById('death'); if (d) d.remove(); }
 function setPrimary(id) {
   if (!ownsW(id)) return;
-  loadout.primary = id; saveLoadout();
-  me.lo = Object.assign({}, me.lo, { primary: id });
+  loadout.primary = id; loadout.att = attOf(id); saveLoadout();
+  me.lo = Object.assign({}, me.lo, { primary: id, att: loadout.att });
   const st = gunStats(id, loadout.att); me.guns[0] = { key: id, s: st, ammo: st.mag }; me.cur = 0;
 }
 function updateHud() {
@@ -998,7 +1057,7 @@ function frame(now) {
     }
     if (!attract) updateHud();
   }
-  if (view === 'loadout') renderPreview(now);
+  if (view === 'smith') renderPreview(now);
   requestAnimationFrame(frame);
 }
 function step(dt) {
@@ -1099,7 +1158,8 @@ function drawChar(e) {
   if (e.hp < 100 && !attract) { const hp = P(0, 2.0, 0); G.box(hp[0], hp[1], hp[2], 0.4 * e.hp / 100, 0.035, 0.01, 0.01, e.hp > 50 ? '#4FCB96' : '#FF5A5F', { emit: 1, ry: -me.yaw }); }
 }
 // Draws a gun pointing down -z around point o, in whatever space the engine is in.
-function drawGun(GX, o, s2, att, camoId, charmId, rl, t) {
+function drawGun(GX, o, s2, att, camoId, charmId, rl, t, hl) {
+  const glow = slot => (hl && hl.slot === slot ? { emit: Math.max(0, 1 - (t - hl.t) / 700) * 0.7 } : {});
   const [x, y, z] = o, cls = s2.ck, len2 = cls === 'sn' ? 0.42 : cls === 'pi' ? 0.12 : cls === 'sg' ? 0.34 : cls === 'lmg' ? 0.3 : 0.26;
   let col = ['#2B2F38', '#2F3F5A', '#3A2F5A', '#5A2F3F', '#6B5321'][s2.tier], opt = {};
   const sk = camoId && skinInfo(camoId);
@@ -1110,30 +1170,31 @@ function drawGun(GX, o, s2, att, camoId, charmId, rl, t) {
     if (sk[5] === 2 || sk[5] === 3) opt = { stripe: 9, c2: sk[4] };
   }
   const part = (px, py, pz, hx, hy, hz, r, c, o2) => GX.box(x + px, y + py, z + pz, hx, hy, hz, r, c, Object.assign({ spec: 1.1, shiny: 60 }, o2 || {}));
-  part(0, 0, 0, 0.035, 0.05, len2, 0.012, col, Object.assign({ rx: rl }, opt));
+  part(0, 0, 0, 0.035, 0.05, len2, 0.012, col, Object.assign({ rx: rl }, opt, glow('camo')));
   const bl = (att && att.barrel === 3 ? 0.14 : 0.08);
   GX.cyl(x, y + 0.02, z - len2 - bl + 0.02, cls === 'sg' ? 0.022 : 0.014, bl, '#1A1C22', { rx: Math.PI / 2, spec: 1.2 });
-  if (att && att.barrel === 1) GX.cyl(x, y + 0.02, z - len2 - 0.2, 0.024, 0.08, '#15171C', { rx: Math.PI / 2, spec: 0.8 });
-  if (att && att.barrel === 2) GX.cyl(x, y + 0.02, z - len2 - 0.12, 0.03, 0.03, '#3A3F4A', { rx: Math.PI / 2, spec: 1.2 });
+  if (att && att.barrel === 1) GX.cyl(x, y + 0.02, z - len2 - 0.2, 0.024, 0.08, '#15171C', Object.assign({ rx: Math.PI / 2, spec: 0.8 }, glow('barrel')));
+  if (att && att.barrel === 2) GX.cyl(x, y + 0.02, z - len2 - 0.12, 0.03, 0.03, '#3A3F4A', Object.assign({ rx: Math.PI / 2, spec: 1.2 }, glow('barrel')));
+  if (att && att.barrel === 3 && hl && hl.slot === 'barrel') GX.cyl(x, y + 0.02, z - len2 - 0.15, 0.016, 0.06, '#1A1C22', Object.assign({ rx: Math.PI / 2 }, glow('barrel')));
   if (cls !== 'pi') {
     const m = att ? att.mag : 0;
-    if (m === 3) GX.cyl(x, y - 0.09, z - 0.05, 0.06, 0.03, '#4A3AE0', { rz: Math.PI / 2, spec: 0.9 });
-    else part(0, -0.07 - (m === 2 ? 0.03 : 0) + (m === 1 ? 0.015 : 0), -0.05, 0.022, 0.06 * (m === 2 ? 1.5 : m === 1 ? 0.75 : 1), 0.03, 0.01, '#4A3AE0', { rx: 0.2 + rl });
+    if (m === 3) GX.cyl(x, y - 0.09, z - 0.05, 0.06, 0.03, '#4A3AE0', Object.assign({ rz: Math.PI / 2, spec: 0.9 }, glow('mag')));
+    else part(0, -0.07 - (m === 2 ? 0.03 : 0) + (m === 1 ? 0.015 : 0), -0.05, 0.022, 0.06 * (m === 2 ? 1.5 : m === 1 ? 0.75 : 1), 0.03, 0.01, '#4A3AE0', Object.assign({ rx: 0.2 + rl }, glow('mag')));
     const g = att ? att.grip : 0;
-    if (g === 1) part(0, -0.005, len2 + 0.09, 0.015, 0.03, 0.1, 0.008, '#3A3F4A');
+    if (g === 1) part(0, -0.005, len2 + 0.09, 0.015, 0.03, 0.1, 0.008, '#3A3F4A', glow('grip'));
     else part(0, -0.01, len2 + 0.08, 0.03, 0.04, 0.09, 0.01, sk ? col : '#3A3F4A', sk ? opt : {});
-    if (g === 2) { part(0.04, 0, -len2 * 0.6, 0.012, 0.012, 0.04, 0.005, '#15171C'); GX.sphere(x + 0.04, y, z - len2 * 0.6 - 0.045, 0.008, '#FF2E2E', { emit: 1 }); }
-    if (g === 3) part(0, -0.07, -len2 * 0.55, 0.014, 0.045, 0.014, 0.006, '#15171C', { rx: -0.1 });
+    if (g === 2) { part(0.04, 0, -len2 * 0.6, 0.012, 0.012, 0.04, 0.005, '#15171C', glow('grip')); GX.sphere(x + 0.04, y, z - len2 * 0.6 - 0.045, 0.008, '#FF2E2E', { emit: 1 }); }
+    if (g === 3) part(0, -0.07, -len2 * 0.55, 0.014, 0.045, 0.014, 0.006, '#15171C', Object.assign({ rx: -0.1 }, glow('grip')));
   } else part(0, -0.07, 0.05, 0.025, 0.07, 0.03, 0.01, '#3A3F4A', { rx: -0.25 });
   const optic = att ? att.optic : 0;
-  if (optic === 1) { part(0, 0.07, -0.02, 0.022, 0.02, 0.04, 0.008, '#15171C', { spec: 1.4 }); GX.sphere(x, y + 0.075, z - 0.06, 0.006, '#FF2E2E', { emit: 1 }); }
-  if (optic === 2) { part(0, 0.075, -0.02, 0.028, 0.03, 0.05, 0.008, '#15171C', { spec: 1.4 }); GX.torus(x, y + 0.08, z - 0.075, 0.018, '#3A3F4A', { rx: Math.PI / 2, tube: 0.004 }); }
-  if (optic === 3 || (s2.scope && cls === 'sn')) { GX.cyl(x, y + 0.08, z - 0.02, 0.022, 0.12, '#15171C', { rx: Math.PI / 2, spec: 1.4 }); GX.cyl(x, y + 0.08, z - 0.15, 0.028, 0.02, '#15171C', { rx: Math.PI / 2 }); }
+  if (optic === 1) { part(0, 0.07, -0.02, 0.022, 0.02, 0.04, 0.008, '#15171C', Object.assign({ spec: 1.4 }, glow('optic'))); GX.sphere(x, y + 0.075, z - 0.06, 0.006, '#FF2E2E', { emit: 1 }); }
+  if (optic === 2) { part(0, 0.075, -0.02, 0.028, 0.03, 0.05, 0.008, '#15171C', Object.assign({ spec: 1.4 }, glow('optic'))); GX.torus(x, y + 0.08, z - 0.075, 0.018, '#3A3F4A', { rx: Math.PI / 2, tube: 0.004 }); }
+  if (optic === 3 || (s2.scope && cls === 'sn')) { GX.cyl(x, y + 0.08, z - 0.02, 0.022, 0.12, '#15171C', Object.assign({ rx: Math.PI / 2, spec: 1.4 }, glow('optic'))); GX.cyl(x, y + 0.08, z - 0.15, 0.028, 0.02, '#15171C', { rx: Math.PI / 2 }); }
   const ch = charmId && skinInfo(charmId);
   if (ch) {
     const sw = Math.sin(t / 350) * 0.012, cx = x + 0.045, cy = y - 0.05 + sw * 0.3, cz = z + len2 * 0.35 + sw;
     GX.cyl(cx, y - 0.02, z + len2 * 0.35, 0.002, 0.03, '#C9D2DC');
-    const co = { spec: 1.2, emit: ch[6] ? 0.4 + 0.3 * Math.sin(t / 250) : 0 };
+    const co = { spec: 1.2, emit: Math.max(ch[6] ? 0.4 + 0.3 * Math.sin(t / 250) : 0, glow('charm').emit || 0) };
     if (ch[5] === 1) GX.box(cx, cy, cz, 0.014, 0.014, 0.014, 0.004, ch[3], co);
     else if (ch[5] === 2) GX.cone(cx, cy, cz, 0.014, 0.018, ch[3], co);
     else if (ch[5] === 3) GX.cyl(cx, cy, cz, 0.016, 0.004, ch[3], Object.assign({ rz: Math.PI / 2 }, co));
@@ -1177,10 +1238,30 @@ function render() {
   for (const t of tracers) for (let i = 1; i <= 6; i++) { const q = add(t.a, scl(sub(t.b, t.a), i / 7)); G.sphere(q[0], q[1], q[2], t.c === '#FFE9A8' ? 0.02 : 0.028, t.c || '#FFE9A8', { emit: 1, a: 0.85 }); }
   if (!attract) drawViewmodel();
 }
+// ScobbBucks shows a cosmetic on a gun by opening this page with ?preview=<id>. Only the gun is drawn.
+function startPreviewMode(id) {
+  ui.hidden = true; $('#hud').hidden = true;
+  G = create(cv, window.innerWidth, window.innerHeight, { free: true, opaque: true, onLost: showGLError });
+  if (!G) { showGLError(); return; }
+  const inf = skinInfo(id), type = inf ? inf[7] : 'camo', gun = 'ar2', at = { optic: 1, barrel: 0, mag: 0, grip: 0 }, s2 = gunStats(gun, at);
+  const loop = t => {
+    if (!G.lost) {
+      G.begin(); G.setSky('#FFFFFF', '#5C6370'); G.fog('#12141A', 0); G.light([-0.35, 0.85, 0.5]);
+      const ang = 1.25 + Math.sin(t / 2600) * 0.55, dist = type === 'tracer' ? 0.78 : 0.6, c = [0, 0, type === 'tracer' ? -0.3 : 0.04];
+      const e = [c[0] + Math.sin(ang) * dist, c[1] + 0.14, c[2] + Math.cos(ang) * dist], d = sub(c, e);
+      G.view(e, Math.atan2(d[0], -d[2]), Math.asin(d[1] / len(d)), 44, 0.02, 30);
+      const len2 = drawGun(G, [0, 0, 0], s2, at, type === 'camo' ? id : '', type === 'charm' ? id : '', 0, t);
+      if (type === 'tracer') for (let k = 0; k < 3; k++) { const ph = ((t / 520 + k / 3) % 1); for (let i = 0; i < 8; i++) { const z = -len2 - 0.12 - (ph * 0.75 + i * 0.03); const col = inf[2] === 5 ? ['#FF4F8B', '#FFC233', '#5BE38A', '#3EC1FF', '#B98BFF'][(i + k) % 5] : inf[3]; G.sphere(0, 0.02, z, 0.02 - i * 0.0015, col, { emit: 1, a: 0.95 - i * 0.09 }); } }
+    }
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+}
 window.__strikeLoaded = true;
-initFirebase();
-startAttract();
-if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, killMe: () => damage(me, 500, ents[1], 'gun'), killBot: () => { const b = ents.find(x => x.bot && x.alive && x.prot <= 0) || ents.find(x => x.bot && x.alive); if (b) { b.prot = 0; damage(b, 500, me, 'gun'); } return b && b.name; }, score: () => me.score, mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout };
+const PREVIEW = new URLSearchParams(location.search).get('preview');
+if (PREVIEW) startPreviewMode(PREVIEW);
+else { initFirebase(); startAttract(); }
+if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, killMe: () => damage(me, 500, ents[1], 'gun'), killBot: () => { const b = ents.find(x => x.bot && x.alive && x.prot <= 0) || ents.find(x => x.bot && x.alive); if (b) { b.prot = 0; damage(b, 500, me, 'gun'); } return b && b.name; }, score: () => me.score, mode: () => mode, setStats: o => { stats = o; drawUI(); }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); }, lo: () => loadout, smith: id => { smithGun = id; view = 'smith'; drawUI(); }, thumbs: () => Object.keys(thumbs).length };
 </script>
 </body>
 </html>

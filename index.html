@@ -599,6 +599,10 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   .sheet, .backdrop, .toast { animation: none; }
   .rv .face { transition: none; }
 }
+.skview { position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 16px; }
+.skview i { position: absolute; left: 8px; bottom: 8px; font-style: normal; font-size: 11px; font-weight: 800; color: #fff; background: rgba(8,9,13,.6); padding: 3px 7px; border-radius: 999px; opacity: .9; }
+.cos-frame { border-radius: 16px; overflow: hidden; background: #12141A; aspect-ratio: 16 / 9; margin: 6px 0 10px; }
+.cos-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
 .skgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
 .skcell { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
 .skcell b { font-size: 15px; }
@@ -2391,7 +2395,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   function strikeShopHTML() {
     const av = availOf(uid), now = Date.now(), owner = uid === L.issuer;
     const shop = cosShopAt(now, config.salt), reset = WEEK0 + (arcDay(now) + 1) * DAY;
-    const cell = id => { const inf = sknInfo(id), pr = SKN_PRICE[inf[2]], can = av[pr[0]] >= pr[1], have = mySkins(uid).some(x => x.s === id); return `<div class="skcell">${sknSw(id)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}</span>${have ? '<span class="small soft">You have one</span>' : ''}<button type="button" class="chipbtn" data-act="cos-buy" data-s="${id}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; };
+    const cell = id => { const inf = sknInfo(id), pr = SKN_PRICE[inf[2]], can = av[pr[0]] >= pr[1], have = mySkins(uid).some(x => x.s === id); return `<div class="skcell"><button type="button" class="skview" data-act="cos-view" data-s="${id}" aria-label="See ${esc(inf[1])} on a gun">${sknSw(id)}<i>See it on a gun</i></button><b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}</span>${have ? '<span class="small soft">You have one</span>' : ''}<button type="button" class="chipbtn" data-act="cos-buy" data-s="${id}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; };
     let h = owner ? `<p class="small soft">You’re the bank, so anything you buy here goes straight back into your vault.</p>` : '';
     h += `<h3>Today’s Strike shop</h3><p class="small soft">Camos, charms and tracers for Scobb Strike. 12 new ones in ${timeLeft(reset - now)}.</p>`;
     for (const type of ['camo', 'charm', 'tracer']) h += `<h3 class="small soft" style="margin:10px 0 6px">${COS_KIND[type] === 'Tracers' ? 'Tracers' : COS_KIND[type] + 's'}</h3><div class="skgrid">${shop.filter(id => sknInfo(id)[7] === type).map(cell).join('')}</div>`;
@@ -2409,7 +2413,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     if (!mine.length) h += `<p class="small soft">Nothing yet. Buy something from the shop or open a crate.</p>`;
     for (const type of ['camo', 'charm', 'tracer']) {
       const list = mine.filter(x => sknInfo(x.s)[7] === type);
-      if (list.length) h += `<h3 class="small soft" style="margin:10px 0 6px">${type === 'tracer' ? 'Tracers' : COS_KIND[type] + 's'} (${list.length})</h3><div class="skgrid">${list.map(x => { const inf = sknInfo(x.s); return `<div class="skcell">${sknSw(x.s)}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[x.r]}">${RN[x.r]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-list" data-sk="${x.key}">Sell on market</button></div>`; }).join('')}</div>`;
+      if (list.length) h += `<h3 class="small soft" style="margin:10px 0 6px">${type === 'tracer' ? 'Tracers' : COS_KIND[type] + 's'} (${list.length})</h3><div class="skgrid">${list.map(x => { const inf = sknInfo(x.s); return `<div class="skcell"><button type="button" class="skview" data-act="cos-view" data-s="${x.s}" data-sk="${x.key}" aria-label="See ${esc(inf[1])} on a gun">${sknSw(x.s)}<i>See it on a gun</i></button><b>${esc(inf[1])}</b><span style="color:${SKN_RC[x.r]}">${RN[x.r]}${inf[6] ? ' · animated' : ''}</span><button type="button" class="chipbtn" data-act="skin-list" data-sk="${x.key}">Sell on market</button></div>`; }).join('')}</div>`;
     }
     if (mine.length) h += `<p class="small soft">Equip these in Scobb Strike under Loadout. Anything you sell goes to the Market tab in ScobbBucks.</p>`;
     return h;
@@ -3368,7 +3372,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102e'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102f'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -3871,12 +3875,20 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'swap': () => openSwap(),
     'fps-armory': () => openArmory(),
     'skin-crates': () => crateSheet(),
+    'cos-view': b => {
+      const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
+      const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102f" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
+        + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
+      openSheet('cos-view', html);
+    },
     'cos-buy': b => {
       if (!guardWrite()) return;
       const id = b.dataset.s, pr = SKN_PRICE[sknInfo(id)[2]];
       if (!cosShopAt(Date.now(), config.salt).includes(id)) { toast('That one left the shop.'); render(); return; }
       if (availOf(uid)[pr[0]] < pr[1]) { toast(`You need ${pr[1]} ${RN[pr[0]]} coins.`); return; }
-      newEntry('cosbuy', { s: id }); toast(`Bought ${sknInfo(id)[1]}. Equip it in Scobb Strike under Loadout.`); render();
+      newEntry('cosbuy', { s: id }); closeSheet(true); toast(`Bought ${sknInfo(id)[1]}. Equip it in Scobb Strike under Loadout.`); render();
     },
     'skin-buy': b => {
       if (!guardWrite()) return;
@@ -4096,7 +4108,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102e'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102f'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
