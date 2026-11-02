@@ -167,7 +167,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102a';
+import { create } from './scobb3d.js?v=20261102b';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -322,7 +322,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102a');
+    const cfg = await import('./firebase-config.js?v=20261102b');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -398,7 +398,7 @@ ui.addEventListener('click', e => {
 });
 function openStore() {
   const d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102a" title="Inventory" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102b" title="Inventory" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -817,7 +817,7 @@ function rangeStats() {
 /* ================= flow: attract mode, randomizer, practice ================= */
 function ensureGL() {
   if (G) return true;
-  G = create(cv, window.innerWidth, window.innerHeight, { free: true, opaque: true, onLost: showGLError });
+  G = create(cv, window.innerWidth, window.innerHeight, { free: true, opaque: true, onLost: showGLError, onRestore: () => location.reload() });
   if (!G) { showGLError(); return false; }
   return true;
 }
@@ -870,13 +870,15 @@ function quit() {
   if (mode === 'match' && me && !attract && match && match.phase !== 'done' && ((me.tk || 0) + (me.td || 0)) > 0) recordMatch(false, true);
   hideDeath(); paused = false; mode = 'match'; startAttract();
 }
-window.addEventListener('resize', () => { if (!G) return; G.destroy(); G = null; ensureGL(); if (M) setMapLook(); });
+// Safari fires resize while the page loads. Resize the view in place; never recreate the context.
+let resizeT = 0;
+window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (G) G.resize(window.innerWidth, window.innerHeight); }, 60); });
 
 /* ================= main loop ================= */
 let blankFrames = 0, blankChecked = false;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (running && G) {
+  if (running && G && !G.lost) {
     if (!paused) step(dt);
     render();
     if (!blankChecked) {

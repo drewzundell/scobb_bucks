@@ -138,7 +138,14 @@ export function create(canvas, W, H, opts) {
   const ctxOpts = { antialias: !big, alpha: !opts.opaque, premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: false };
   const gl = canvas.getContext('webgl', ctxOpts) || canvas.getContext('experimental-webgl', ctxOpts);
   if (!gl) { create.lastError = 'This browser could not start WebGL. In Safari, check Settings > Advanced > Feature Flags and make sure WebGL is on.'; return null; }
-  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); create.lastError = 'The graphics card reset. Reload the page.'; if (opts.onLost) opts.onLost(); }, false);
+  let lostTimer = 0;
+  canvas.addEventListener('webglcontextlost', e => {
+    e.preventDefault(); api.lost = true;
+    create.lastError = 'The browser turned off 3D graphics for this page. Reload the page.';
+    clearTimeout(lostTimer);
+    lostTimer = setTimeout(() => { if (api.lost && opts.onLost) opts.onLost(); }, 3000);
+  }, false);
+  canvas.addEventListener('webglcontextrestored', () => { clearTimeout(lostTimer); if (opts.onRestore) opts.onRestore(); }, false);
   if (gl.drawingBufferWidth < canvas.width * 0.99) { canvas.width = gl.drawingBufferWidth; canvas.height = gl.drawingBufferHeight; }
   const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'shader failed'); return s; };
   // Some phones and older Safari builds lack high precision in fragment shaders, so fall back to medium.
@@ -157,9 +164,9 @@ export function create(canvas, W, H, opts) {
   gl.enableVertexAttribArray(aP); gl.enableVertexAttribArray(aN);
   const meshes = buildMeshes(gl);
   const fov = (opts.fov || 38) * Math.PI / 180;
-  const D = (H / 2) / Math.tan(fov / 2);
-  const eye = [0, 0, D];
-  const VP = mul(persp(fov, W / H, D * 0.2, D * 4), lookAt(eye, [0, 0, 0], [0, 1, 0]));
+  let D = (H / 2) / Math.tan(fov / 2);
+  let eye = [0, 0, D];
+  let VP = mul(persp(fov, W / H, D * 0.2, D * 4), lookAt(eye, [0, 0, 0], [0, 1, 0]));
   const L = norm(opts.light || [-0.45, 0.75, 0.6]);
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
@@ -246,6 +253,21 @@ export function create(canvas, W, H, opts) {
     light(dir) { gl.uniform3fv(U.uL, norm(dir)); },
     setSky(sky, ground) { gl.uniform3fv(U.uSky, hex(sky)); gl.uniform3fv(U.uGround, hex(ground)); },
     project(px, py, pz) { const x = wx(px), y = wy(py), z = pz || 0; const s = D / (D - z); return [W / 2 + x * s, H / 2 - y * s]; },
+    // Resize the existing canvas and camera. Never throw the context away to resize: a canvas can't get a new one.
+    resize(w, h) {
+      W = w; H = h;
+      const d0 = Math.min(2, window.devicePixelRatio || 1), d = Math.min(d0, Math.sqrt(MAX_PIX / Math.max(1, W * H)));
+      canvas.width = Math.round(W * d); canvas.height = Math.round(H * d);
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      if (!opts.free) {
+        D = (H / 2) / Math.tan(fov / 2); eye = [0, 0, D];
+        VP = mul(persp(fov, W / H, D * 0.2, D * 4), lookAt(eye, [0, 0, 0], [0, 1, 0]));
+        gl.uniformMatrix4fv(U.uVP, false, VP); gl.uniform3fv(U.uEye, eye);
+      }
+      api.W = W; api.H = H;
+    },
+    lost: false,
     destroy() { const ext = gl.getExtension('WEBGL_lose_context'); if (ext) ext.loseContext(); }
   };
   return api;
