@@ -1265,6 +1265,22 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   }
 
   const FPS_ESC = '_fps', FPS_MAX = 100, FPS_WAIT = 10 * 60000, FPS_STALE = 60 * 60000;
+  const FPS_CLASSES = [['ar', 'Assault rifles', ['Scobb AR', 'Jelly M4', 'Tidal ACR', 'Volt Rifle', 'Mythic Scar']], ['smg', 'SMGs', ['Jelly SMG', 'Buzz MP5', 'Viper Vector', 'Comet P90', 'Mythic Kriss']], ['sg', 'Shotguns', ['Pump Shotgun', 'Twin Barrel', 'Auto Spitter', 'Dragon Breath', 'Mythic Saiga']], ['sn', 'Snipers', ['Longshot', 'Hunter Bolt', 'Ghost Rifle', 'Railgun', 'Mythic Hawk']], ['lmg', 'LMGs', ['Heavy LMG', 'Brick Saw', 'Thunder MG', 'Titan Belt', 'Mythic Minigun']], ['dmr', 'Marksman rifles', ['Marksman DMR', 'Ranger', 'Sentinel', 'Laser DMR', 'Mythic Eagle']], ['pi', 'Pistols', ['Scobb 9', 'Big Iron', 'Desert Hawk', 'Twin Viper', 'Mythic Hand Cannon']]];
+  const FPS_ATT = [['optic', 'Optics', ['Iron sights', 'Red dot', 'Holo', '4x scope']], ['barrel', 'Barrels', ['Stock barrel', 'Suppressor', 'Compensator', 'Long barrel']], ['mag', 'Magazines', ['Standard', 'Fast mag', 'Extended', 'Drum']], ['grip', 'Grips and stocks', ['None', 'Light stock', 'Laser', 'Vertical grip']]];
+  const FPS_WPRICE = [null, [0, 12], [1, 8], [2, 5], [3, 3]], FPS_APRICE = [null, [0, 6], [1, 5], [2, 3]];
+  function fpsItemName(it) {
+    let m = /^w:([a-z]+)(\d)$/.exec(it);
+    if (m) { const c = FPS_CLASSES.find(x => x[0] === m[1]); return c ? c[2][+m[2]] : it; }
+    m = /^a:([a-z]+):(\d)$/.exec(it);
+    if (m) { const a = FPS_ATT.find(x => x[0] === m[1]); return a ? a[2][+m[2]] : it; }
+    return it;
+  }
+  function fpsPrice(it) {
+    let m = /^w:(ar|smg|sg|sn|lmg|dmr|pi)([1-4])$/.exec(it);
+    if (m) return FPS_WPRICE[+m[2]];
+    m = /^a:(optic|barrel|mag|grip):([1-3])$/.exec(it);
+    return m ? FPS_APRICE[+m[2]] : null;
+  }
   function replay(cfg, pl) {
     const issuer = cfg.issuer;
     const bal = Object.create(null);
@@ -1440,7 +1456,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       else { bad[key] = 'shape'; return; }
       if (T.seats.every(s => s.cpu || s.fold || s.acted)) pkStreet(T, ent, e.t);
     }
-    const fps = Object.create(null);
+    const fps = Object.create(null), fpsOwned = Object.create(null);
     function fpsSettle(M, t, how) {
       const us = Object.keys(M.stakes), pot = coinsOf(M.r, M.n * us.length);
       if (how === 'refund') for (const u of us) move(FPS_ESC, u, coinsOf(M.r, M.n));
@@ -1535,6 +1551,13 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         casEntry(e, a, key, ent);
       } else if (e.k === 'fps') {
         fpsEntry(e, a, key);
+      } else if (e.k === 'fpsbuy') {
+        const pr = typeof e.it === 'string' ? fpsPrice(e.it) : null;
+        const own = fpsOwned[a] || (fpsOwned[a] = new Set());
+        if (!pr) bad[key] = 'shape';
+        else if (own.has(e.it)) bad[key] = 'have';
+        else if (!has(a, coinsOf(pr[0], pr[1]))) bad[key] = 'funds';
+        else { move(a, issuer, coinsOf(pr[0], pr[1])); own.add(e.it); events.push({ k: 'fpsbuy', key, a, it: e.it, r: pr[0], n: pr[1], t: e.t }); }
       } else if (e.k === 'arc') {
         if (a === issuer) { bad[key] = 'who'; continue; }
         const A = arc[a] || (arc[a] = { days: {}, byKey: {} });
@@ -1608,7 +1631,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         bad[key] = 'kind';
       }
     }
-    return { bal, items, offers, events, bad, maxT, issuer, total, press, funded, arc, cas, fps };
+    return { bal, items, offers, events, bad, maxT, issuer, total, press, funded, arc, cas, fps, fpsOwned };
   }
 
   /* ================= state ================= */
@@ -1945,6 +1968,44 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   }
 
   let rafPending = false;
+  let fpsStats = {}, fpsSyncSig = '';
+  const kdOf = u => { const s = fpsStats[u]; if (!s || (!s.k && !s.d)) return null; return s.d ? (s.k / s.d).toFixed(2) : Number(s.k || 0).toFixed(2); };
+  function look3d(u) {
+    const look = lookOf(u), eq = equipIds(u), out = { body: (BODY[look.color] || BODY.grape).c };
+    for (const sl in eq) {
+      const id = eq[sl], m = /^g:([a-z]+):(\d+):(\d+)/.exec(id);
+      let c = '#8F96A3', kind = '';
+      if (m) { const pal = PALS[+m[3]]; if (pal) c = pal[2]; const base = GBASES[m[1]] && GBASES[m[1]][+m[2]]; kind = base ? base[0] : ''; }
+      else if (CAT[id]) kind = CAT[id].name || '';
+      out[sl] = { c, kind: String(kind).toLowerCase() };
+    }
+    return out;
+  }
+  // Keeps fpsStats/{uid} in step with the gear you own and how your avatar looks, so Scobb Strike can show them.
+  function syncStrike() {
+    if (!L || !uid || !fs || !players[uid]) return;
+    const owned = Array.from((L.fpsOwned && L.fpsOwned[uid]) || []).sort();
+    const look = look3d(uid), sig = JSON.stringify([owned, look]);
+    if (sig === fpsSyncSig) return;
+    fpsSyncSig = sig;
+    FB.setDoc(FB.doc(fs, 'fpsStats/' + uid), { owned, look }, { merge: true }).catch(() => { fpsSyncSig = ''; });
+  }
+  function openArmory() {
+    const draw = () => {
+      const own = (L && L.fpsOwned && L.fpsOwned[uid]) || new Set(), av = availOf(uid);
+      const row = (it, name, sub) => {
+        const pr = fpsPrice(it), have = !pr || own.has(it), can = pr && av[pr[0]] >= pr[1];
+        return `<div class="ev"><div class="main"><div class="t"><b>${esc(name)}</b></div><div class="s">${sub}</div></div>${have ? '<span class="status done">Owned</span>' : `<button type="button" class="chipbtn" data-act="fps-buy" data-it="${it}"${can && uid !== L.issuer ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button>`}</div>`;
+      };
+      let h = sheetHead('Scobb Strike Armory', 'Unlock guns and attachments for Scobb Strike. Higher tiers are better and cost more. Coins go to the bank.');
+      h += `<p class="small soft">Your K/D: <b>${kdOf(uid) || '0.00'}</b>${fpsStats[uid] ? ` · ${fpsStats[uid].k || 0} kills · ${fpsStats[uid].wins || 0} match wins` : ''}</p>`;
+      for (const [c, label, names] of FPS_CLASSES) h += `<h3>${label}</h3><div class="list">${names.map((nm, t) => row(t ? `w:${c}${t}` : '', nm, t ? `Tier ${t + 1}` : 'Free')).join('')}</div>`;
+      for (const [a, label, names] of FPS_ATT) h += `<h3>${label}</h3><div class="list">${names.map((nm, i) => row(i ? `a:${a}:${i}` : '', nm, i ? `Tier ${i + 1}` : 'Free')).join('')}</div>`;
+      h += `<a class="btn btn-grape btn-block mt" href="./fps.html" target="_blank" rel="noopener" style="display:grid;place-items:center;text-decoration:none">Play Scobb Strike</a>`;
+      return h;
+    };
+    openSheet('armory', draw(), () => {}, { refresh: () => { const el = $('#sheet-body'), sc = $('#sheet'); const st = sc ? sc.scrollTop : 0; if (el) el.innerHTML = draw(); if (sc) sc.scrollTop = st; } });
+  }
   function recompute() {
     if (rafPending) return;
     rafPending = true;
@@ -1956,6 +2017,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       if (sheet && sheet.refresh) sheet.refresh();
       renderTabs();
       payPrizes();
+      syncStrike();
       if (ui.cas) drawCas(false);
       casAuto();
     });
@@ -2171,7 +2233,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       h += `<button type="button" class="banner gift" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
     }
     if (inc.length) h += `<button type="button" class="banner" data-act="tab" data-tab="trades">${headBubble(inc[0].from, 34)}<span class="bt">${inc.length === 1 ? `${esc(nameOf(inc[0].from))} sent you a trade offer` : `${inc.length} trade offers are waiting on you`}</span><span class="pill">View</span></button>`;
-    h += `<div class="lpanel">${owner ? '' : pressRow()}${arcadeRow()}${casinoRow()}<a class="lrow" href="./fps.html" target="_blank" rel="noopener"><span class="sq">${icon('aim')}</span><span class="lt"><b>Scobb Strike</b><span>3D free for all shooter. Opens in a new tab</span></span><span class="chipbtn">Play</span></a>${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
+    h += `<div class="lpanel">${owner ? '' : pressRow()}${arcadeRow()}${casinoRow()}<a class="lrow" href="./fps.html" target="_blank" rel="noopener"><span class="sq">${icon('aim')}</span><span class="lt"><b>Scobb Strike</b><span>3D shooter in a new tab · K/D ${kdOf(uid) || '0.00'}</span></span><span class="chipbtn">Play</span></a><button type="button" class="lrow" data-act="fps-armory"><span class="sq">${icon('aim')}</span><span class="lt"><b>Strike Armory</b><span>Unlock guns and attachments with ScobbBucks</span></span><span class="chipbtn">Open</span></button>${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
     h += `<h2>Activity</h2>${activityHTML()}`;
     return h;
   }
@@ -2213,6 +2275,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       else if (ev.k === 'arc' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'cas' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'fps' && ev.a === uid) rows.push(ev);
+      else if (ev.k === 'fpsbuy' && ev.a === uid) rows.push(ev);
     }
     for (const id in farmResults) {
       const r = farmResults[id];
@@ -2249,6 +2312,10 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         other = ev.opp || uid;
         t = ev.res === 'refund' ? `Scobb Strike vs <b>${esc(nameOf(ev.opp))}</b>: your wager was refunded` : `Scobb Strike vs <b>${esc(nameOf(ev.opp))}</b>: ${ev.res === 'win' ? `you won <b>${coinsAmt(ev.r, ev.n)}</b>` : `you lost <b>${coinsAmt(ev.r, ev.n)}</b>`}`;
         more = ev.res === 'refund' ? `<p class="s">The games didn’t agree on a winner, or the match never started, so you got your ${coinsAmt(ev.r, ev.n)} back.</p>` : `<div class="chips"><span class="status${ev.res === 'win' ? ' done' : ''}" style="${ev.res === 'loss' ? 'background:#FDE7E8;color:#B8353A' : ''}">${ev.res === 'win' ? '+' : '−'}${fmtInt(ev.n)} ${RN[ev.r]}</span><span class="small soft">Wager was ${coinsAmt(ev.r, ev.n)} each</span></div>`;
+      } else if (ev.k === 'fpsbuy') {
+        other = uid;
+        t = `Scobb Strike Armory: you unlocked <b>${esc(fpsItemName(ev.it))}</b>`;
+        more = `<p class="s">Paid ${coinsAmt(ev.r, ev.n)} to the bank.</p>`;
       } else if (ev.k === 'farmres') {
         other = uid;
         t = ev.place === 0 ? `Scobb Farm round ${ev.n}: <b>you won!</b>` : `Scobb Farm round ${ev.n}: you ${ev.place > 0 ? `finished ${['1st', '2nd', '3rd'][ev.place] || (ev.place + 1) + 'th'}` : 'lost'}`;
@@ -3124,7 +3191,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       const body = $('#t-body');
       const draw = () => {
         if (!to) { body.innerHTML = ''; return; }
-        body.innerHTML = `<div class="side-card"><h3>You give</h3>${stepperHTML('tg', availOf(uid), 'give')}<h3>Your items</h3>${itemPickHTML('tgi', availItemsOf(uid), uid)}</div>
+        body.innerHTML = `<p class="small soft">${esc(nameOf(to))}’s Scobb Strike K/D: <b>${kdOf(to) || '0.00'}</b></p><div class="side-card"><h3>You give</h3>${stepperHTML('tg', availOf(uid), 'give')}<h3>Your items</h3>${itemPickHTML('tgi', availItemsOf(uid), uid)}</div>
           <div class="side-card"><h3>You get from ${esc(nameOf(to))}</h3>${stepperHTML('tw', availOf(to), 'ask for')}<h3>Their items</h3>${itemPickHTML('twi', availItemsOf(to), to)}</div>`;
       };
       wireTo(u => { to = u; draw(); }, prefTo);
@@ -3230,6 +3297,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       const me = u === uid;
       $('#sheet-body').innerHTML = sheetHead(esc(nameOf(u)), `Joined ${new Date(p.joinedAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${u === L.issuer ? '. The bank.' : ''}`)
         + `<div class="preview-av"><button type="button" class="stage-btn" id="prof-av" data-act="prof-emote" data-e="${emoteOf(u)}" aria-label="Play their emote">${ava(u, { cls: 'big' })}</button></div>`
+        + `<h3>Scobb Strike</h3><p class="small">K/D <b>${kdOf(u) || '0.00'}</b>${fpsStats[u] ? ` · ${fpsStats[u].k || 0} kills · ${fpsStats[u].d || 0} deaths · ${fpsStats[u].wins || 0} match wins` : ' · No matches yet'}</p>`
         + `<h3>Coins</h3>${sumC(bal) ? `<div class="chips">${coinChips(bal)}</div>` : '<p class="small soft">No coins yet.</p>'}`
         + `<h3>Items</h3>${its.length ? `<div class="chips">${its.map(x => `<span class="it-tag"><span class="tb">${thumbSVG(x.it, lookOf(u))}</span>${esc(CAT[x.it].name)}${x.count > 1 ? ' ×' + x.count : ''}</span>`).join('')}</div>` : '<p class="small soft">No items yet.</p>'}`
         + (me || readOnly ? '' : `<div class="row2 mt"><button type="button" class="btn btn-grape" data-act="send" data-u="${esc(u)}">Send</button><button type="button" class="btn btn-ghost" data-act="new-trade" data-u="${esc(u)}">Trade</button></div><button type="button" class="btn btn-ghost btn-block mt" data-act="dm-open" data-u="${esc(u)}">Message</button>`);
@@ -3438,6 +3506,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'farm-use': b => { const it = CAT[b.dataset.id]; if (!it || !guardWrite()) return; meDoc.farmEquip = Object.assign({}, meDoc.farmEquip || {}); const on = meDoc.farmEquip[it.b] === it.id; meDoc.farmEquip[it.b] = on ? null : it.id; savePlayer(); recompute(); toast(on ? 'Back to the default look' : `Your ${it.bname.toLowerCase()} uses it now`); },
     'mint-more': () => openMintMore(),
     'swap': () => openSwap(),
+    'fps-armory': () => openArmory(),
+    'fps-buy': b => { if (!guardWrite()) return; const it = b.dataset.it; const pr = fpsPrice(it); if (!pr) return; newEntry('fpsbuy', { it }); toast(`Unlocked ${fpsItemName(it)}. It shows up in Scobb Strike in a few seconds.`); },
     'cas-open': b => { const g = b.dataset.g, prac = uid === L.issuer; if (!CAS_GAMES[g]) return; casShow(CAS_GAMES[g].solo ? { view: g, practice: prac } : { view: 'setup', g, practice: prac }); },
     'cas-again': b => casShow({ view: 'setup', g: b.dataset.g, practice: !!(ui.cas && ui.cas.practice) }),
     'cas-close': () => casClose(),
@@ -3620,6 +3690,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     }, onDbError));
     unsubs.push(FB.onSnapshot(FB.query(FB.collection(fs, 'dms'), FB.where('a', '==', uid)), qs => onDmSnap('from', qs), onDmError));
     unsubs.push(FB.onSnapshot(FB.query(FB.collection(fs, 'dms'), FB.where('to', '==', uid)), qs => onDmSnap('to', qs), onDmError));
+    unsubs.push(FB.onSnapshot(FB.collection(fs, 'fpsStats'), qs => { const m = {}; qs.forEach(d => { m[d.id] = d.data(); }); fpsStats = m; if (sheet && sheet.refresh) sheet.refresh(); }, () => {}));
     unsubs.push(FB.onSnapshot(FB.collection(fs, 'farmResults'), qs => { const next = {}; qs.forEach(d => { next[d.id] = d.data(); }); farmResults = next; recompute(); }, () => {}));
     FB.getDoc(FB.doc(fs, 'private/' + uid)).then(snap => {
       if (snap.exists()) priv = Object.assign({ seen: [] }, clone(snap.data()));

@@ -135,11 +135,23 @@ export function create(canvas, W, H, opts) {
   canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
   canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
   const big = canvas.width * canvas.height > MAX_PIX * 0.6;
-  const gl = canvas.getContext('webgl', { antialias: !big, alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: false });
-  if (!gl) return null;
+  const ctxOpts = { antialias: !big, alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: false };
+  const gl = canvas.getContext('webgl', ctxOpts) || canvas.getContext('experimental-webgl', ctxOpts);
+  if (!gl) { create.lastError = 'This browser could not start WebGL. In Safari, check Settings > Advanced > Feature Flags and make sure WebGL is on.'; return null; }
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); create.lastError = 'The graphics card reset. Reload the page.'; if (opts.onLost) opts.onLost(); }, false);
   if (gl.drawingBufferWidth < canvas.width * 0.99) { canvas.width = gl.drawingBufferWidth; canvas.height = gl.drawingBufferHeight; }
-  const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
-  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr)); gl.useProgram(pr);
+  const sh = (t, src) => { const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) || 'shader failed'); return s; };
+  // Some phones and older Safari builds lack high precision in fragment shaders, so fall back to medium.
+  const hp = gl.getShaderPrecisionFormat ? gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT) : null;
+  const fsSrc = hp && hp.precision > 0 ? FS : FS.replace('precision highp float;\nprecision highp int;', 'precision mediump float;\nprecision mediump int;');
+  const vsSrc = hp && hp.precision > 0 ? VS : 'precision mediump int;\n' + VS;
+  const pr = gl.createProgram();
+  try { gl.attachShader(pr, sh(gl.VERTEX_SHADER, vsSrc)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fsSrc)); }
+  catch (err) { create.lastError = 'Shader error: ' + err.message; return null; }
+  gl.bindAttribLocation(pr, 0, 'aP'); gl.bindAttribLocation(pr, 1, 'aN');
+  gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { create.lastError = 'Link error: ' + gl.getProgramInfoLog(pr); return null; }
+  gl.useProgram(pr);
   const U = {}; for (const k of ['uFogC', 'uFogD', 'uVP', 'uM', 'uNM', 'uMode', 'uBox', 'uRad', 'uColor', 'uColor2', 'uStripe', 'uEye', 'uL', 'uSky', 'uGround', 'uSpec', 'uShiny', 'uAlpha', 'uEmit']) U[k] = gl.getUniformLocation(pr, k);
   const aP = gl.getAttribLocation(pr, 'aP'), aN = gl.getAttribLocation(pr, 'aN');
   gl.enableVertexAttribArray(aP); gl.enableVertexAttribArray(aN);
