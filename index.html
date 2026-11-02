@@ -2086,20 +2086,21 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     fpsSyncSig = sig;
     FB.setDoc(FB.doc(fs, 'fpsStats/' + uid), { owned, look, skins: skinIds }, { merge: true }).catch(() => { fpsSyncSig = ''; });
   }
-  function openArmory() {
-    const draw = () => {
+  function armoryHTML(inStrike) {
       const own = (L && L.fpsOwned && L.fpsOwned[uid]) || new Set(), av = availOf(uid);
       const row = (it, name, sub) => {
         const pr = fpsPrice(it), have = !pr || own.has(it), can = pr && av[pr[0]] >= pr[1];
         return `<div class="ev"><div class="main"><div class="t"><b>${esc(name)}</b></div><div class="s">${sub}</div></div>${have ? '<span class="status done">Owned</span>' : `<button type="button" class="chipbtn" data-act="fps-buy" data-it="${it}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button>`}</div>`;
       };
-      let h = sheetHead('Scobb Strike Armory', 'Unlock guns and attachments for Scobb Strike. Higher tiers are better and cost more. Coins go to the bank.');
+      let h = inStrike ? `<header class="top" style="justify-content:flex-start"><h1>Armory</h1></header><div class="chips" style="margin-bottom:6px">${coinChips(av)}</div><p class="small soft">Unlock guns and attachments. Higher tiers are better and cost more. Coins go to the bank. What you unlock shows up in your Loadout in a few seconds.</p>` : sheetHead('Scobb Strike Armory', 'Unlock guns and attachments for Scobb Strike. Higher tiers are better and cost more. Coins go to the bank.');
       h += `<p class="small soft">Your K/D: <b>${kdOf(uid) || '0.00'}</b>${fpsStats[uid] ? ` · ${fpsStats[uid].k || 0} kills · ${fpsStats[uid].wins || 0} match wins` : ''}</p>`;
       for (const [c, label, names] of FPS_CLASSES) h += `<h3>${label}</h3><div class="list">${names.map((nm, t) => row(t ? `w:${c}${t}` : '', nm, t ? `Tier ${t + 1}` : 'Free')).join('')}</div>`;
       for (const [a, label, names] of FPS_ATT) h += `<h3>${label}</h3><div class="list">${names.map((nm, i) => row(i ? `a:${a}:${i}` : '', nm, i ? `Tier ${i + 1}` : 'Free')).join('')}</div>`;
-      h += `<a class="btn btn-grape btn-block mt" href="./fps.html" target="_blank" rel="noopener" style="display:grid;place-items:center;text-decoration:none">Play Scobb Strike</a>`;
+      if (!inStrike) h += `<a class="btn btn-grape btn-block mt" href="./fps.html" target="_blank" rel="noopener" style="display:grid;place-items:center;text-decoration:none">Play Scobb Strike</a>`;
       return h;
-    };
+  }
+  function openArmory() {
+    const draw = () => armoryHTML(false);
     openSheet('armory', draw(), () => {}, { refresh: () => { const el = $('#sheet-body'), sc = $('#sheet'); const st = sc ? sc.scrollTop : 0; if (el) el.innerHTML = draw(); if (sc) sc.scrollTop = st; } });
   }
   function recompute() {
@@ -2391,7 +2392,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       : `<button type="button" class="chipbtn" data-act="mkt-bid" data-lot="${l.id}">Bid</button><button type="button" class="chipbtn" data-act="mkt-buy" data-lot="${l.id}">Buy now ${coinsAmt(l.r, l.buy)}</button>`;
     return `<div class="ev">${sknSw(sk, 'skw-sm')}<div class="main"><div class="t"><b>${esc(inf[1])}</b> <span class="small" style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span></div><div class="s">${mine ? 'Yours' : `From ${esc(nameOf(l.seller))}`} · Start ${coinsAmt(l.r, l.start)} · ${top}</div><div class="chips">${acts}</div></div></div>`;
   }
-  const STORE_MODE = new URLSearchParams(location.search).has('store');
+  const STORE_MODE = new URLSearchParams(location.search).has('store'), STORE_KIND = new URLSearchParams(location.search).get('store');
   function strikeShopHTML() {
     const av = availOf(uid), now = Date.now(), owner = uid === L.issuer;
     const shop = cosShopAt(now, config.salt), reset = WEEK0 + (arcDay(now) + 1) * DAY;
@@ -2444,7 +2445,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const t = ui.tab;
     const inp = $('#dm-input'), had = !!inp && document.activeElement === inp;
     if (inp) ui.dmDraft = inp.value;
-    app.innerHTML = STORE_MODE ? storeTab() : t === 'shop' ? shopTab() : t === 'market' ? marketTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
+    app.innerHTML = STORE_MODE ? (STORE_KIND === 'armory' ? armoryHTML(true) : storeTab()) : t === 'shop' ? shopTab() : t === 'market' ? marketTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
     const ni = $('#dm-input');
     if (ni) { ni.value = ui.dmDraft || ''; if (had) { ni.focus(); ni.setSelectionRange(ni.value.length, ni.value.length); } }
     if (t === 'chats' && ui.dmWith) {
@@ -3372,7 +3373,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102f'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102g'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -3878,7 +3879,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102f" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102g" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -4108,7 +4109,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102f'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102g'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }

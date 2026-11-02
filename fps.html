@@ -208,7 +208,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102f';
+import { create } from './scobb3d.js?v=20261102g';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -389,7 +389,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102f');
+    const cfg = await import('./firebase-config.js?v=20261102g');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -415,7 +415,7 @@ const kdText = () => { const k = stats.k || 0, d = stats.d || 0; return d ? (k /
 /* ================= menu (drawn over a live 3D battle) ================= */
 const ui = $('#ui');
 let view = 'home';
-const opt = (act, val, on, label, sub, locked, price) => `<button type="button" class="opt${locked ? ' lock' : ''}" data-act="${act}" data-v="${val}" aria-pressed="${on}"${locked ? ' data-locked="1"' : ''}>${label}${sub ? `<small>${sub}</small>` : ''}${locked ? `<span class="price">Locked · ${price}</span>` : ''}</button>`;
+const opt = (act, val, on, label, sub, locked, price) => `<button type="button" class="opt${locked ? ' lock' : ''}" data-act="${act}" data-v="${val}" aria-pressed="${on}"${locked ? ' data-locked="1"' : ''}>${label}${sub ? `<small>${sub}</small>` : ''}${locked ? `<span class="price">${/shop|crate/i.test(price) ? price : 'Locked · ' + price}</span>` : ''}</button>`;
 const CONTROLS = `<div class="keys"><span><kbd>Mouse</kbd></span><span>Look around</span><span><kbd>Click</kbd></span><span>Shoot</span><span><kbd>Right click</kbd></span><span>Aim down sights</span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>Move</span><span><kbd>Space</kbd></span><span>Jump</span><span><kbd>Shift</kbd></span><span>Sprint</span><span><kbd>R</kbd></span><span>Reload</span><span><kbd>1</kbd> <kbd>2</kbd></span><span>Primary or secondary</span><span><kbd>Q</kbd></span><span>Tactical</span><span><kbd>G</kbd></span><span>Lethal (hold to cook a frag)</span><span><kbd>Tab</kbd></span><span>Scoreboard</span><span><kbd>Esc</kbd></span><span>Pause</span></div><p class="small soft" style="margin:12px 0 0">On a phone or tablet, use the stick on the left to move, drag the right side to look, and tap the buttons to shoot, aim, jump, reload and throw.</p>`;
 function drawUI() {
   if (view === 'game') { ui.hidden = true; return; }
@@ -423,12 +423,15 @@ function drawUI() {
   fixLoadout();
   const P = WEAPONS[loadout.primary];
   let h = `<div class="shade"></div><div class="side"><h1 class="logo">Scobb<span>Strike</span></h1><div class="tag">Free for all · Best of 3</div>
-    <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" disabled><span>Wager 1v1</span><small>Bet ScobbBucks against a friend. Coming next.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="view" data-v="armory" class="${view === 'armory' ? 'on' : ''}"><span>Armory</span><small>Every gun and attachment you can unlock</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Calling cards</span><small>Challenges and the card killers see</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
+    <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" disabled><span>Wager 1v1</span><small>Bet ScobbBucks against a friend. Coming next.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="armory"><span>Armory</span><small>Buy guns and attachments with ScobbBucks</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Calling cards</span><small>Challenges and the card killers see</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
     <div class="kd"><div><b>${kdText()}</b><span>K/D</span></div><div><b>${stats.k || 0}</b><span>Kills</span></div><div><b>${stats.pts || 0}</b><span>Points</span></div><div><b>${stats.wins || 0}</b><span>Match wins</span></div></div>
     <p class="small soft" style="margin-top:22px">${ME_UID ? 'Your K/D shows on your ScobbBucks profile.' : 'Log in on ScobbBucks to track your K/D and use the gear you unlock.'} <a href="./" style="color:#C9C2FF">Back to ScobbBucks</a></p></div>`;
   if (view === 'loadout') {
     const card = id => { const w = WEAPONS[id], own = ownsW(id), eq = loadout.primary === id || loadout.secondary === id; return `<button type="button" class="wcard${own ? '' : ' lock'}${eq ? ' eq' : ''}" data-act="smith" data-v="${id}"${own ? '' : ' data-locked="1"'}><img alt="" src="${gunThumb(id)}"><b>${w.name}</b><span>${eq ? (loadout.primary === id ? 'Equipped primary' : 'Equipped secondary') : own ? 'Tier ' + (w.tier + 1) : 'Locked · ' + priceText(WPRICE[w.tier])}</span></button>`; };
-    h += `<div class="panel wide"><h2>Weapons</h2><p class="small soft">Pick a gun to customize it. Each gun keeps its own attachments and camo.</p>`;
+    h += `<div class="panel wide"><h2>Loadout</h2>`;
+    h += `<h3>Equipment</h3><div class="slots">${[['charm', 'Charm', loadout.charm ? skinInfo(loadout.charm)[1] : 'None'], ['tracer', 'Tracers', loadout.tracer ? skinInfo(loadout.tracer)[1] : 'Standard'], ['perk0', 'Perk 1', PERKS[0][loadout.perks[0]][0]], ['perk1', 'Perk 2', PERKS[1][loadout.perks[1]][0]], ['perk2', 'Perk 3', PERKS[2][loadout.perks[2]][0]], ['tac', 'Tactical', TACT[loadout.tac][0]], ['leth', 'Lethal', LETH[loadout.leth][0]]].map(([k, label, cur]) => `<button type="button" class="slotb${loSlot === k ? ' on' : ''}" data-act="loslot" data-v="${k}"><span>${label}</span><b>${cur}</b></button>`).join('')}</div>`;
+    if (loSlot) h += `<div class="sopts">${slotOptions(loadout.primary, loSlot, attOf(loadout.primary))}</div>`;
+    h += `<h3>Weapons</h3><p class="small soft">Pick a gun to customize it. Each gun keeps its own attachments and camo.</p>`;
     for (const c in CLASSES) h += `<h3>${CLASSES[c].name}</h3><div class="wgrid">${[0, 1, 2, 3, 4].map(t => card(c + t)).join('')}</div>`;
     h += `</div>`;
   } else if (view === 'smith') {
@@ -458,7 +461,7 @@ function drawUI() {
   if (slot) { slot.appendChild(prevCv); ensurePreview(); }
 }
 // ---- gun pictures for the weapon list, drawn once with the same 3D model ----
-let smithGun = 'ar0', smithSlot = 'optic', hl = null;
+let smithGun = 'ar0', smithSlot = 'optic', hl = null, loSlot = 'charm';
 const thumbCv = document.createElement('canvas'), thumbs = {};
 let G3 = null;
 function gunThumb(id) {
@@ -478,7 +481,12 @@ function gunThumb(id) {
 // The choices for one slot of the gun you're customizing.
 function slotOptions(id, slot, at) {
   if (ATT[slot]) return `<div class="row">${ATT[slot].map((a2, i) => opt('att-' + slot, i, at[slot] === i, a2[0], a2[2], !ownsA(slot, i), priceText(APRICE[a2[3]]))).join('')}</div>`;
-  const cos = (act, cur, type, none) => { const list = ownedOf(type); return `<div class="row">${opt(act, '', !cur, none, '')}${list.map(x => opt(act, x[0], cur === x[0], `<i class="swatch" style="background:${x[3]}"></i>${x[1]}`, RN[x[2]] + (x[6] ? ' · animated' : ''))).join('')}</div>${list.length ? '' : `<p class="small soft">You don’t have any yet. Get them from Inventory, or the Shop and crates in ScobbBucks.</p>`}`; };
+  const cos = (act, cur, type, none) => {
+    const list = ownedOf(type), all = type === 'camo' ? [] : ALLC.filter(x => x[7] === type && !skinsOwned.has(x[0]));
+    return `<div class="row">${opt(act, '', !cur, none, '')}${list.map(x => opt(act, x[0], cur === x[0], `<i class="swatch" style="background:${x[3]}"></i>${x[1]}`, RN[x[2]] + (x[6] ? ' · animated' : ''))).join('')}</div>`
+      + (all.length ? `<p class="small soft" style="margin:10px 0 6px">Not yours yet. Get them from Inventory, the ScobbBucks Shop, or crates.</p><div class="row">${all.map(x => opt(act, x[0], false, `<i class="swatch" style="background:${x[3]}"></i>${x[1]}`, RN[x[2]], true, 'In the shop or crates')).join('')}</div>` : '')
+      + (type === 'camo' && !list.length ? `<p class="small soft">You don’t have any camos yet. Get them from Inventory, the ScobbBucks Shop, or crates.</p>` : '');
+  };
   if (slot === 'camo') return cos('camo-g', loadout.camos[id] || '', 'camo', 'No camo');
   if (slot === 'charm') return cos('charm', loadout.charm, 'charm', 'No charm');
   if (slot === 'tracer') return cos('tracer', loadout.tracer, 'tracer', 'Standard');
@@ -519,9 +527,10 @@ ui.addEventListener('click', e => {
   const b = e.target.closest('[data-act]');
   if (!b || b.disabled) return;
   const a = b.dataset.act, v = b.dataset.v;
-  if (b.dataset.locked) { flashMsg('Unlock that in ScobbBucks under Scobb Strike Armory.'); return; }
+  if (b.dataset.locked) { openStore(a.startsWith('camo') || a === 'charm' || a === 'tracer' ? '' : 'armory'); return; }
   if (a === 'smith') { smithGun = v; smithSlot = CLASSES[WEAPONS[v].ck].p ? 'optic' : 'camo'; view = 'smith'; lastAdded = ''; hl = null; drawUI(); return; }
   if (a === 'slot') { smithSlot = v; drawUI(); return; }
+  if (a === 'loslot') { loSlot = loSlot === v ? '' : v; drawUI(); return; }
   if (a === 'equip') { if (CLASSES[WEAPONS[v].ck].p) loadout.primary = v; else loadout.secondary = v; loadout.att = attOf(loadout.primary); lastAdded = `Equipped ${WEAPONS[v].name}`; saveLoadout(); drawUI(); return; }
   if (a === 'view') view = view === v ? 'home' : v;
   else if (a === 'primary' || a === 'secondary' || a === 'tac' || a === 'leth') { loadout[a] = v; if (a === 'primary') lastAdded = ''; }
@@ -533,12 +542,14 @@ ui.addEventListener('click', e => {
   else if (a === 'practice') return beginPractice();
   else if (a === 'range') return beginRange();
   else if (a === 'store') return openStore();
+  else if (a === 'armory') return openStore('armory');
   else if (a === 'card') { myCard = v; try { localStorage.setItem('scobbstrike-card', v); } catch (e2) { /* ignore */ } if (FB && ME_UID) FB.setDoc(FB.doc(fsdb, 'fpsStats/' + ME_UID), { card: v }, { merge: true }).catch(() => {}); }
   saveLoadout(); drawUI();
 });
-function openStore() {
-  const d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>Inventory</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=1&v=20261102f" title="Inventory" allow="clipboard-write"></iframe>`;
+function openStore(kind) {
+  if (document.querySelector('.store')) return;
+  const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102g" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
