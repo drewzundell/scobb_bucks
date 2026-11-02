@@ -327,7 +327,7 @@ a.icon-btn { text-decoration: none; font-size: 22px; }
 @keyframes conf { to { transform: translate(var(--dx), 108vh) rotate(var(--rot)); } }
 
 /* tabs */
-.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 2px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(6, 1fr); }
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--card); border-top: 2px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: repeat(7, 1fr); }
 .tabs[hidden] { display: none; }
 .tab { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; border: 0; background: none; padding: 4px 0; color: var(--soft); font-weight: 800; font-size: 12.5px; }
 .tab .ib { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 999px; }
@@ -599,6 +599,20 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   .sheet, .backdrop, .toast { animation: none; }
   .rv .face { transition: none; }
 }
+/* ===== skins, crates and market ===== */
+.skw { display: block; width: 100%; aspect-ratio: 1; border-radius: 16px; background-size: 200% 200%; box-shadow: inset 0 -8px 14px rgba(0,0,0,.28), inset 0 4px 8px rgba(255,255,255,.35), 0 10px 18px -10px rgba(0,0,0,.55); flex: none; }
+.skw.skw-sm { width: 46px; height: 46px; border-radius: 12px; }
+.skw.skw-lg { width: 150px; margin: 0 auto 10px; }
+.skw.sk-anim { animation: sk-shift 3.2s linear infinite; }
+@keyframes sk-shift { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+.crate-card .skw { width: 86px; height: 86px; }
+.crate-ov { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(5,6,10,.82); padding: 16px; }
+.crate-box { width: min(94vw, 640px); background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 18px 0 20px; text-align: center; }
+.crate-box h2 { margin: 0 0 12px; font-size: 22px; }
+.crate-box .crate-win { margin: 0 14px; }
+.crate-box .crate-result { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 0 20px; font-size: 20px; }
+.crate-box .crate-result b { font-size: 22px; }
+.crate-box .btn { margin: 0 20px; width: calc(100% - 40px); }
 </style>
 </head>
 <body>
@@ -623,6 +637,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   <button type="button" class="tab" data-act="tab" data-tab="wallet"><span class="ib" data-icon="wallet"></span><span>Wallet</span><i class="badge" id="bd-wallet" hidden></i></button>
   <button type="button" class="tab" data-act="tab" data-tab="shop"><span class="ib" data-icon="shop"></span><span>Shop</span></button>
   <button type="button" class="tab" data-act="tab" data-tab="closet"><span class="ib" data-icon="closet"></span><span>Closet</span></button>
+  <button type="button" class="tab" data-act="tab" data-tab="market"><span class="ib" data-icon="market"></span><span>Market</span></button>
   <button type="button" class="tab" data-act="tab" data-tab="trades"><span class="ib" data-icon="trades"></span><span>Trades</span><i class="badge" id="bd-trades" hidden></i></button>
   <button type="button" class="tab" data-act="tab" data-tab="chats"><span class="ib" data-icon="chat"></span><span>Chats</span><i class="badge" id="bd-chats" hidden></i></button>
   <button type="button" class="tab" data-act="tab" data-tab="feed"><span class="ib" data-icon="feed"></span><span>Feed</span></button>
@@ -679,6 +694,8 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     sprout: '<path d="M12 21V10"/><path d="M12 13c-3.3 0-5.5-2.2-5.5-5.5 3.3 0 5.5 2.2 5.5 5.5Z"/><path d="M12 11c0-3.3 2.2-5.5 5.5-5.5 0 3.3-2.2 5.5-5.5 5.5Z"/><path d="M6 21h12"/>',
     press: '<rect x="4" y="9" width="16" height="11" rx="2"/><path d="M8 9V5.5h8V9M9 14.5h6"/>',
     aim: '<circle cx="12" cy="12" r="7.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.2"/>',
+    market: '<path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>',
+    crate: '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M3 11.5h18M10 11.5v8.5M14 11.5v8.5"/><path d="M9 7l3-3 3 3"/>',
     dice: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01"/>',
     cards: '<rect x="3.5" y="6" width="10" height="14" rx="2"/><path d="M10.5 4.2 18.7 3a2 2 0 0 1 2.3 1.7l1.6 11.1a2 2 0 0 1-1.7 2.3l-3.4.5"/>',
     game: '<rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 11v3M6.5 12.5h3M15.5 11.5h.01M17.5 13.5h.01"/>',
@@ -1289,6 +1306,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const total = cfg.caps.slice();
     const items = Object.create(null);
     const offers = Object.create(null);
+    const skins = Object.create(null), lots = Object.create(null);
     const events = [];
     const bad = Object.create(null);
     const all = [];
@@ -1551,6 +1569,57 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         casEntry(e, a, key, ent);
       } else if (e.k === 'fps') {
         fpsEntry(e, a, key);
+      } else if (e.k === 'crate') {
+        if (!Number.isInteger(e.c) || e.c < 0 || e.c > 5) { bad[key] = 'shape'; continue; }
+        const price = coinsOf(SKN_CRATE[e.c][0], SKN_CRATE[e.c][1]);
+        if (!has(a, price)) { bad[key] = 'funds'; continue; }
+        const s = sknDraw(e.c, key + ':' + e.t);
+        move(a, issuer, price);
+        skins[key] = { s, o: a, c: e.c };
+        events.push({ k: 'crate', key, a, c: e.c, s, t: e.t });
+      } else if (e.k === 'list') {
+        const sk = typeof e.sk === 'string' ? skins[e.sk] : null;
+        if (!sk || sk.o !== a) { bad[key] = 'skin'; continue; }
+        if (!Number.isInteger(e.r) || e.r < 0 || e.r > 3 || !Number.isInteger(e.start) || e.start < 1 || e.start > 1000 || !Number.isInteger(e.buy) || e.buy <= e.start || e.buy > 1000) { bad[key] = 'shape'; continue; }
+        sk.o = SKN_MKT;
+        lots[key] = { id: key, sk: e.sk, seller: a, r: e.r, start: e.start, buy: e.buy, bid: null, status: 'open', t: e.t };
+        events.push({ k: 'list', key, a, sk: e.sk, r: e.r, start: e.start, buy: e.buy, t: e.t });
+      } else if (e.k === 'bid') {
+        const lot = typeof e.lot === 'string' ? lots[e.lot] : null;
+        if (!lot || lot.status !== 'open') { bad[key] = 'closed'; continue; }
+        if (a === lot.seller) { bad[key] = 'own'; continue; }
+        if (!Number.isInteger(e.n) || e.n < lot.start || e.n >= lot.buy || (lot.bid && e.n <= lot.bid.n)) { bad[key] = 'low'; continue; }
+        const c = coinsOf(lot.r, e.n);
+        if (!has(a, c)) { bad[key] = 'funds'; continue; }
+        move(a, SKN_MKT, c);
+        if (lot.bid) move(SKN_MKT, lot.bid.u, coinsOf(lot.r, lot.bid.n));
+        lot.bid = { u: a, n: e.n };
+        events.push({ k: 'bid', key, a, lot: e.lot, amt: e.n, r: lot.r, seller: lot.seller, t: e.t });
+      } else if (e.k === 'buy_now' || e.k === 'accept') {
+        const lot = typeof e.lot === 'string' ? lots[e.lot] : null;
+        if (!lot || lot.status !== 'open') { bad[key] = 'closed'; continue; }
+        if (e.k === 'buy_now') {
+          if (a === lot.seller) { bad[key] = 'own'; continue; }
+          const c = coinsOf(lot.r, lot.buy);
+          if (!has(a, c)) { bad[key] = 'funds'; continue; }
+          move(a, lot.seller, c);
+          if (lot.bid) move(SKN_MKT, lot.bid.u, coinsOf(lot.r, lot.bid.n));
+          lot.price = lot.buy; lot.buyer = a;
+        } else {
+          if (a !== lot.seller) { bad[key] = 'own'; continue; }
+          if (!lot.bid) { bad[key] = 'nobid'; continue; }
+          move(SKN_MKT, a, coinsOf(lot.r, lot.bid.n));
+          lot.price = lot.bid.n; lot.buyer = lot.bid.u;
+        }
+        skins[lot.sk].o = lot.buyer;
+        lot.status = 'sold';
+        events.push({ k: 'sold', key, a, lot: e.lot, sk: lot.sk, r: lot.r, amt: lot.price, seller: lot.seller, buyer: lot.buyer, t: e.t });
+      } else if (e.k === 'cancel') {
+        const lot = typeof e.lot === 'string' ? lots[e.lot] : null;
+        if (!lot || lot.status !== 'open' || a !== lot.seller) { bad[key] = 'closed'; continue; }
+        if (lot.bid) { bad[key] = 'bid'; continue; }
+        skins[lot.sk].o = a; lot.status = 'cancelled';
+        events.push({ k: 'lotend', key, a, lot: e.lot, sk: lot.sk, seller: a, t: e.t });
       } else if (e.k === 'fpsbuy') {
         const pr = typeof e.it === 'string' ? fpsPrice(e.it) : null;
         const own = fpsOwned[a] || (fpsOwned[a] = new Set());
@@ -1631,7 +1700,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         bad[key] = 'kind';
       }
     }
-    return { bal, items, offers, events, bad, maxT, issuer, total, press, funded, arc, cas, fps, fpsOwned };
+    return { bal, items, offers, events, bad, maxT, issuer, total, press, funded, arc, cas, fps, fpsOwned, skins, lots };
   }
 
   /* ================= state ================= */
@@ -1985,10 +2054,11 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
   function syncStrike() {
     if (!L || !uid || !fs || !players[uid]) return;
     const owned = Array.from((L.fpsOwned && L.fpsOwned[uid]) || []).sort();
-    const look = look3d(uid), sig = JSON.stringify([owned, look]);
+    const skinIds = Array.from(new Set(mySkins(uid).map(x => x.s))).sort();
+    const look = look3d(uid), sig = JSON.stringify([owned, look, skinIds]);
     if (sig === fpsSyncSig) return;
     fpsSyncSig = sig;
-    FB.setDoc(FB.doc(fs, 'fpsStats/' + uid), { owned, look }, { merge: true }).catch(() => { fpsSyncSig = ''; });
+    FB.setDoc(FB.doc(fs, 'fpsStats/' + uid), { owned, look, skins: skinIds }, { merge: true }).catch(() => { fpsSyncSig = ''; });
   }
   function openArmory() {
     const draw = () => {
@@ -2018,6 +2088,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       renderTabs();
       payPrizes();
       syncStrike();
+      if (ui.crate && ui.crate.phase === 'wait') crateReveal();
       if (ui.cas) drawCas(false);
       casAuto();
     });
@@ -2093,6 +2164,165 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       <button type="button" class="btn btn-grape btn-block mt" data-act="look-save">${isNew ? 'Done' : 'Save look'}</button>`;
   }
 
+  /* ================= Skins, crates and the market ================= */
+  const SKN_RC = ['#9AA3B5', '#4FCB96', '#4BA3F2', '#B98BFF', '#F2B356', '#FF5DA2'];
+  // [id, name, rarity, color, accent, pattern, animated]. Pattern: 0 solid, 1 stripes, 2 dots, 3 camo, 4 gradient.
+  const SKN = [
+    ['sk00', 'Cherry Red', 0, '#E5484D', '#FFD5D6', 0, 0], ['sk01', 'Sky Blue', 0, '#4BA3F2', '#E3F1FF', 0, 0], ['sk02', 'Forest', 0, '#2F8F5B', '#CFF2DC', 0, 0], ['sk03', 'Sand', 0, '#D9C29A', '#5B4426', 0, 0], ['sk04', 'Snow', 0, '#EDEDF0', '#3A3A44', 0, 0], ['sk05', 'Charcoal', 0, '#33333B', '#F45B69', 0, 0],
+    ['sk06', 'Mint Stripes', 1, '#7EDDB0', '#FFFFFF', 1, 0], ['sk07', 'Grape Dots', 1, '#7B4FE0', '#F1E8FF', 2, 0], ['sk08', 'Lemon Stripes', 1, '#F5CF4A', '#7A5B00', 1, 0], ['sk09', 'Ocean Camo', 1, '#2A6F97', '#8FD3E8', 3, 0],
+    ['sk10', 'Neon Pink', 2, '#FF4FA3', '#FFD1EA', 4, 0], ['sk11', 'Volt', 2, '#C8FF2E', '#1B2A00', 4, 0], ['sk12', 'Ice Shard', 2, '#9EF6FF', '#1E4A6B', 3, 0], ['sk13', 'Jungle Camo', 2, '#3E7B3A', '#C9E7A0', 3, 0],
+    ['sk14', 'Galaxy', 3, '#3B1E8C', '#9B7BFF', 4, 1], ['sk15', 'Lava Flow', 3, '#FF5A2A', '#FFD35A', 4, 1], ['sk16', 'Gold Plate', 3, '#F2B531', '#7A5200', 4, 0], ['sk17', 'Hologram', 3, '#7CFFE9', '#FF7CF0', 4, 1],
+    ['sk18', 'Aurora', 4, '#35F2B4', '#7B5BFF', 4, 1], ['sk19', 'Crystal Tiger', 4, '#FFB347', '#FFFFFF', 1, 1],
+    ['sk20', 'Scobb Prism', 5, '#FFFFFF', '#6B5BFF', 4, 1], ['sk21', 'Void Pulse', 5, '#0B0B14', '#FF2E88', 1, 1]
+  ];
+  // What each crate costs: [coin rarity, amount]. Nothing costs more than Epic coins.
+  const SKN_CRATE = [[0, 10], [1, 10], [2, 8], [3, 6], [3, 8], [3, 14]];
+  const SKN_CRATE_NAME = ['Common crate', 'Uncommon crate', 'Rare crate', 'Epic crate', 'Legendary crate', 'Mythic crate'];
+  // Chance out of 1000 for each skin rarity (Common to Mythic) when a crate opens. Each row adds to 1000.
+  const SKN_ODDS = [[860, 110, 25, 4, 1, 0], [600, 300, 80, 16, 3, 1], [250, 380, 250, 90, 25, 5], [80, 230, 340, 250, 80, 20], [0, 100, 290, 340, 200, 70], [0, 0, 150, 300, 330, 220]];
+  const SKN_MKT = '_mkt';
+  const SKN_N = 42, SKN_WIN = 34, SKN_CW = 124;
+  const sknInfo = id => SKN.find(x => x[0] === id) || SKN[0];
+  const sknRand = () => SKN[Math.floor(Math.random() * SKN.length)][0];
+  const sknList = r => SKN.filter(x => x[2] === r).map(x => x[0]);
+  function sknDraw(c, seed) {
+    const rnd = rng(hash32(seed));
+    let x = rnd() * 1000, r = 0;
+    for (; r < 5; r++) { if (x < SKN_ODDS[c][r]) break; x -= SKN_ODDS[c][r]; }
+    const list = sknList(r);
+    return list[Math.floor(rnd() * list.length)];
+  }
+  function sknCss(id) {
+    const [, , , c1, c2, p] = sknInfo(id);
+    if (p === 0) return c1;
+    if (p === 1) return `repeating-linear-gradient(45deg, ${c1} 0 9px, ${c2} 9px 18px)`;
+    if (p === 2) return `radial-gradient(${c2} 0 22%, transparent 24%) 0 0 / 22px 22px, ${c1}`;
+    if (p === 3) return `radial-gradient(circle at 30% 40%, ${c2} 0 16%, transparent 17%), radial-gradient(circle at 72% 62%, ${c2} 0 12%, transparent 13%), ${c1}`;
+    return `linear-gradient(135deg, ${c1}, ${c2})`;
+  }
+  const sknSw = (id, cls) => `<span class="skw ${cls || ''}${sknInfo(id)[6] ? ' sk-anim' : ''}" style="background:${sknCss(id)}" aria-hidden="true"></span>`;
+  const sknCard = id => { const x = sknInfo(id); return `<div class="crate-card">${sknSw(id)}<b>${esc(x[1])}</b><em style="font-style:normal;font-size:13px;font-weight:700;color:${SKN_RC[x[2]]}">${RN[x[2]]}</em></div>`; };
+  const mySkins = u => { const out = []; if (L) for (const k in L.skins) if (L.skins[k].o === u) out.push({ key: k, s: L.skins[k].s, r: sknInfo(L.skins[k].s)[2] }); return out.sort((a, b) => b.r - a.r); };
+  const skinName = key => { const s = L && L.skins[key]; return s ? sknInfo(s.s)[1] : 'a skin'; };
+  const oddsText = c => SKN_ODDS[c].map((w, r) => (w ? `${RN[r]} ${(w / 10).toFixed(1).replace(/\.0$/, '')}%` : null)).filter(Boolean).join(' · ');
+
+  function crateSheet() {
+    const draw = () => {
+      const av = availOf(uid), owner = uid === L.issuer;
+      let h = sheetHead('Skin crates', 'Cosmetic gun skins for Scobb Strike. The coins go to the bank. Rarer crates have better skins, and the best ones are very hard to pull.');
+      h += `<div class="list">${SKN_CRATE.map((pr, c) => { const can = !owner && av[pr[0]] >= pr[1]; return `<div class="ev"><span class="sq">${icon('crate')}</span><div class="main"><div class="t"><b>${SKN_CRATE_NAME[c]}</b></div><div class="s">${oddsText(c)}</div></div><button type="button" class="chipbtn" data-act="crate-open" data-c="${c}"${can ? '' : ' disabled'}>${pr[1]} ${RN[pr[0]]}</button></div>`; }).join('')}</div>`;
+      const mine = mySkins(uid);
+      h += `<h3>Your skins</h3>`;
+      h += mine.length ? `<div class="list">${mine.map(x => { const inf = sknInfo(x.s); return `<div class="ev">${sknSw(x.s, 'skw-sm')}<div class="main"><div class="t"><b>${esc(inf[1])}</b> <span class="small" style="color:${SKN_RC[x.r]}">${RN[x.r]}</span></div></div><button type="button" class="chipbtn" data-act="skin-list" data-sk="${x.key}">List</button></div>`; }).join('')}</div>` : `<p class="small soft">No skins yet. Open a crate to get some.</p>`;
+      return h;
+    };
+    openSheet('crates', draw(), () => {}, { refresh: () => { const el = $('#sheet-body'), sc = $('#sheet'); const st = sc ? sc.scrollTop : 0; if (el) el.innerHTML = draw(); if (sc) sc.scrollTop = st; } });
+  }
+  function openCrate(c) {
+    if (!guardWrite()) return;
+    const pr = SKN_CRATE[c];
+    if (availOf(uid)[pr[0]] < pr[1]) { toast(`You need ${pr[1]} ${RN[pr[0]]} coins for that crate.`); return; }
+    const e = newEntry('crate', { c });
+    ui.crate = { key: uid + ':' + e.i, c, phase: 'wait', spin: null };
+    closeSheet(true);
+    crateReveal();
+  }
+  // Same strip spin as the arcade crate. The result comes from the ledger, so the strip lands on the real roll.
+  function crateReveal() {
+    const s = ui.crate;
+    let ov = $('#crate-ov');
+    if (!s) { if (ov) ov.remove(); return; }
+    if (!ov) { ov = document.createElement('div'); ov.id = 'crate-ov'; ov.className = 'crate-ov'; document.body.appendChild(ov); }
+    const bad = L && L.bad[s.key], res = L && L.skins[s.key];
+    if (bad) { clearInterval(s.spin); s.phase = 'done'; ov.innerHTML = `<div class="crate-box"><h2>The crate didn’t open</h2><p class="soft">Something didn’t line up, so nothing was charged.</p><button type="button" class="btn btn-grape btn-block" data-act="crate-close">Close</button></div>`; return; }
+    const title = `Opening ${SKN_CRATE_NAME[s.c]}`;
+    if (!res) {
+      if (!s.spin) {
+        ov.innerHTML = `<div class="crate-box"><h2 id="crate-h">${title}…</h2><div class="crate-win"><div class="crate-strip">${Array.from({ length: SKN_N }, () => sknCard(sknRand())).join('')}</div><i class="crate-mark"></i></div><p class="small soft" id="crate-out">Rolling…</p></div>`;
+        s.spin = setInterval(() => { const el = $('#crate-ov .crate-strip'); if (el && s.phase === 'wait') el.innerHTML = Array.from({ length: SKN_N }, () => sknCard(sknRand())).join(''); }, 110);
+      }
+      return;
+    }
+    if (s.phase !== 'wait') return;
+    s.phase = 'spin'; clearInterval(s.spin);
+    const cards = Array.from({ length: SKN_N }, (_, i) => (i === SKN_WIN ? res.s : sknRand()));
+    ov.innerHTML = `<div class="crate-box"><h2 id="crate-h">${title}…</h2><div class="crate-win"><div class="crate-strip">${cards.map(sknCard).join('')}</div><i class="crate-mark"></i></div><div id="crate-out"></div></div>`;
+    const win = ov.querySelector('.crate-win'), strip = ov.querySelector('.crate-strip');
+    const target = SKN_WIN * SKN_CW + 58 - win.clientWidth / 2 + (Math.random() * 64 - 32);
+    const done = () => {
+      if (s.phase === 'done') return;
+      s.phase = 'done';
+      strip.children[SKN_WIN].classList.add('won');
+      const inf = sknInfo(res.s);
+      ov.querySelector('#crate-h').textContent = 'You got…';
+      ov.querySelector('#crate-out').innerHTML = `<div class="crate-result">${sknSw(res.s, 'skw-lg')}<b>${esc(inf[1])}</b><span style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span></div><button type="button" class="btn btn-grape btn-block mt" data-act="crate-close">Keep it</button><button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${s.key}">List it on the market</button>`;
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { strip.style.transform = `translateX(${-target}px)`; done(); return; }
+    strip.addEventListener('transitionend', done, { once: true });
+    requestAnimationFrame(() => requestAnimationFrame(() => { strip.style.transition = 'transform 5.5s cubic-bezier(.1,.7,.12,1)'; strip.style.transform = `translateX(${-target}px)`; }));
+  }
+  function listSheet(key) {
+    const mine = mySkins(uid);
+    if (!mine.length) { toast('You don’t have any skins to list yet.'); return; }
+    const sel = key && mine.some(x => x.key === key) ? key : mine[0].key;
+    const av = availOf(uid);
+    const html = sheetHead('List a skin', 'You set the starting bid and the buy-now price. The skin stays with the market until it sells or you take it off.')
+      + `<div class="field"><label for="ls-sk">Skin</label><select id="ls-sk">${mine.map(x => `<option value="${x.key}"${x.key === sel ? ' selected' : ''}>${esc(sknInfo(x.s)[1])} · ${RN[x.r]}</option>`).join('')}</select></div>`
+      + `<div class="field"><label for="ls-r">Price in</label><select id="ls-r">${RN.slice(0, 4).map((n, r) => `<option value="${r}">${n} coins (you have ${av[r]})</option>`).join('')}</select></div>`
+      + `<div class="field"><label for="ls-start">Starting bid</label><input id="ls-start" type="number" inputmode="numeric" min="1" max="1000" value="5"></div>`
+      + `<div class="field"><label for="ls-buy">Buy now price</label><input id="ls-buy" type="number" inputmode="numeric" min="2" max="1000" value="10"></div>`
+      + `<p class="err" id="ls-err" hidden></p><button type="button" class="btn btn-grape btn-block mt" id="ls-go">Put it on the market</button>`;
+    openSheet('list', html, () => {
+      $('#ls-go').onclick = () => {
+        const sk = $('#ls-sk').value, r = Number($('#ls-r').value), start = Math.floor(Number($('#ls-start').value)), buy = Math.floor(Number($('#ls-buy').value));
+        const err = $('#ls-err'), fail = m => { err.textContent = m; err.hidden = false; };
+        if (!(start >= 1 && start <= 1000)) return fail('The starting bid has to be between 1 and 1000.');
+        if (!(buy > start && buy <= 1000)) return fail('The buy-now price has to be higher than the starting bid.');
+        if (!guardWrite()) return;
+        newEntry('list', { sk, r, start, buy });
+        closeSheet(true); toast('Listed on the market.'); render();
+      };
+    });
+  }
+  function bidSheet(id) {
+    const lot = L.lots[id];
+    if (!lot || lot.status !== 'open') { toast('That listing is gone.'); return; }
+    const min = lot.bid ? lot.bid.n + 1 : lot.start;
+    const html = sheetHead(`Bid on ${esc(skinName(lot.sk))}`, `Starting bid ${coinsAmt(lot.r, lot.start)} · Buy now ${coinsAmt(lot.r, lot.buy)}${lot.bid ? ` · Top bid ${coinsAmt(lot.r, lot.bid.n)}` : ''}`)
+      + `<div class="field"><label for="bd-n">Your bid</label><input id="bd-n" type="number" inputmode="numeric" min="${min}" max="${lot.buy - 1}" value="${min}"></div>`
+      + `<p class="small soft">You have ${availOf(uid)[lot.r]} ${RN[lot.r]} coins. Your coins are held until someone outbids you or the seller decides.</p>`
+      + `<p class="err" id="bd-err" hidden></p><button type="button" class="btn btn-grape btn-block mt" id="bd-go">Place bid</button>`
+      + `<button type="button" class="btn btn-ghost btn-block mt" data-act="mkt-buy" data-lot="${id}">Buy now for ${coinsAmt(lot.r, lot.buy)}</button>`;
+    openSheet('bid', html, () => {
+      $('#bd-go').onclick = () => {
+        const n = Math.floor(Number($('#bd-n').value)), err = $('#bd-err'), fail = m => { err.textContent = m; err.hidden = false; };
+        if (!(n >= min)) return fail(`Your bid has to be at least ${min}.`);
+        if (n >= lot.buy) return fail('That’s the buy-now price. Use the button below.');
+        if (availOf(uid)[lot.r] < n) return fail('You don’t have enough coins for that bid.');
+        if (!guardWrite()) return;
+        newEntry('bid', { lot: id, n });
+        closeSheet(true); toast('Bid placed.'); render();
+      };
+    });
+  }
+  function lotCard(l) {
+    const sk = L.skins[l.sk].s, inf = sknInfo(sk), mine = l.seller === uid;
+    const top = l.bid ? `Top bid ${coinsAmt(l.r, l.bid.n)} from ${esc(nameOf(l.bid.u))}` : 'No bids yet';
+    const acts = mine
+      ? (l.bid ? `<button type="button" class="chipbtn" data-act="mkt-accept" data-lot="${l.id}">Accept ${coinsAmt(l.r, l.bid.n)}</button>` : `<button type="button" class="chipbtn" data-act="mkt-cancel" data-lot="${l.id}">Take off market</button>`)
+      : `<button type="button" class="chipbtn" data-act="mkt-bid" data-lot="${l.id}">Bid</button><button type="button" class="chipbtn" data-act="mkt-buy" data-lot="${l.id}">Buy now ${coinsAmt(l.r, l.buy)}</button>`;
+    return `<div class="ev">${sknSw(sk, 'skw-sm')}<div class="main"><div class="t"><b>${esc(inf[1])}</b> <span class="small" style="color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span></div><div class="s">${mine ? 'Yours' : `From ${esc(nameOf(l.seller))}`} · Start ${coinsAmt(l.r, l.start)} · ${top}</div><div class="chips">${acts}</div></div></div>`;
+  }
+  function marketTab() {
+    const open = Object.values(L.lots).filter(l => l.status === 'open').sort((a, b) => b.t - a.t);
+    let h = `<header class="top" style="justify-content:flex-start"><h1>Market</h1></header>`;
+    h += `<p class="small soft">Skins people want to sell. Each one has a starting bid and a buy-now price, both in one kind of coin. Bids are held until someone outbids them or the seller accepts.</p>`;
+    h += `<button type="button" class="btn btn-grape btn-block" data-act="mkt-list">List a skin</button>`;
+    h += `<h3>For sale</h3>`;
+    h += open.length ? `<div class="list">${open.map(lotCard).join('')}</div>` : `<p class="empty">Nothing for sale right now.</p>`;
+    return h;
+  }
+
   function renderTabs() {
     const tabs = $('#tabs');
     if (tabs.hidden) return;
@@ -2109,7 +2339,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const t = ui.tab;
     const inp = $('#dm-input'), had = !!inp && document.activeElement === inp;
     if (inp) ui.dmDraft = inp.value;
-    app.innerHTML = t === 'shop' ? shopTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
+    app.innerHTML = t === 'shop' ? shopTab() : t === 'market' ? marketTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
     const ni = $('#dm-input');
     if (ni) { ni.value = ui.dmDraft || ''; if (had) { ni.focus(); ni.setSelectionRange(ni.value.length, ni.value.length); } }
     if (t === 'chats' && ui.dmWith) {
@@ -2233,7 +2463,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       h += `<button type="button" class="banner gift" data-act="reveal">${icon('gift')}<span class="bt">You got ${bucks(un.count)} from ${esc(joinWords(from))}</span><span class="pill">Open</span></button>`;
     }
     if (inc.length) h += `<button type="button" class="banner" data-act="tab" data-tab="trades">${headBubble(inc[0].from, 34)}<span class="bt">${inc.length === 1 ? `${esc(nameOf(inc[0].from))} sent you a trade offer` : `${inc.length} trade offers are waiting on you`}</span><span class="pill">View</span></button>`;
-    h += `<div class="lpanel">${owner ? '' : pressRow()}${arcadeRow()}${casinoRow()}<a class="lrow" href="./fps.html" target="_blank" rel="noopener"><span class="sq">${icon('aim')}</span><span class="lt"><b>Scobb Strike</b><span>3D shooter in a new tab · K/D ${kdOf(uid) || '0.00'}</span></span><span class="chipbtn">Play</span></a><button type="button" class="lrow" data-act="fps-armory"><span class="sq">${icon('aim')}</span><span class="lt"><b>Strike Armory</b><span>Unlock guns and attachments with ScobbBucks</span></span><span class="chipbtn">Open</span></button>${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
+    h += `<div class="lpanel">${owner ? '' : pressRow()}${arcadeRow()}${casinoRow()}<a class="lrow" href="./fps.html" target="_blank" rel="noopener"><span class="sq">${icon('aim')}</span><span class="lt"><b>Scobb Strike</b><span>3D shooter in a new tab · K/D ${kdOf(uid) || '0.00'}</span></span><span class="chipbtn">Play</span></a><button type="button" class="lrow" data-act="fps-armory"><span class="sq">${icon('aim')}</span><span class="lt"><b>Strike Armory</b><span>Unlock guns and attachments with ScobbBucks</span></span><span class="chipbtn">Open</span></button><button type="button" class="lrow" data-act="skin-crates"><span class="sq">${icon('crate')}</span><span class="lt"><b>Skin crates</b><span>Open crates for cosmetic gun skins, or list one on the market</span></span><span class="chipbtn">Open</span></button>${farmVisible() ? `<a class="lrow" href="./farm.html"><span class="sq">${icon('sprout')}</span><span class="lt"><b>Scobb Farm</b><span>${FARM_LIVE ? 'Build, raid and win 25 ScobbBucks' : 'Build a farm and raid your friends. In preview.'}</span></span><span class="chipbtn">Play</span></a>` : ''}</div>`;
     h += `<h2>Activity</h2>${activityHTML()}`;
     return h;
   }
@@ -2276,6 +2506,9 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
       else if (ev.k === 'cas' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'fps' && ev.a === uid) rows.push(ev);
       else if (ev.k === 'fpsbuy' && ev.a === uid) rows.push(ev);
+      else if (ev.k === 'crate' && ev.a === uid) rows.push(ev);
+      else if ((ev.k === 'list' || ev.k === 'lotend' || ev.k === 'bid') && ev.a === uid) rows.push(ev);
+      else if (ev.k === 'sold' && (ev.buyer === uid || ev.seller === uid)) rows.push(ev);
     }
     for (const id in farmResults) {
       const r = farmResults[id];
@@ -2286,7 +2519,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     }
     {
     }
-    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap')) rows.push({ k: 'bad', e, t: e.t }); }
+    for (const e of myEntries()) { const key = uid + ':' + e.i; if (L.bad[key] && (e.k === 'send' || e.k === 'buy' || e.k === 'swap' || e.k === 'crate' || e.k === 'list' || e.k === 'bid' || e.k === 'buy_now' || e.k === 'accept' || e.k === 'cancel')) rows.push({ k: 'bad', e, t: e.t }); }
     rows.sort((a, b) => b.t - a.t);
     if (!rows.length) return `<p class="empty">Nothing here yet. Coins you send and get will show up here.</p>`;
     return `<div class="list">${rows.slice(0, 40).map(ev => {
@@ -2312,6 +2545,27 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
         other = ev.opp || uid;
         t = ev.res === 'refund' ? `Scobb Strike vs <b>${esc(nameOf(ev.opp))}</b>: your wager was refunded` : `Scobb Strike vs <b>${esc(nameOf(ev.opp))}</b>: ${ev.res === 'win' ? `you won <b>${coinsAmt(ev.r, ev.n)}</b>` : `you lost <b>${coinsAmt(ev.r, ev.n)}</b>`}`;
         more = ev.res === 'refund' ? `<p class="s">The games didn’t agree on a winner, or the match never started, so you got your ${coinsAmt(ev.r, ev.n)} back.</p>` : `<div class="chips"><span class="status${ev.res === 'win' ? ' done' : ''}" style="${ev.res === 'loss' ? 'background:#FDE7E8;color:#B8353A' : ''}">${ev.res === 'win' ? '+' : '−'}${fmtInt(ev.n)} ${RN[ev.r]}</span><span class="small soft">Wager was ${coinsAmt(ev.r, ev.n)} each</span></div>`;
+      } else if (ev.k === 'crate') {
+        other = uid;
+        const inf = sknInfo(ev.s);
+        t = `You opened a ${SKN_CRATE_NAME[ev.c]} and got <b>${esc(inf[1])}</b>`;
+        more = `<div class="chips"><span class="status" style="background:${SKN_RC[inf[2]]}33;color:${SKN_RC[inf[2]]}">${RN[inf[2]]}</span><span class="small soft">Cost ${coinsAmt(SKN_CRATE[ev.c][0], SKN_CRATE[ev.c][1])}</span></div>`;
+      } else if (ev.k === 'list') {
+        other = uid;
+        t = `You listed <b>${esc(skinName(ev.sk))}</b> on the market`;
+        more = `<p class="s">Starting bid ${coinsAmt(ev.r, ev.start)} · Buy now ${coinsAmt(ev.r, ev.buy)}</p>`;
+      } else if (ev.k === 'bid') {
+        other = ev.seller;
+        t = `You bid <b>${coinsAmt(ev.r, ev.amt)}</b> on <b>${esc(skinName((L.lots[ev.lot] || {}).sk))}</b>`;
+        more = `<p class="s">Your coins are held until you’re outbid or the seller decides.</p>`;
+      } else if (ev.k === 'lotend') {
+        other = uid;
+        t = `You took <b>${esc(skinName(ev.sk))}</b> off the market`;
+      } else if (ev.k === 'sold') {
+        const won = ev.buyer === uid;
+        other = won ? ev.seller : ev.buyer;
+        t = won ? `You bought <b>${esc(skinName(ev.sk))}</b> from ${esc(nameOf(ev.seller))}` : `You sold <b>${esc(skinName(ev.sk))}</b> to ${esc(nameOf(ev.buyer))}`;
+        more = `<div class="chips"><span class="status${won ? '' : ' done'}" style="${won ? 'background:#FDE7E8;color:#B8353A' : ''}">${won ? '−' : '+'}${fmtInt(ev.amt)} ${RN[ev.r]}</span></div>`;
       } else if (ev.k === 'fpsbuy') {
         other = uid;
         t = `Scobb Strike Armory: you unlocked <b>${esc(fpsItemName(ev.it))}</b>`;
@@ -2459,7 +2713,7 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     const list = Object.keys(players).filter(u => players[u] && players[u].username && players[u].avatar).sort((a, b) => (players[a].joinedAt || 0) - (players[b].joinedAt || 0));
     let h = `<header class="top"><h1>Feed</h1></header>`;
     h += `<h3 style="margin-top:0">Players</h3><div class="hscroll players">${list.map(u => `<button type="button" class="pl" data-act="profile" data-u="${esc(u)}">${headBubble(u, 58)}<span>${esc(nameOf(u))}</span></button>`).join('')}</div>`;
-    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && ev.k !== 'cas' && ev.k !== 'fps').sort((a, b) => b.t - a.t).slice(0, 100);
+    const evs = L.events.filter(ev => (ev.k !== 'press' || ev.op === 'up' || (ev.op === 'claim' && (ev.c[4] || ev.c[5])))  && ev.k !== 'cas' && ev.k !== 'fps' && ev.k !== 'fpsbuy' && ev.k !== 'crate' && ev.k !== 'list' && ev.k !== 'bid' && ev.k !== 'sold' && ev.k !== 'lotend').sort((a, b) => b.t - a.t).slice(0, 100);
     if (!evs.length) return h + '<p class="empty">Nothing has happened yet. Sends, trades and shop buys show up here.</p>';
     h += `<div class="list">${evs.map(ev => {
       let t = '', more = '', hot = false, face = ev.a;
@@ -3507,6 +3761,22 @@ input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--grape-tint);
     'mint-more': () => openMintMore(),
     'swap': () => openSwap(),
     'fps-armory': () => openArmory(),
+    'skin-crates': () => crateSheet(),
+    'crate-open': b => openCrate(Number(b.dataset.c)),
+    'crate-close': () => { if (ui.crate) clearInterval(ui.crate.spin); ui.crate = null; crateReveal(); },
+    'skin-list': b => { if (ui.crate) { clearInterval(ui.crate.spin); ui.crate = null; crateReveal(); } closeSheet(true); listSheet(b.dataset.sk); },
+    'mkt-list': () => listSheet(''),
+    'mkt-bid': b => bidSheet(b.dataset.lot),
+    'mkt-buy': b => {
+      if (!guardWrite()) return;
+      const lot = L.lots[b.dataset.lot];
+      if (!lot || lot.status !== 'open') { toast('That listing is gone.'); return; }
+      if (availOf(uid)[lot.r] < lot.buy) { toast('You don’t have enough coins for that.'); return; }
+      newEntry('buy_now', { lot: b.dataset.lot });
+      closeSheet(true); toast('Bought. The skin shows up in your skins.'); render();
+    },
+    'mkt-accept': b => { if (!guardWrite()) return; newEntry('accept', { lot: b.dataset.lot }); toast('Accepted the top bid.'); render(); },
+    'mkt-cancel': b => { if (!guardWrite()) return; newEntry('cancel', { lot: b.dataset.lot }); toast('Taking it off the market.'); render(); },
     'fps-buy': b => { if (!guardWrite()) return; const it = b.dataset.it; const pr = fpsPrice(it); if (!pr) return; newEntry('fpsbuy', { it }); toast(`Unlocked ${fpsItemName(it)}. It shows up in Scobb Strike in a few seconds.`); },
     'cas-open': b => { const g = b.dataset.g, prac = uid === L.issuer; if (!CAS_GAMES[g]) return; casShow(CAS_GAMES[g].solo ? { view: g, practice: prac } : { view: 'setup', g, practice: prac }); },
     'cas-again': b => casShow({ view: 'setup', g: b.dataset.g, practice: !!(ui.cas && ui.cas.practice) }),

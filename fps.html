@@ -133,6 +133,18 @@ for (const c in CLASSES) CLASSES[c].names.forEach((nm, t) => {
     mag: Math.round(b.mag * (1 + 0.06 * t)), range: b.range * (1 + 0.06 * t), ads: b.ads * (1 - 0.04 * t), move: b.move * (1 + 0.01 * t), rpm: Math.round(b.rpm * (1 + 0.03 * t)) });
 });
 const PRIM = Object.keys(CLASSES).filter(c => CLASSES[c].p);
+// Gun skins, same list as ScobbBucks. [id, name, rarity, color, accent, pattern, animated]
+const SKN = [
+  ['sk00', 'Cherry Red', 0, '#E5484D', '#FFD5D6', 0, 0], ['sk01', 'Sky Blue', 0, '#4BA3F2', '#E3F1FF', 0, 0], ['sk02', 'Forest', 0, '#2F8F5B', '#CFF2DC', 0, 0], ['sk03', 'Sand', 0, '#D9C29A', '#5B4426', 0, 0], ['sk04', 'Snow', 0, '#EDEDF0', '#3A3A44', 0, 0], ['sk05', 'Charcoal', 0, '#33333B', '#F45B69', 0, 0],
+  ['sk06', 'Mint Stripes', 1, '#7EDDB0', '#FFFFFF', 1, 0], ['sk07', 'Grape Dots', 1, '#7B4FE0', '#F1E8FF', 2, 0], ['sk08', 'Lemon Stripes', 1, '#F5CF4A', '#7A5B00', 1, 0], ['sk09', 'Ocean Camo', 1, '#2A6F97', '#8FD3E8', 3, 0],
+  ['sk10', 'Neon Pink', 2, '#FF4FA3', '#FFD1EA', 4, 0], ['sk11', 'Volt', 2, '#C8FF2E', '#1B2A00', 4, 0], ['sk12', 'Ice Shard', 2, '#9EF6FF', '#1E4A6B', 3, 0], ['sk13', 'Jungle Camo', 2, '#3E7B3A', '#C9E7A0', 3, 0],
+  ['sk14', 'Galaxy', 3, '#3B1E8C', '#9B7BFF', 4, 1], ['sk15', 'Lava Flow', 3, '#FF5A2A', '#FFD35A', 4, 1], ['sk16', 'Gold Plate', 3, '#F2B531', '#7A5200', 4, 0], ['sk17', 'Hologram', 3, '#7CFFE9', '#FF7CF0', 4, 1],
+  ['sk18', 'Aurora', 4, '#35F2B4', '#7B5BFF', 4, 1], ['sk19', 'Crystal Tiger', 4, '#FFB347', '#FFFFFF', 1, 1],
+  ['sk20', 'Scobb Prism', 5, '#FFFFFF', '#6B5BFF', 4, 1], ['sk21', 'Void Pulse', 5, '#0B0B14', '#FF2E88', 1, 1]
+];
+const skinInfo = id => SKN.find(x => x[0] === id) || null;
+const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mixHex = (a, b, k) => { const A = hx(a), B = hx(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join(''); };
 // Every attachment helps something and costs something.
 const ATT = {
   optic: [['Iron sights', {}, 'Fastest aim, no zoom', 0], ['Red dot', { zoom: 1.15, adsS: 0.85, ads: 1.05 }, '+ Tighter aim · − Slightly slower to aim', 1], ['Holo', { zoom: 1.35, adsS: 0.9, ads: 1.12 }, '+ More zoom · − Slower to aim', 2], ['4x scope', { zoom: 2.4, ads: 1.3, hip: 1.25, scope: 1 }, '+ Long range zoom · − Much slower aim, worse hip fire', 3]],
@@ -144,16 +156,16 @@ const RN = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic'];
 const WPRICE = [null, [0, 12], [1, 8], [2, 5], [3, 3]], APRICE = [null, [0, 6], [1, 5], [2, 3]];
 const priceText = pr => (pr ? `${pr[1]} ${RN[pr[0]]}` : 'Free');
 const PERKS = [
-  [['Lightweight', 'Move 8% faster'], ['Flak jacket', 'Half damage from explosions'], ['Scavenger', 'Refill ammo and lethal on kills']],
-  [['Fast hands', 'Reload and swap 30% faster'], ['Hardline', 'Carry 2 lethals'], ['Steady aim', '30% tighter hip fire']],
-  [['Ninja', 'Enemies notice you later'], ['Quick fix', 'Health comes back sooner'], ['Dead eye', 'Headshots hit harder']]
+  [['Lightweight', 'Move 8% faster · reload 15% slower'], ['Flak jacket', 'Half explosion damage · move 8% slower'], ['Scavenger', 'Restock on kills · health comes back slower']],
+  [['Fast hands', 'Reload and swap 30% faster · hip fire 15% looser'], ['Hardline', 'Carry 2 lethals · swap 30% slower'], ['Steady aim', 'Tighter hip fire · move 8% slower']],
+  [['Ninja', 'Enemies notice you later · your guns do 10% less'], ['Quick fix', 'Health comes back sooner · take 10% more damage'], ['Dead eye', 'Headshots hit 75% harder · body shots 10% weaker']]
 ];
 const TACT = { stim: ['Stim shot', 'Heals you to full'], flash: ['Flashbang', 'Blinds anyone looking at it'], smoke: ['Smoke grenade', 'Blocks sight for 8 seconds'] };
 const LETH = { frag: ['Frag grenade', 'Cook and throw. It can kill you too'], semtex: ['Semtex', 'Sticks to what it hits'], molotov: ['Molotov', 'Burns an area'], knife: ['Throwing knife', 'One hit kill if it lands'] };
-const DEFAULT_LOADOUT = { primary: 'ar0', secondary: 'pi0', att: { optic: 0, barrel: 0, mag: 0, grip: 0 }, perks: [0, 0, 1], tac: 'stim', leth: 'frag' };
+const DEFAULT_LOADOUT = { primary: 'ar0', secondary: 'pi0', att: { optic: 0, barrel: 0, mag: 0, grip: 0 }, perks: [0, 0, 1], tac: 'stim', leth: 'frag', skin: '' };
 let loadout = (() => { try { return Object.assign({}, DEFAULT_LOADOUT, JSON.parse(localStorage.getItem('scobbstrike-loadout2') || '{}')); } catch (e) { return Object.assign({}, DEFAULT_LOADOUT); } })();
 const saveLoadout = () => { try { localStorage.setItem('scobbstrike-loadout2', JSON.stringify(loadout)); } catch (e) { /* private mode */ } };
-let owned = new Set(), myLook = null, stats = {};
+let owned = new Set(), myLook = null, stats = {}, skinsOwned = new Set();
 const ownsW = id => WEAPONS[id] && (WEAPONS[id].tier === 0 || owned.has('w:' + id));
 const ownsA = (slot, i) => i === 0 || owned.has('a:' + slot + ':' + i);
 function fixLoadout() {
@@ -161,6 +173,7 @@ function fixLoadout() {
   if (!ownsW(loadout.primary)) loadout.primary = WEAPONS[loadout.primary].ck + '0';
   if (!WEAPONS[loadout.secondary] || WEAPONS[loadout.secondary].ck !== 'pi' || !ownsW(loadout.secondary)) loadout.secondary = 'pi0';
   loadout.att = Object.assign({ optic: 0, barrel: 0, mag: 0, grip: 0 }, loadout.att);
+  if (loadout.skin && !skinsOwned.has(loadout.skin)) loadout.skin = '';
   for (const s in ATT) if (!ownsA(s, loadout.att[s] || 0)) loadout.att[s] = 0;
 }
 function gunStats(key, att) {
@@ -235,7 +248,7 @@ async function initFirebase() {
     const auth = FB.getAuth(a); fsdb = FB.getFirestore(a);
     FB.onAuthStateChanged(auth, u => {
       ME_UID = u ? u.uid : null;
-      if (u) FB.onSnapshot(FB.doc(fsdb, 'fpsStats/' + u.uid), d => { stats = d.data() || {}; owned = new Set(stats.owned || []); myLook = stats.look || null; fixLoadout(); if (view !== 'game') drawUI(); }, () => {});
+      if (u) FB.onSnapshot(FB.doc(fsdb, 'fpsStats/' + u.uid), d => { stats = d.data() || {}; owned = new Set(stats.owned || []); skinsOwned = new Set(stats.skins || []); myLook = stats.look || null; fixLoadout(); if (view !== 'game') drawUI(); }, () => {});
       if (view !== 'game') drawUI();
     });
   } catch (e) { /* offline: practice still works with free gear */ }
@@ -267,6 +280,7 @@ function drawUI() {
     h += `<div class="stats"><div>Damage<b>${g.dmg}${g.pellets ? '×' + g.pellets : ''}</b></div><div>Fire rate<b>${g.rpm}</b></div><div>Magazine<b>${g.mag}</b></div><div>Range<b>${Math.round(g.range)} m</b></div><div>Reload<b>${g.reload.toFixed(1)} s</b></div><div>Move<b>${Math.round(g.move * 100)}%</b></div></div>`;
     for (const slot of ['optic', 'barrel', 'mag', 'grip']) h += `<h3>${slot === 'mag' ? 'Magazine' : slot}</h3><div class="row">${ATT[slot].map((a, i) => opt('att-' + slot, i, (loadout.att[slot] || 0) === i, a[0], a[2], !ownsA(slot, i), priceText(APRICE[a[3]]))).join('')}</div>`;
     h += `<h3>Secondary</h3><div class="row">${[0, 1, 2, 3, 4].map(t => opt('secondary', 'pi' + t, loadout.secondary === 'pi' + t, WEAPONS['pi' + t].name, '', !ownsW('pi' + t), priceText(WPRICE[t]))).join('')}</div>`;
+    h += `<h3>Skin</h3><div class="row">${opt('skin', '', !loadout.skin, 'No skin', 'Default look')}${SKN.filter(x => skinsOwned.has(x[0])).map(x => opt('skin', x[0], loadout.skin === x[0], x[1], RN[x[2]] + (x[6] ? ' · animated' : ''))).join('')}</div>${skinsOwned.size ? '' : `<p class="small soft" style="margin-top:8px">Skins come from crates in the ScobbBucks app. Open a crate there and they show up here.</p>`}`;
     PERKS.forEach((list, i) => { h += `<h3>Perk ${i + 1}</h3><div class="row">${list.map((pk, j) => opt('perk-' + i, j, loadout.perks[i] === j, pk[0], pk[1])).join('')}</div>`; });
     h += `<h3>Tactical</h3><div class="row">${Object.keys(TACT).map(k => opt('tac', k, loadout.tac === k, TACT[k][0], TACT[k][1])).join('')}</div>`;
     h += `<h3>Lethal</h3><div class="row">${Object.keys(LETH).map(k => opt('leth', k, loadout.leth === k, LETH[k][0], LETH[k][1])).join('')}</div></div>`;
@@ -283,7 +297,7 @@ ui.addEventListener('click', e => {
   const a = b.dataset.act, v = b.dataset.v;
   if (b.dataset.locked) { flashMsg('Unlock that in ScobbBucks under Scobb Strike Armory.'); return; }
   if (a === 'view') view = view === v ? 'home' : v;
-  else if (a === 'primary' || a === 'secondary' || a === 'tac' || a === 'leth') loadout[a] = v;
+  else if (a === 'primary' || a === 'secondary' || a === 'tac' || a === 'leth' || a === 'skin') loadout[a] = v;
   else if (a.startsWith('att-')) loadout.att = Object.assign({}, loadout.att, { [a.slice(4)]: Number(v) });
   else if (a.startsWith('perk-')) { loadout.perks = loadout.perks.slice(); loadout.perks[Number(a.slice(5))] = Number(v); }
   else if (a === 'practice') return beginPractice();
@@ -385,6 +399,7 @@ function dirOf(yaw, pitch) { return [Math.sin(yaw) * Math.cos(pitch), Math.sin(p
 function damage(target, amt, from, how, head) {
   if (!target.alive || match.phase !== 'live' || target.prot > 0) return;
   if (how === 'boom' && target.lo.perks[0] === 1) amt *= 0.5;
+  if (target.lo.perks[2] === 1) amt *= 1.1;
   target.hp -= amt; target.lastHurt = match.clock;
   if (target === me && !attract) { const d = $('.dmg'); if (d) { d.style.opacity = '1'; setTimeout(() => { d.style.opacity = '0'; }, 120); } }
   if (from === me && target !== me) hitmark(target.hp <= 0);
@@ -415,7 +430,7 @@ function shoot(e) {
   if (g.ammo <= 0) { reload(e); return false; }
   g.ammo--; e.fireT = 60 / s.rpm; e.prot = 0;
   const moving = Math.hypot(e.v[0], e.v[2]) > 1;
-  let spread = e.ads > 0.6 ? s.adsS : s.hip * (e.lo.perks[1] === 2 ? 0.7 : 1);
+  let spread = e.ads > 0.6 ? s.adsS : s.hip * (e.lo.perks[1] === 2 ? 0.7 : e.lo.perks[1] === 0 ? 1.15 : 1);
   if (moving) spread *= 1.6;
   if (e.bot) spread += 0.01;
   const o = eyeOf(e), n = s.pellets || 1;
@@ -428,8 +443,8 @@ function shoot(e) {
     if (k < 3) tracers.push({ a: add(o, add(scl(d, 0.6), [0, -0.12, 0])), b: hitP, t: 0 });
     if (victim) {
       const fall = best > s.range ? Math.max(0.55, 1 - (best - s.range) / (s.range * 1.5)) : 1;
-      const mult = r.part === 'head' ? (e.lo.perks[2] === 2 ? 1.75 : 1.5) : r.part === 'legs' ? 0.85 : 1;
-      damage(victim, s.dmg * fall * mult, e, 'gun', r.part === 'head');
+      const mult = r.part === 'head' ? (e.lo.perks[2] === 2 ? 1.75 : 1.5) : r.part === 'legs' ? 0.85 : (e.lo.perks[2] === 2 ? 0.9 : 1);
+      damage(victim, s.dmg * fall * mult * (e.lo.perks[2] === 0 ? 0.9 : 1), e, 'gun', r.part === 'head');
       fx.push({ p: hitP, v: [0, 1, 0], t: 0, life: 0.25, c: victim.col, r: 0.12 });
     } else if (best < 200) fx.push({ p: hitP, v: [0, 0.5, 0], t: 0, life: 0.3, c: '#DDDDDD', r: 0.05 });
   }
@@ -438,8 +453,8 @@ function shoot(e) {
   e.flashMuzzle = 0.05;
   return true;
 }
-function reload(e) { const g = e.guns[e.cur]; if (e.reloadT > 0 || g.ammo >= g.s.mag) return; e.reloadT = g.s.reload * (e.lo.perks[1] === 0 ? 0.7 : 1); }
-function swap(e, i) { if (e.cur === i) return; e.cur = i; e.reloadT = 0; e.swapT = e.lo.perks[1] === 0 ? 0.35 : 0.5; }
+function reload(e) { const g = e.guns[e.cur]; if (e.reloadT > 0 || g.ammo >= g.s.mag) return; e.reloadT = g.s.reload * (e.lo.perks[1] === 0 ? 0.7 : 1) * (e.lo.perks[0] === 0 ? 1.15 : 1); }
+function swap(e, i) { if (e.cur === i) return; e.cur = i; e.reloadT = 0; e.swapT = (e.lo.perks[1] === 0 ? 0.35 : 0.5) * (e.lo.perks[1] === 1 ? 1.3 : 1); }
 function throwNade(e, kind, cooked) {
   e.prot = 0;
   const d = dirOf(e.yaw, e.pitch + 0.12), o = add(eyeOf(e), scl(d, 0.5));
@@ -545,7 +560,8 @@ function updateHud() {
   hudEls.prot.textContent = me.alive && me.prot > 0 ? 'Spawn protected' : '';
   hudEls.hpbar.style.width = Math.max(0, me.hp) + '%';
   hudEls.inv.innerHTML = [[me.guns[0].s.name, `${me.guns[0].ammo}/${me.guns[0].s.mag}`, '1', me.cur === 0], [me.guns[1].s.name, `${me.guns[1].ammo}/${me.guns[1].s.mag}`, '2', me.cur === 1], [TACT[me.lo.tac][0], `×${me.tac}`, 'Q', false], [LETH[me.lo.leth][0], me.cook >= 0 ? `cooking ${Math.max(0, 3 - me.cook).toFixed(1)}` : `×${me.leth}`, 'G', false]].map(([n, v, k, on]) => `<div class="slot${on ? ' on' : ''}"><kbd>${k}</kbd><b>${n}</b>${v}</div>`).join('');
-  hudEls.gun.textContent = g.s.name + (me.reloadT > 0 ? ' · reloading' : '');
+  const sk = me.lo.skin && skinInfo(me.lo.skin);
+  hudEls.gun.textContent = g.s.name + (sk ? ' · ' + sk[1] : '') + (me.reloadT > 0 ? ' · reloading' : '');
   hudEls.ammo.textContent = `${g.ammo} / ${g.s.mag}`;
   const spread = me.ads > 0.6 ? g.s.adsS : g.s.hip;
   hudEls.ch.style.transform = `scale(${1 + spread * 18})`;
@@ -679,7 +695,7 @@ function step(dt) {
     e.fireT -= dt; e.swapT -= dt; e.flashT -= dt; e.prot -= dt; e.flashMuzzle = (e.flashMuzzle || 0) - dt; e.recoil *= Math.pow(0.02, dt);
     if (e.reloadT > 0) { e.reloadT -= dt; if (e.reloadT <= 0) { const g = e.guns[e.cur]; g.ammo = g.s.mag; } }
     if (e.stimT > 0) { e.stimT -= dt; e.hp = Math.min(100, e.hp + 100 * dt); }
-    if (match.clock - e.lastHurt > (e.lo.perks[2] === 1 ? 2.5 : 5)) e.hp = Math.min(100, e.hp + 25 * dt);
+    if (match.clock - e.lastHurt > (e.lo.perks[2] === 1 ? 2.5 : 5)) e.hp = Math.min(100, e.hp + (e.lo.perks[0] === 2 ? 15 : 25) * dt);
     if (e.cook >= 0) { e.cook += dt; if (e.cook >= 3) { e.leth--; e.cook = -1; nades.push({ kind: 'frag', p: eyeOf(e), v: [0, 0, 0], owner: e, t: 0, fuse: 0 }); } }
     if (e.bot) { if (live) botThink(e, dt); else { e.v[0] = 0; e.v[2] = 0; } }
     else {
@@ -687,7 +703,7 @@ function step(dt) {
       let mx = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0) + touchMove[0], mz = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0) - touchMove[1];
       const fl = Math.hypot(mx, mz); if (fl > 1) { mx /= fl; mz /= fl; }
       const sprint = keys.ShiftLeft && mz > 0 && e.ads < 0.2;
-      const sp = 5 * e.guns[e.cur].s.move * (e.lo.perks[0] === 0 ? 1.08 : 1) * (sprint ? 1.45 : 1) * (1 - e.ads * 0.4);
+      const sp = 5 * e.guns[e.cur].s.move * (e.lo.perks[0] === 0 ? 1.08 : e.lo.perks[0] === 1 ? 0.92 : 1) * (e.lo.perks[1] === 2 ? 0.92 : 1) * (sprint ? 1.45 : 1) * (1 - e.ads * 0.4);
       const f = [Math.sin(e.yaw), 0, -Math.cos(e.yaw)], r = [Math.cos(e.yaw), 0, Math.sin(e.yaw)];
       e.v[0] = (f[0] * mz + r[0] * mx) * sp; e.v[2] = (f[2] * mz + r[2] * mx) * sp;
       if (keys.Space && e.ground) e.v[1] = 7;
@@ -769,8 +785,15 @@ function drawViewmodel() {
   const rl = me.reloadT > 0 ? 0.25 : 0, sw = me.swapT > 0 ? me.swapT * 0.6 : 0;
   const x = 0.2 * (1 - a), y = -0.2 + a * 0.085 + bob - rl * 0.3 - sw, z = -0.48 + kick;
   const cls = s.ck, len2 = cls === 'sn' ? 0.42 : cls === 'pi' ? 0.12 : cls === 'sg' ? 0.34 : 0.26;
-  const tierCol = ['#2B2F38', '#2F3F5A', '#3A2F5A', '#5A2F3F', '#6B5321'][s.tier];
-  G.box(x, y, z, 0.035, 0.05, len2, 0.012, tierCol, { spec: 1.1, shiny: 60, rx: rl });
+  let tierCol = ['#2B2F38', '#2F3F5A', '#3A2F5A', '#5A2F3F', '#6B5321'][s.tier], skinOpt = {};
+  const sk = me.lo.skin && skinInfo(me.lo.skin);
+  if (sk) {
+    const k = sk[6] ? (Math.sin(performance.now() / 500) + 1) / 2 : 0;
+    tierCol = sk[5] === 0 || sk[5] === 4 ? mixHex(sk[3], sk[4], sk[5] === 4 ? (sk[6] ? k : 0.35) : 0) : sk[3];
+    if (sk[5] === 1) skinOpt = { stripe: 26, c2: sk[4] };
+    if (sk[5] === 2 || sk[5] === 3) skinOpt = { stripe: 9, c2: sk[4] };
+  }
+  G.box(x, y, z, 0.035, 0.05, len2, 0.012, tierCol, Object.assign({ spec: 1.1, shiny: 60, rx: rl }, skinOpt));
   G.cyl(x, y + 0.02, z - len2 - 0.06, cls === 'sg' ? 0.022 : 0.014, 0.08, '#1A1C22', { rx: Math.PI / 2, spec: 1.2 });
   if (cls !== 'pi') { G.box(x, y - 0.07, z - 0.05, 0.022, 0.06 * (me.lo.att.mag >= 2 ? 1.5 : 1), 0.03, 0.01, '#4A3AE0', { rx: 0.2 + rl }); G.box(x, y - 0.01, z + len2 + 0.08, 0.03, 0.04, 0.09, 0.01, '#3A3F4A'); }
   else G.box(x, y - 0.07, z + 0.05, 0.025, 0.07, 0.03, 0.01, '#3A3F4A', { rx: -0.25 });
@@ -804,7 +827,7 @@ function render() {
 }
 initFirebase();
 startAttract();
-if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, owned: list => { owned = new Set(list); drawUI(); } };
+if (TEST) window.__fps = { state: () => ({ attract, phase: match && match.phase, round: match && match.round, map: M && M.name, me: me && { hp: me.hp, kills: me.kills, alive: me.alive, prot: me.prot, ammo: me.guns[me.cur].ammo, tk: me.tk }, bots: ents.filter(e => e.bot).map(e => [e.name, e.kills, e.deaths, Math.round(e.hp)]) }), shoot: () => { mouse.l = true; setTimeout(() => { mouse.l = false; }, 400); }, face: (y, p) => { me.yaw = y; me.pitch = p; }, hurtMe: n => damage(me, n, ents[1], 'gun'), tab: on => { keys.Tab = on; }, owned: list => { owned = new Set(list); drawUI(); }, skins: list => { skinsOwned = new Set(list); drawUI(); } };
 </script>
 </body>
 </html>
