@@ -344,22 +344,22 @@ export const GAMES = {
     }
   },
   count: {
-    name: 'Quick count', emoji: '🔢', how: 'Dots flash for a moment. Pick how many there were. Get 5 right. A wrong answer costs a heart.',
+    name: 'Quick count', emoji: '🔢', how: 'Dots show for about two seconds. Pick how many there were. Get 5 right. A wrong answer costs a heart.',
     start(el, api) {
       const T = timers(); let n = 0;
       const round = () => {
         el.innerHTML = '';
-        const want = RI(11 + n * 2, 16 + n * 2), W = el.clientWidth, H = el.clientHeight, pts = [];
+        const want = RI(4 + n, 7 + n), W = el.clientWidth, H = el.clientHeight, pts = [];
         let tries = 0;
         while (pts.length < want && tries++ < 3000) { const p = { x: R(18, W - 18), y: R(18, H - 18) }; if (pts.every(q => Math.hypot(q.x - p.x, q.y - p.y) > 30)) pts.push(p); }
         pts.forEach(p => { const d = document.createElement('i'); d.className = 'ag-dot'; d.style.left = p.x - 10 + 'px'; d.style.top = p.y - 10 + 'px'; d.style.background = PICK(COLS); el.appendChild(d); });
         const real = pts.length;
         T.t(() => {
           el.innerHTML = '';
-          const set = new Set([real]); while (set.size < 4) set.add(Math.max(1, real + PICK([-1, 1]) * RI(1, 3)));
+          const set = new Set([real]); while (set.size < 4) set.add(Math.max(1, real + PICK([-1, 1]) * RI(2, 4)));
           const box = panel(el, `<div class="ag-q">How many?</div><div class="ag-opts">${SHUF([...set]).map(o => `<button class="btn btn-ghost" data-v="${o}">${o}</button>`).join('')}</div>`);
           box.querySelectorAll('[data-v]').forEach(b => { b.onclick = () => { if (Number(b.dataset.v) === real) { n++; api.status(`${n}/5`); if (n >= 5) return api.win(); round(); } else { b.classList.add('ag-wrong'); if (api.heart()) T.t(round, 600); } }; });
-        }, 750);
+        }, 1800);
       };
       api.status('0/5'); round();
       return () => T.clear();

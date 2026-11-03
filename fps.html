@@ -151,6 +151,39 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .bossbar i { display: block; height: 10px; border-radius: 6px; background: linear-gradient(90deg, #7C4DEB, #FF4F8B); margin-top: 4px; box-shadow: 0 0 10px rgba(185,139,255,.6); }
 .zwin { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; background: radial-gradient(rgba(60,20,90,.4), rgba(8,4,14,.85)); z-index: 40; animation: kp-in .6s; pointer-events: none; }
 .zwin h2 { font: 900 44px Georgia, serif; color: #E5B8FF; margin: 6px 0; text-shadow: 0 0 24px rgba(185,139,255,.8); }
+/* ===== scoreboard and results ===== */
+.rb { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(6,8,10,.55); z-index: 30; pointer-events: none; }
+.rb[hidden] { display: none; }
+.rb-in { width: min(1100px, 94vw); max-height: 92vh; overflow: auto; font-family: var(--font); }
+.rb-top { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 10px; }
+.rb-top h2 { margin: 0; font: 800 clamp(22px, 3.2vw, 40px) var(--font); color: #F1EBDA; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
+.rb-time { font: 800 clamp(20px, 2.6vw, 34px) var(--font); color: #F1EBDA; }
+.rb-t { width: 100%; border-collapse: separate; border-spacing: 0 3px; font-size: clamp(13px, 1.5vw, 19px); color: #F1EBDA; }
+.rb-t th { font-weight: 600; color: #E8DDB5; padding: 4px 10px; text-align: center; font-size: .9em; }
+.rb-t td { padding: 7px 10px; text-align: center; white-space: nowrap; }
+.rb-t .l { text-align: left; width: 34%; }
+.rb-t tr.them td { background: rgba(160,30,36,.62); }
+.rb-t tr.me td { background: rgba(22,120,104,.62); box-shadow: inset 0 2px 0 #fff, inset 0 -2px 0 #fff; font-weight: 800; }
+.rb-t tr.me td:first-child { box-shadow: inset 2px 2px 0 #fff, inset 0 -2px 0 #fff; } .rb-t tr.me td:last-child { box-shadow: inset -2px 2px 0 #fff, inset 0 -2px 0 #fff; }
+.ping { display: inline-flex; gap: 2px; align-items: flex-end; height: 14px; } .ping b { width: 3px; background: #4FCB96; border-radius: 1px; } .ping b:nth-child(1) { height: 4px; } .ping b:nth-child(2) { height: 7px; } .ping b:nth-child(3) { height: 10px; } .ping b:nth-child(4) { height: 14px; }
+.rb-hint { color: #E8DDB5; font-size: 14px; }
+.rb-banner { font: 900 clamp(40px, 7vw, 84px) var(--font); letter-spacing: .08em; text-align: center; text-transform: uppercase; }
+.rb-banner.win { color: #FFD86B; text-shadow: 0 0 30px rgba(255,200,80,.6); } .rb-banner.loss { color: #FF8A8E; text-shadow: 0 0 30px rgba(255,80,80,.5); }
+.rb-sub { text-align: center; color: #E8DDB5; margin: 0 0 14px; font-size: 18px; }
+.rb-unlocks { margin: 14px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } .rb-unlocks b { color: #FFD86B; margin-right: 6px; } .rb-unlocks span { background: rgba(255,216,107,.14); border: 1px solid rgba(255,216,107,.5); border-radius: 999px; padding: 4px 10px; font-size: 14px; }
+.rb-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; } .rb-btns .btn { min-width: 180px; text-align: center; text-decoration: none; }
+.rb-zstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; } .rb-zstats div { background: rgba(255,255,255,.06); border-radius: 14px; padding: 14px; text-align: center; } .rb-zstats b { display: block; font-size: 34px; color: #FFE9A8; } .rb-zstats span { color: #CDBF9E; }
+.mastery { display: grid; gap: 8px; } .mrow { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; display: grid; gap: 4px; }
+.dl-party { display: flex; align-items: center; gap: 12px; justify-content: center; margin: 12px 0 6px; }
+.dl-slot { flex: 1; max-width: 230px; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 16px; padding: 10px; text-align: center; display: grid; gap: 4px; justify-items: center; min-height: 230px; align-content: center; }
+.dl-slot img { width: 140px; height: 166px; border-radius: 12px; background: #1A1D25; }
+.dl-slot.empty { border-style: dashed; color: var(--soft); }
+.dl-slot span { font-size: 12.5px; color: var(--soft); }
+.dl-vs { font: 900 26px var(--font); color: #FF8A8E; }
+.dl-start { margin-top: 12px; font-size: 18px; }
+.dl-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 6px; }
+.dl-row img { width: 44px; height: 52px; border-radius: 8px; background: #1A1D25; }
+.dl-row b { flex: 0 0 auto; } .dl-row span { flex: 1; }
 .lockhint { position: absolute; left: 50%; top: 42%; transform: translateX(-50%); background: rgba(8,9,13,.75); border: 1px solid rgba(255,255,255,.3); padding: 8px 16px; border-radius: 999px; font-size: 15px; }
 .lockhint[hidden] { display: none; }
 .kpops { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; }
@@ -241,8 +274,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102u';
-import { drawScobb } from './scobbchar.js?v=20261102u';
+import { create } from './scobb3d.js?v=20261102v';
+import { drawScobb } from './scobbchar.js?v=20261102v';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -300,7 +333,25 @@ const COS2 = [];
 [['Neon Pink', '#FF2E88', '#2A0B1E'], ['Neon Lime', '#C8FF2E', '#0B2A0B'], ['Neon Sky', '#2EC8FF', '#0B1E2A'], ['Neon Gold', '#FFD42E', '#2A1E0B'], ['Neon Violet', '#9B5BFF', '#140B2A'], ['Neon Ember', '#FF6A2E', '#2A100B']]
   .forEach((c, i) => COS2.push(['cv' + i, c[0], 3, c[1], c[2], 1, 1, 'camo']));
 COS2.push(['cw0', 'Northern Lights', 4, '#1BE3A2', '#7B3BFF', 4, 1, 'camo'], ['cw1', 'Sunset Strip', 4, '#FF5E3A', '#FFB13A', 1, 1, 'camo'], ['cw2', 'Glacier', 4, '#BFF4FF', '#2A6BD1', 4, 1, 'camo'], ['cw3', 'Dark Matter', 5, '#05050A', '#7B5BFF', 4, 1, 'camo']);
-const ALLC = SKN.map(x => x.concat('camo')).concat(COS).concat(COS2);
+// Earned camos: a ladder for every gun, mastery for each class and all classes, and one for each game mode.
+const CH_CAMOS = [['ch0', 'Woodland', 1, '#55683A', '#2E3A20', 3, 0, 'camo'], ['ch1', 'Desert', 1, '#C9A97A', '#8A6A44', 3, 0, 'camo'], ['ch2', 'Tiger', 2, '#E39424', '#1A1410', 1, 0, 'camo'], ['ch3', 'Red Tiger', 3, '#B8202A', '#140A0A', 1, 0, 'camo'], ['ch4', 'Digital', 3, '#5A6A7A', '#C9D2DC', 2, 0, 'camo'], ['ch5', 'Gold', 4, '#C99A1E', '#FFF2B0', 7, 1, 'camo'], ['chd', 'Diamond', 5, '#7FE7FF', '#F4FBFF', 6, 1, 'camo'], ['chx', 'Dark Aether', 5, '#14062E', '#C38BFF', 5, 1, 'camo']];
+const MODE_CAMOS = [['ms_ffa', 'Champion', 4, '#FFD86B', '#C0392B', 8, 1, 'camo'], ['ms_gun', 'Gunslinger', 4, '#2F74E8', '#FFE38A', 8, 1, 'camo'], ['ms_duel', 'Duelist', 4, '#15171C', '#E5484D', 7, 1, 'camo'], ['ms_zom', 'Undead', 4, '#2E5A22', '#9EF6FF', 5, 1, 'camo']];
+const ALLC = SKN.map(x => x.concat('camo')).concat(COS).concat(COS2).concat(CH_CAMOS).concat(MODE_CAMOS);
+const CH_STEPS = [['ch0', 'k', 15, '15 kills'], ['ch1', 'k', 30, '30 kills'], ['ch2', 'h', 15, '15 headshot kills'], ['ch3', 'k', 60, '60 kills'], ['ch4', 'h', 30, '30 headshot kills'], ['ch5', 'k', 100, 'Unlock the other five, then 100 kills']];
+const MODE_REQ = { ms_ffa: ['wins', 5, 'Win 5 free-for-all matches'], ms_gun: ['gw', 1, 'Win a Gun Game'], ms_duel: ['dw', 3, 'Win 3 wager duels'], ms_zom: ['zr', 15, 'Reach round 15 in Scobb Zombies'] };
+const gunProg = id => ({ k: ((stats.gk || {})[id] || 0) + ((me && me.gunK && me.gunK[id]) || 0), h: ((stats.gh || {})[id] || 0) + ((me && me.gunH && me.gunH[id]) || 0) });
+function chStepOk(id, i) { const pr = gunProg(id), st = CH_STEPS[i]; if (i < 5) return pr[st[1]] >= st[2]; for (let j = 0; j < 5; j++) if (!chStepOk(id, j)) return false; return pr.k >= 100; }
+const classGold = ck => [0, 1, 2, 3, 4].every(t => chStepOk(ck + t, 5));
+const allDiamond = () => Object.keys(CLASSES).every(classGold);
+function camoOk(gun, cid) {
+  if (!cid) return true;
+  const i = CH_STEPS.findIndex(x => x[0] === cid);
+  if (i >= 0) return chStepOk(gun, i);
+  if (cid === 'chd') return WEAPONS[gun] ? classGold(WEAPONS[gun].ck) : false;
+  if (cid === 'chx') return allDiamond();
+  if (MODE_REQ[cid]) return (stats[MODE_REQ[cid][0]] || 0) >= MODE_REQ[cid][1];
+  return skinsOwned.has(cid);
+}
 const skinInfo = id => ALLC.find(x => x[0] === id) || null;
 const ownedOf = type => ALLC.filter(x => x[7] === type && skinsOwned.has(x[0]));
 const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
@@ -352,7 +403,7 @@ function fixLoadout() {
   loadout.att = attOf(loadout.primary);
   loadout.camos = Object.assign({}, loadout.camos || {});
   if (loadout.skin) { if (!loadout.camos[loadout.primary]) loadout.camos[loadout.primary] = loadout.skin; loadout.skin = ''; }
-  { for (const g in loadout.camos) if (!skinsOwned.has(loadout.camos[g])) delete loadout.camos[g]; if (loadout.charm && !skinsOwned.has(loadout.charm)) loadout.charm = ''; if (loadout.tracer && !skinsOwned.has(loadout.tracer)) loadout.tracer = ''; }
+  { for (const g in loadout.camos) if (!camoOk(g, loadout.camos[g])) delete loadout.camos[g]; if (loadout.charm && !skinsOwned.has(loadout.charm)) loadout.charm = ''; if (loadout.tracer && !skinsOwned.has(loadout.tracer)) loadout.tracer = ''; }
   for (const s in ATT) if (!ownsA(s, loadout.att[s] || 0)) loadout.att[s] = 0;
 }
 function attOf(id) { return Object.assign({ optic: 0, barrel: 0, mag: 0, grip: 0 }, (loadout.atts && loadout.atts[id]) || {}); }
@@ -383,13 +434,21 @@ const CARDS = [
   ['snipe', 'Long Shot', 'Get 50 sniper kills', s => (s.snipe || 0) >= 50, 'cc-scope'],
   ['champ', 'Champion', 'Win 10 matches', s => (s.wins || 0) >= 10, 'cc-gold'],
   ['streak', 'Unstoppable', 'Get 10 kills in one life', s => (s.best || 0) >= 10, 'cc-rainbow'],
-  ['legend', 'Legend', 'Get 500 kills', s => (s.k || 0) >= 500, 'cc-galaxy']
+  ['legend', 'Legend', 'Get 500 kills', s => (s.k || 0) >= 500, 'cc-galaxy'],
+  ['gg1', 'Gunslinger', 'Win a Gun Game', s => (s.gw || 0) >= 1, 'cc-steel'],
+  ['gg5', 'Arsenal', 'Win 5 Gun Games', s => (s.gw || 0) >= 5, 'cc-fire'],
+  ['duel1', 'Showdown', 'Win a wager duel', s => (s.dw || 0) >= 1, 'cc-red'],
+  ['duel10', 'High Roller', 'Win 10 wager duels', s => (s.dw || 0) >= 10, 'cc-gold'],
+  ['flaw', 'Flawless', 'Win a duel 3 rounds to 0', s => (s.dflaw || 0) >= 1, 'cc-shine'],
+  ['z10', 'Survivor', 'Reach round 10 in Scobb Zombies', s => (s.zr || 0) >= 10, 'cc-scan'],
+  ['z25', 'Undying', 'Reach round 25 in Scobb Zombies', s => (s.zr || 0) >= 25, 'cc-rainbow'],
+  ['zq', 'Aether Hero', 'Finish a Scobb Zombies main quest', s => (s.zq || 0) >= 1, 'cc-galaxy']
 ];
 const cardOf = id => CARDS.find(c => c[0] === id) || CARDS[0];
 const cardOpen = id => { const c = CARDS.find(x => x[0] === id); return !!c && c[3](stats); };
 let myCard = (() => { try { return localStorage.getItem('scobbstrike-card') || 'rookie'; } catch (e) { return 'rookie'; } })();
 const cardHTML = (id, who) => { const c = cardOf(id); return `<div class="ccard ${c[4]}"><i></i><b>${c[1]}</b><span>${who || ''}</span></div>`; };
-const CARD_PROGRESS = { first: ['k', 10], vet: ['k', 100], hs: ['hs', 50], boom: ['boom', 25], blade: ['knife', 10], snipe: ['snipe', 50], champ: ['wins', 10], streak: ['best', 10], legend: ['k', 500], rookie: ['matches', 1] };
+const CARD_PROGRESS = { gg1: ['gw', 1], gg5: ['gw', 5], duel1: ['dw', 1], duel10: ['dw', 10], flaw: ['dflaw', 1], z10: ['zr', 10], z25: ['zr', 25], zq: ['zq', 1], first: ['k', 10], vet: ['k', 100], hs: ['hs', 50], boom: ['boom', 25], blade: ['knife', 10], snipe: ['snipe', 50], champ: ['wins', 10], streak: ['best', 10], legend: ['k', 500], rookie: ['matches', 1] };
 
 /* ================= maps ================= */
 // Boxes are [x, y, z, halfX, halfY, halfZ, color, emissive]. y is the center height.
@@ -702,7 +761,7 @@ function navPath(a, b) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102u');
+    const cfg = await import('./firebase-config.js?v=20261102v');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs, rd] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js'), import(base + 'firebase-database.js').catch(() => null)]);
     FB = Object.assign({}, app, au, fs); FB.r = rd;
@@ -720,10 +779,17 @@ async function initFirebase() {
   } catch (e) { /* offline: practice still works with free gear */ }
 }
 function recordMatch(won, partial) {
-  if (!FB || !ME_UID || !me || me.recorded) return;
+  if (!FB || !FB.increment || !ME_UID || !me || me.recorded) return;
   me.recorded = true;
   const up = { pts: FB.increment(me.tp || 0), k: FB.increment(me.tk || 0), d: FB.increment(me.td || 0), hs: FB.increment(me.hsK || 0), boom: FB.increment(me.boomK || 0), knife: FB.increment(me.knifeK || 0), snipe: FB.increment(me.snipeK || 0) };
-  if (!partial) { up.matches = FB.increment(1); up.wins = FB.increment(won ? 1 : 0); }
+  if (!partial) {
+    up.matches = FB.increment(1);
+    if (mode === 'gun') up.gw = FB.increment(won ? 1 : 0);
+    else if (mode === 'duel') { up.dw = FB.increment(won ? 1 : 0); if (won && DN.score && DN.score[1] === 0) up.dflaw = FB.increment(1); }
+    else up.wins = FB.increment(won ? 1 : 0);
+  }
+  if (me.gunK) up.gk = Object.fromEntries(Object.entries(me.gunK).map(([k, v]) => [k, FB.increment(v)]));
+  if (me.gunH) up.gh = Object.fromEntries(Object.entries(me.gunH).map(([k, v]) => [k, FB.increment(v)]));
   if ((me.bestStreak || 0) > (stats.best || 0)) up.best = me.bestStreak;
   FB.setDoc(FB.doc(fsdb, 'fpsStats/' + ME_UID), up, { merge: true }).catch(() => {});
 }
@@ -740,7 +806,7 @@ function drawUI() {
   fixLoadout();
   const P = WEAPONS[loadout.primary];
   let h = `<div class="shade"></div><div class="side"><h1 class="logo">Scobb<span>Strike</span></h1><div class="tag">Free for all · Best of 3</div>
-    <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" disabled><span>Wager 1v1</span><small>Bet ScobbBucks against a friend. Coming next.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="view" data-v="zombies" class="${view === 'zombies' ? 'on' : ''}"><span>Scobb Zombies</span><small>Round-based survival on classic maps</small></button><button type="button" data-act="gungame"><span>Gun Game</span><small>20 weapons. Kill to climb. Getting knifed drops you one.</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="armory"><span>Armory</span><small>Buy guns and attachments with ScobbBucks</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Calling cards</span><small>Challenges and the card killers see</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
+    <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" data-act="duel" class="${view === 'duel' ? 'on' : ''}"><span>Wager Duel</span><small>1v1, 5 rounds, one life each. First to 3 takes the pot.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="view" data-v="zombies" class="${view === 'zombies' ? 'on' : ''}"><span>Scobb Zombies</span><small>Round-based survival on classic maps</small></button><button type="button" data-act="gungame"><span>Gun Game</span><small>20 weapons. Kill to climb. Getting knifed drops you one.</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="armory"><span>Armory</span><small>Buy guns and attachments with ScobbBucks</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Challenges</span><small>Camos, mastery and calling cards</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
     <div class="kd"><div><b>${kdText()}</b><span>K/D</span></div><div><b>${stats.k || 0}</b><span>Kills</span></div><div><b>${stats.pts || 0}</b><span>Points</span></div><div><b>${stats.wins || 0}</b><span>Match wins</span></div></div>
     <p class="small soft" style="margin-top:22px">${ME_UID ? 'Your K/D shows on your ScobbBucks profile.' : 'Log in on ScobbBucks to track your K/D and use the gear you unlock.'} <a href="./" style="color:#C9C2FF">Back to ScobbBucks</a></p></div>`;
   if (view === 'loadout') {
@@ -764,6 +830,28 @@ function drawUI() {
     h += `<div class="stats">${st('Damage', g.dmg, base.dmg)}${st('Fire rate', g.rpm, base.rpm)}${st('Magazine', g.mag, base.mag)}${st('Range', g.range, base.range, ' m')}${st('Reload', g.reload, base.reload, ' s', true, x => x.toFixed(1))}${st('Move', g.move * 100, base.move * 100, '%')}${st('Aim time', g.ads * 1000, base.ads * 1000, ' ms', true)}${st('Kick', g.recoil * 1000, base.recoil * 1000, '', true)}${st('Zoom', g.zoom, base.zoom, '×', false, x => x.toFixed(1))}</div>`;
     h += `<div class="slots">${slots.map(([k, label, cur]) => `<button type="button" class="slotb${smithSlot === k ? ' on' : ''}" data-act="slot" data-v="${k}"><span>${label}</span><b>${cur}</b></button>`).join('')}</div>`;
     h += `<div class="sopts">${slotOptions(id, smithSlot, at)}</div></div>`;
+  } else if (view === 'duel') {
+    const L2 = DN.lobby || {}, guest = L2.g, iAmHost = !L2.h || L2.h === ME_UID, online = duelOk();
+    const hostLook = iAmHost ? (myLook || {}) : L2.hl, hostName = iAmHost ? (myName || 'You') : L2.hn;
+    const slot = (look, name, tag) => `<div class="dl-slot"><img alt="" src="${avatarThumb(look || {})}"><b>${zesc(name)}</b><span>${tag}</span></div>`;
+    h += `<div class="panel wide"><h2>Wager Duel</h2><p class="small soft">One on one. Five rounds, one life each round, first to 3 round wins takes the whole pot. Your loadout comes with you.</p>`;
+    h += `<div class="dl-party">${slot(hostLook, hostName, iAmHost ? 'Host · you' : 'Host')}<div class="dl-vs">VS</div>${guest ? slot(guest.l, guest.n, guest.u === ME_UID ? 'You' : 'Joined') : `<div class="dl-slot empty"><b>Waiting for a player</b><span>${online ? 'Invite someone below' : 'Log in on ScobbBucks to duel real people'}</span></div>`}</div>`;
+    if (guest) {
+      const w = DN.wager || { r: 0, n: 0 }, bal = DN.bal;
+      h += `<h3>Wager</h3>`;
+      if (iAmHost) h += `<div class="row">${[0, 1, 2, 3, 4, 5].map(r => `<button type="button" class="opt" data-act="dwr" data-v="${r}" aria-pressed="${w.r === r}">${RN[r]}${bal ? `<small>you have ${bal[r]}</small>` : ''}</button>`).join('')}</div><div class="zrow" style="margin-top:8px"><button type="button" class="btn ghost" data-act="dwn" data-v="-1">−</button><b style="font-size:22px;min-width:60px;text-align:center">${w.n}</b><button type="button" class="btn ghost" data-act="dwn" data-v="1">+</button><span class="small soft">${w.n ? `${w.n} ${RN[w.r]} each, winner takes ${w.n * 2}` : 'No coins, just bragging rights'}</span></div>`;
+      else h += `<p>${w.n ? `${w.n} ${RN[w.r]} each. The winner takes ${w.n * 2}.` : 'No coins on this one.'} The host sets the wager.</p>`;
+    }
+    if (iAmHost) h += `<button type="button" class="btn block dl-start" data-act="dstart">${guest ? `Start game against ${zesc(guest.n)}` : 'Start'}</button>${guest ? '' : '<p class="small soft" style="text-align:center;margin-top:6px">Play against bots</p>'}`;
+    else h += `<p class="small soft" style="text-align:center">Waiting for ${zesc(L2.hn)} to start…</p><button type="button" class="btn ghost block" data-act="dleave">Leave lobby</button>`;
+    if (L2.st === 'staking') h += `<p class="small soft" style="text-align:center">Putting the wager in escrow…</p>`;
+    if (online) {
+      const inv = Object.entries(DN.invites || {}).filter(([, x]) => x && x.t && Date.now() - x.t < 600000);
+      if (inv.length) h += `<h3>Invites</h3>${inv.map(([id, x]) => `<div class="dl-row"><img alt="" src="${avatarThumb(x.lk || {})}"><b>${zesc(x.n)}</b><span class="small soft">wants you in their lobby</span><button type="button" class="btn" data-act="dacc" data-v="${id}">Join</button><button type="button" class="btn ghost" data-act="ddec" data-v="${id}">No thanks</button></div>`).join('')}`;
+      const others = Object.entries(DN.online || {}).filter(([, x]) => x && x.t && Date.now() - x.t < 60000);
+      h += `<h3>In Wager Duel right now</h3>${others.length ? others.map(([id, x]) => `<div class="dl-row"><img alt="" src="${avatarThumb(x.lk || {})}"><b>${zesc(x.n)}</b><span class="small soft">${x.c === DN.code ? 'In your lobby' : 'Looking for a duel'}</span>${x.c === DN.code || guest ? '' : `<button type="button" class="btn" data-act="dinv" data-v="${id}">Invite</button>`}</div>`).join('') : '<p class="small soft">Nobody else is here yet. When a friend opens Wager Duel, they show up here and you can invite them, or they can invite you.</p>'}`;
+    }
+    h += `</div>`;
   } else if (view === 'zlobby') {
     const L = ZN.lobby || {}, pl = L.pl || {}, n = Object.keys(pl).length;
     h += `<div class="panel wide"><h2>Co-op lobby</h2><p class="small soft">Send your friends this code. They open Scobb Strike, go to Scobb Zombies and join with it. Up to 4 players.</p><div class="zcodebig">${ZN.code}</div>`;
@@ -789,7 +877,9 @@ function drawUI() {
     for (const c in CLASSES) h += `<h3>${CLASSES[c].name}</h3><div class="row">${[0, 1, 2, 3, 4].map(t => { const w = WEAPONS[c + t]; return `<div class="opt${ownsW(c + t) ? '' : ' lock'}" style="min-width:150px">${w.name}<small>Damage ${w.dmg}${w.pellets ? '×' + w.pellets : ''} · ${w.rpm} rpm · Mag ${w.mag}</small><span class="price">${ownsW(c + t) ? 'Owned' : priceText(WPRICE[t])}</span></div>`; }).join('')}</div>`;
     h += `<h3>Attachments</h3>${Object.keys(ATT).map(s => `<div class="row" style="margin-bottom:6px">${ATT[s].map((a, i) => `<div class="opt${ownsA(s, i) ? '' : ' lock'}">${a[0]}<small>${a[2]}</small><span class="price">${ownsA(s, i) ? 'Owned' : priceText(APRICE[a[3]])}</span></div>`).join('')}</div>`).join('')}<p style="margin-top:16px"><a class="btn block" style="display:grid;place-items:center;text-decoration:none" href="./" target="_blank" rel="noopener">Open ScobbBucks to unlock gear</a></p></div>`;
   } else if (view === 'cards') {
-    h += `<div class="panel"><h2>Calling cards</h2><p class="small soft">Finish challenges to unlock cards. Your equipped card shows on the screen of anyone you kill. Harder challenges have animated cards.</p>`;
+    h += `<div class="panel wide"><h2>Challenges</h2><p class="small soft">Finish challenges to unlock calling cards and camos. Your equipped card shows on the screen of anyone you kill. Every gun has its own camo ladder in the gunsmith: Woodland, Desert, Tiger, Red Tiger, Digital, then Gold. Gold every gun in a class for Diamond. Diamond every class for Dark Aether.</p>`;
+    h += `<h3>Mastery</h3><div class="mastery">${Object.keys(CLASSES).map(ck => { const g = [0, 1, 2, 3, 4].filter(t => chStepOk(ck + t, 5)).length; return `<div class="mrow"><b>${CLASSES[ck].name}</b><span class="small soft">Gold ${g}/5 ${classGold(ck) ? '· Diamond unlocked' : ''}</span><div class="pbar"><i style="width:${g * 20}%"></i></div></div>`; }).join('')}<div class="mrow"><b>Dark Aether</b><span class="small soft">Diamond ${Object.keys(CLASSES).filter(classGold).length}/${Object.keys(CLASSES).length}</span><div class="pbar"><i style="width:${Object.keys(CLASSES).filter(classGold).length / Object.keys(CLASSES).length * 100}%"></i></div></div></div>`;
+    h += `<h3>Game mode camos</h3><div class="mastery">${MODE_CAMOS.map(m2 => { const rq = MODE_REQ[m2[0]], have = Math.min(stats[rq[0]] || 0, rq[1]); return `<div class="mrow"><b><i class="swatch" style="background:${m2[3]}"></i> ${m2[1]}</b><span class="small soft">${rq[2]} · ${have}/${rq[1]}</span><div class="pbar"><i style="width:${have / rq[1] * 100}%"></i></div></div>`; }).join('')}</div><h3>Calling cards</h3>`;
     h += CARDS.map(c => { const open = c[3](stats), pr = CARD_PROGRESS[c[0]], have = Math.min(pr[1], stats[pr[0]] || 0); return `<div class="crow">${cardHTML(c[0], open ? (ME_UID ? 'You' : '') : 'Locked')}<div><b>${c[1]}</b><span class="small soft">${c[2]} · ${have}/${pr[1]}</span><div class="pbar"><i style="width:${Math.round(have / pr[1] * 100)}%"></i></div>${open ? `<button type="button" class="opt" data-act="card" data-v="${c[0]}" aria-pressed="${myCard === c[0]}">${myCard === c[0] ? 'Equipped' : 'Equip'}</button>` : ''}</div></div>`; }).join('');
     h += `</div>`;
   } else if (view === 'controls') h += `<div class="panel"><h2>Controls</h2>${CONTROLS}<h3>Shooting range</h3><p class="small soft">Press B to switch guns. Shots on the dummies show damage numbers, and the box in the bottom left shows your recoil pattern.</p></div>`;
@@ -840,7 +930,14 @@ function slotOptions(id, slot, at) {
       + (all.length ? `<p class="small soft" style="margin:10px 0 6px">Not yours yet. Get them from Inventory, the ScobbBucks Shop, or crates.</p><div class="row">${all.map(x => opt(act, x[0], false, `<i class="swatch" style="background:${x[3]}"></i>${x[1]}`, RN[x[2]], true, 'In the shop or crates')).join('')}</div>` : '')
       + (type === 'camo' && !list.length ? `<p class="small soft">You don’t have any camos yet. Get them from Inventory, the ScobbBucks Shop, or crates.</p>` : '');
   };
-  if (slot === 'camo') return cos('camo-g', loadout.camos[id] || '', 'camo', 'No camo');
+  if (slot === 'camo') {
+    const cur = loadout.camos[id] || '', earned = (cid, label, sub, ok) => opt('camo-g', cid, cur === cid, `<i class="swatch" style="background:${skinInfo(cid)[3]}"></i>${label}`, sub, !ok, 'not earned yet');
+    const pr = gunProg(id), ck = WEAPONS[id].ck;
+    let h2 = `<h4 class="small soft" style="margin:4px 0 6px">Challenges for this gun · ${pr.k} kills · ${pr.h} headshots</h4><div class="row">${CH_STEPS.map((st, i) => earned(st[0], skinInfo(st[0])[1], st[3] + (i < 5 ? ` · ${Math.min(pr[st[1]], st[2])}/${st[2]}` : ''), chStepOk(id, i))).join('')}</div>`;
+    h2 += `<h4 class="small soft" style="margin:10px 0 6px">Mastery</h4><div class="row">${earned('chd', 'Diamond', `Gold on all 5 ${CLASSES[ck].name} guns · ${[0, 1, 2, 3, 4].filter(t => chStepOk(ck + t, 5)).length}/5`, classGold(ck))}${earned('chx', 'Dark Aether', `Diamond in every class · ${Object.keys(CLASSES).filter(classGold).length}/${Object.keys(CLASSES).length}`, allDiamond())}</div>`;
+    h2 += `<h4 class="small soft" style="margin:10px 0 6px">Game mode camos</h4><div class="row">${MODE_CAMOS.map(m2 => earned(m2[0], m2[1], `${MODE_REQ[m2[0]][2]} · ${Math.min(stats[MODE_REQ[m2[0]][0]] || 0, MODE_REQ[m2[0]][1])}/${MODE_REQ[m2[0]][1]}`, camoOk(id, m2[0]))).join('')}</div>`;
+    return cos('camo-g', cur, 'camo', 'No camo') + h2;
+  }
   if (slot === 'charm') return cos('charm', loadout.charm, 'charm', 'No charm');
   if (slot === 'tracer') return cos('tracer', loadout.tracer, 'tracer', 'Standard');
   if (slot.startsWith('perk')) { const i = Number(slot.slice(4)); return `<div class="row">${PERKS[i].map((pk, j) => opt('perk-' + i, j, loadout.perks[i] === j, pk[0], pk[1])).join('')}</div>`; }
@@ -895,6 +992,13 @@ ui.addEventListener('click', e => {
   else if (a === 'practice') return beginPractice();
   else if (a === 'range') return beginRange();
   else if (a === 'gungame') return beginPractice('gun');
+  else if (a === 'duel') return duelEnter();
+  else if (a === 'dstart') return duelStart();
+  else if (a === 'dinv') return duelInvite(v);
+  else if (a === 'dacc') return duelAccept(v);
+  else if (a === 'ddec') { if (zcoReady()) FB.r.remove(rd2('invites/' + ME_UID + '/' + v)).catch(() => {}); return; }
+  else if (a === 'dleave') return duelLeave();
+  else if (a === 'dwr' || a === 'dwn') { if (!DN.host) return; if (a === 'dwr') DN.wager = { r: Number(v), n: DN.wager.n || 1 }; else DN.wager = { r: DN.wager.r, n: Math.max(0, Math.min(25, (DN.wager.n || 0) + Number(v))) }; if (zcoReady() && DN.code) FB.r.update(rd2('lobbies/' + DN.code), { w: DN.wager }).catch(() => {}); drawUI(); return; }
   else if (a === 'zmap') { zSel.map = Number(v); if (view === 'zlobby' && ZN.host && zcoReady()) FB.r.update(zR('lobbies/' + ZN.code), { m: zSel.map }).catch(() => {}); drawUI(); return; }
   else if (a === 'zhost') return zHostLobby();
   else if (a === 'zjoin') return zJoinLobby(($('#zcode') || {}).value);
@@ -911,7 +1015,7 @@ ui.addEventListener('click', e => {
 function openStore(kind) {
   if (document.querySelector('.store')) return;
   const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102u" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102v" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -959,7 +1063,8 @@ function moveBody(e, dt) {
 /* ================= match state ================= */
 let G = null, M = null, ents = [], me = null, nades = [], fires = [], smokes = [], fx = [], tracers = [], feed = [];
 let match = null, keys = {}, mouse = { l: false, r: false }, running = false, last = 0, paused = false, attract = true, pingT = -99, pings = [];
-const BOT_NAMES = ['Blobby', 'Wobbles', 'Gloop', 'Squish', 'Jelly Jim', 'Gummy'];
+// The 2024-25 Syracuse men's cross country team.
+const BOT_NAMES = ['Kamari Miller', 'Ben Gabelman', 'Connor Ackley', 'Benne Anderson', 'Alex Comerford', 'Assaf Harari', 'Sam Lawler', 'Ruben Rojas Betanzos', 'Ethan Wechsler', 'Sam Ricchiuti', 'Connell Alford'];
 const BOT_COLS = ['#FF5DA2', '#FFC233', '#5BE38A', '#3EC1FF', '#FF7A1A', '#9EF6FF'];
 const HATS = ['cap', 'beanie', 'crown', 'top hat', 'cowboy', 'party', 'cap'];
 const CLOTH = ['#E5484D', '#2F74E8', '#23A26F', '#F2C14E', '#7C4DEB', '#33333B', '#EDEDF0', '#F27BB0'];
@@ -994,11 +1099,12 @@ function newMatch(isAttract, mapOrder) {
   attract = isAttract;
   const look = myLook ? Object.assign({ body: '#B98BFF' }, myLook) : botLook('#B98BFF');
   me = makeEnt('You', look.body, false, loadout, look);
-  ents = (isAttract ? [] : [me]).concat(BOT_NAMES.slice(0, isAttract ? 6 : 5).map((n, i) => { const b = makeEnt(n, BOT_COLS[i], true, randomLoadout()); b.card = pick(CARDS.slice(0, 7))[0]; b.camo = Math.random() < 0.7 ? pick(ALLC.filter(x => x[7] === 'camo'))[0] : ''; return b; }));
+  ents = (isAttract ? [] : [me]).concat(BOT_NAMES.slice().sort(() => Math.random() - 0.5).slice(0, isAttract ? 6 : 5).map((n, i) => { const b = makeEnt(n, BOT_COLS[i], true, randomLoadout()); b.card = pick(CARDS.slice(0, 7))[0]; b.camo = Math.random() < 0.7 ? pick(ALLC.filter(x => x[7] === 'camo'))[0] : ''; return b; }));
   me.card = myCard;
   if (mode === 'gun') for (const e of ents) { setTier(e, 0); e.leth = 0; e.tac = 0; }
 }
 function startRound() {
+  hideBoard();
   M = MAPS[match.maps[match.round % match.maps.length]];
   setMapLook();
   nades = []; fires = []; smokes = []; fx = []; tracers = []; pings = []; pingT = -99;
@@ -1011,18 +1117,60 @@ function startRound() {
 function endGunGame(winner) {
   match.phase = 'done'; match.phaseT = 99;
   if (!winner) winner = ents.slice().sort((a, b) => (b.gg || 0) - (a.gg || 0) || b.kills - a.kills)[0];
+  const before = unlockSnapshot();
   recordMatch(winner === me);
-  say(winner === me ? 'You win Gun Game!' : `${winner.name} wins Gun Game`, `You reached weapon ${(me.gg || 0) + 1} of ${GG.length} with ${me.tk} kills. Press Esc for the menu.`, true);
+  showResults(winner === me, before, winner === me ? 'You win Gun Game!' : `${winner.name} wins Gun Game. You reached weapon ${(me.gg || 0) + 1} of ${GG.length}.`);
 }
 function endRound() {
   if (mode === 'gun') return endGunGame(null);
   const top = ents.slice().sort((a, b) => b.kills - a.kills || a.deaths - b.deaths)[0];
   top.rounds += 1;
   if (attract) { match.round++; startRound(); return; }
-  match.phase = 'between'; match.phaseT = 2.5;
+  match.phase = 'between'; match.phaseT = 7;
   const champ = ents.find(e => e.rounds >= 2);
-  if (champ) { match.phase = 'done'; match.phaseT = 99; recordMatch(champ === me); say(champ === me ? 'You win the match!' : `${champ.name} wins the match`, `This match: ${me.tk} kills, ${me.td} deaths. Press Esc for the menu.`, true); }
-  else say(top === me ? 'You won the round!' : `${top.name} won the round`, 'Next map coming up');
+  if (champ) { match.phase = 'done'; match.phaseT = 99; const before = unlockSnapshot(); recordMatch(champ === me); showResults(champ === me, before, champ === me ? 'You win the match!' : `${champ.name} wins the match`); }
+  else { say(top === me ? 'You won the round!' : `${top.name} won the round`, ''); showBoard(false); }
+}
+// What you've unlocked so far, so the results screen can show what this game added.
+function unlockSnapshot() {
+  const out = new Set();
+  for (const id in WEAPONS) CH_STEPS.forEach((st, i) => { if (chStepOk(id, i)) out.add(id + ':' + st[0]); });
+  for (const ck in CLASSES) if (classGold(ck)) out.add('class:' + ck);
+  if (allDiamond()) out.add('chx');
+  CARDS.forEach(c => { if (c[3](stats)) out.add('card:' + c[0]); });
+  return out;
+}
+const MODE_NAME = () => (mode === 'gun' ? 'Gun Game' : mode === 'duel' ? (DN.remote ? 'Wager Duel' : 'Duel vs Bot') : mode === 'zombies' ? 'Scobb Zombies' : 'Free for All');
+const rankOf = e => { const pts = e === me ? (stats.pts || 0) + (me.tp || 0) : 600 + ((e.name.length * 977) % 7) * 900; const lvl = Math.min(55, 1 + Math.floor(Math.sqrt(pts / 150))); return lvl; };
+const rankIcon = lvl => `<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="${lvl >= 40 ? '#8A6A2A' : lvl >= 20 ? '#5A5E66' : '#3A3D44'}" stroke="#C9B37A" stroke-width="1.5"/>${lvl >= 10 ? '<path d="M12 5l2 4.5 5 .5-3.8 3.3 1.1 4.9L12 15.6 7.7 18.2l1.1-4.9L5 10l5-.5z" fill="#E8DDB5"/>' : '<path d="M6 13h12v2H6zM6 9h12v2H6z" fill="#E8DDB5"/>'}</svg>`;
+// The scoreboard, styled like a Call of Duty end-of-round screen.
+function boardHTML(final) {
+  const rows = ents.filter(e => !e.dummy).slice().sort((a, b) => (b.rounds || 0) - (a.rounds || 0) || (b.tp || 0) - (a.tp || 0));
+  const wins = e => (mode === 'gun' ? `${(e.gg || 0) + 1}/${GG.length}` : mode === 'duel' ? (e === me ? DN.score[0] : DN.score[1]) : e.rounds || 0);
+  return `<div class="rb-top"><h2>${MODE_NAME()} | ${M.name}</h2><div class="rb-time" id="rb-time">${final ? 'Final' : ''}</div></div>
+  <table class="rb-t"><tr><th></th><th></th><th class="l">Player</th><th>${mode === 'gun' ? 'Weapon' : 'Wins'}</th><th>Score</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Damage</th><th>Taken</th><th></th></tr>
+  ${rows.map(e => { const lv = rankOf(e); return `<tr class="${e === me ? 'me' : 'them'}"><td>${rankIcon(lv)}</td><td>${lv}</td><td class="l">${String(e.name).replace(/</g, '&lt;')}</td><td>${wins(e)}</td><td>${e.tp || 0}</td><td>${e.tk || 0}</td><td>${e.td || 0}</td><td>${((e.tk || 0) / Math.max(1, e.td || 0)).toFixed(2)}</td><td>${Math.round(e.dmgDone || 0)}</td><td>${Math.round(e.dmgTaken || 0)}</td><td><i class="ping"><b></b><b></b><b></b><b></b></i></td></tr>`; }).join('')}</table>`;
+}
+function showBoard(final) {
+  let el = document.getElementById('rb'); if (!el) { el = document.createElement('div'); el.id = 'rb'; el.className = 'rb'; $('#hud').appendChild(el); }
+  el.innerHTML = `<div class="rb-in">${boardHTML(final)}<p class="rb-hint">${final ? '' : 'Next round soon'}</p></div>`; el.hidden = false;
+}
+function hideBoard() { const el = document.getElementById('rb'); if (el) el.hidden = true; }
+// The end of a game: who won, the final scoreboard, anything you unlocked, and a way home.
+function showResults(won, before, title, zombieBody) {
+  if (document.exitPointerLock) document.exitPointerLock();
+  const after = unlockSnapshot(), got = [...after].filter(x => !before.has(x)).map(x => {
+    if (x.startsWith('card:')) return `Calling card: ${cardOf(x.slice(5))[1]}`;
+    if (x.startsWith('class:')) return `Diamond camo for ${CLASSES[x.slice(6)].name}`;
+    if (x === 'chx') return 'Dark Aether camo for every gun';
+    const [g, c] = x.split(':'); return `${skinInfo(c)[1]} camo for the ${WEAPONS[g].name}`;
+  });
+  let el = document.getElementById('rb'); if (!el) { el = document.createElement('div'); el.id = 'rb'; el.className = 'rb'; $('#hud').appendChild(el); }
+  el.innerHTML = `<div class="rb-in"><div class="rb-banner ${won ? 'win' : 'loss'}">${won ? 'Victory' : 'Defeat'}</div><p class="rb-sub">${title}</p>${zombieBody || boardHTML(true)}
+    ${got.length ? `<div class="rb-unlocks"><b>Unlocked</b>${got.map(g => `<span>${g}</span>`).join('')}</div>` : ''}
+    <div class="rb-btns"><button type="button" class="btn" data-act="home">Back to home</button><a class="btn ghost" href="./">ScobbBucks</a></div></div>`;
+  el.hidden = false; el.style.pointerEvents = 'auto';
+  el.querySelector('[data-act=home]').onclick = () => { hideBoard(); quit(); };
 }
 
 /* ================= combat ================= */
@@ -1035,6 +1183,10 @@ function damage(target, amt, from, how, head) {
   if (target === me && from && from.bot && how === 'boom') amt *= 0.6;
   if (target.dummy) { rangeHit(target, amt, how === 'head'); return; }
   if (target.lo.perks[2] === 1) amt *= 1.1;
+  const dealt = Math.max(0, Math.min(target.hp, amt));
+  if (from && from !== target) from.dmgDone = (from.dmgDone || 0) + dealt;
+  target.dmgTaken = (target.dmgTaken || 0) + dealt;
+  if (mode === 'duel' && target === DN.remote) { if (from === me) { duelHitOut(amt, how); hitmark(false); } return; }
   target.hp -= amt; target.lastHurt = match.clock;
   if (target === me && !attract) { const d = $('.dmg'); if (d) { d.style.opacity = '1'; setTimeout(() => { d.style.opacity = '0'; }, 120); } }
   if (from === me && target !== me) hitmark(target.hp <= 0);
@@ -1048,6 +1200,7 @@ function damage(target, amt, from, how, head) {
       if (how === 'boom') from.boomK = (from.boomK || 0) + 1;
       if (how === 'knife') from.knifeK = (from.knifeK || 0) + 1;
       if ((how === 'gun' || how === 'head') && from.guns[from.cur].s.ck === 'sn') from.snipeK = (from.snipeK || 0) + 1;
+      if (from === me && (how === 'gun' || how === 'head')) { const gk = from.guns[from.cur].key; me.gunK = me.gunK || {}; me.gunH = me.gunH || {}; me.gunK[gk] = (me.gunK[gk] || 0) + 1; if (how === 'head') me.gunH[gk] = (me.gunH[gk] || 0) + 1; }
     }
     if (!self && from) { from.score = (from.score || 0) + KILL_PTS; from.tp = (from.tp || 0) + KILL_PTS; if (from === me && !attract) killPopup(target, how === 'head'); }
     if (!self && from) { from.kills++; from.tk++; if (from.lo.perks[0] === 2) { from.guns.forEach(g => { g.ammo = g.s.mag; }); from.leth = Math.max(from.leth, 1); } }
@@ -1063,6 +1216,7 @@ function damage(target, amt, from, how, head) {
       }
     }
     if (mode === 'match' && ents.some(e => e.kills >= 10)) endRound();
+    if (mode === 'duel' && match.phase === 'live') duelRoundOver(target === me ? DN.opp : me);
   }
 }
 // Hit boxes: head, torso and legs.
@@ -1080,7 +1234,7 @@ function shoot(e) {
   const g = e.guns[e.cur], s = g.s;
   if (e.reloadT > 0 || e.swapT > 0 || e.fireT > 0) return false;
   if (g.ammo <= 0) { reload(e); return false; }
-  g.ammo--; e.fireT = 60 / (s.rpm * (mode === 'zombies' && zHas('dt') ? 1.33 : 1)); e.prot = 0;
+  g.ammo--; e.shots = (e.shots || 0) + 1; e.fireT = 60 / (s.rpm * (mode === 'zombies' && zHas('dt') ? 1.33 : 1)); e.prot = 0;
   const moving = Math.hypot(e.v[0], e.v[2]) > 1;
   let spread = e.ads > 0.6 ? s.adsS : s.hip * (e.lo.perks[1] === 2 ? 0.7 : e.lo.perks[1] === 0 ? 1.15 : 1);
   if (moving) spread *= 1.6;
@@ -1124,7 +1278,7 @@ function melee(e) {
     e.meleeT = 0.7; e.knifeAnim = 0.35;
     const f = dirOf(e.yaw, 0); let best = null, bd = 2.2;
     for (const z of Z) { if (z.state === 'climb') continue; const dx = z.p[0] - e.p[0], dz = z.p[2] - e.p[2], dist = Math.hypot(dx, dz); if (dist < bd && (dx * f[0] + dz * f[2]) / (dist || 1) > 0.5) { bd = dist; best = z; } }
-    if (best) zHit(best, 94, 'body', 'melee');
+    if (best) { if (ZS.round <= 4 && best.kind !== 'boss') zHit(best, (best.hp + 1) / 1.6, 'body', 'melee'); else zHit(best, 94, 'body', 'melee'); }
     return !!best;
   }
   e.meleeT = 0.9; e.prot = 0; e.knifeAnim = 0.35;
@@ -1302,7 +1456,7 @@ function setPrimary(id) {
 }
 function updateHud() {
   const g = me.guns[me.cur];
-  if (!me.alive && !attract) showDeath();
+  if (!me.alive && !attract && mode !== 'duel') showDeath();
   const lh = document.getElementById('h-lock');
   if (lh) lh.hidden = TEST || touchDev || paused || !me.alive || document.pointerLockElement === cv || (match && match.phase === 'done');
   if (mode === 'zombies') {
@@ -1320,7 +1474,8 @@ function updateHud() {
     drawRecoil();
     const dn = document.getElementById('h-dmg');
     if (dn) dn.innerHTML = dmgNums.map(d => { const p = G.toScreen(d.p[0], d.p[1], d.p[2]); return p ? `<span style="left:${p[0]}px;top:${p[1]}px;opacity:${Math.max(0, 1 - d.t)};color:${d.head ? '#FFD86B' : '#fff'}">${d.v}</span>` : ''; }).join('');
-  } else if (mode === 'gun') hudEls.round.textContent = `Gun Game · Weapon ${(me.gg || 0) + 1} of ${GG.length}${me.gg < GG.length - 1 ? ' · Next: ' + WEAPONS[GG[(me.gg || 0) + 1]].name : ' · Final weapon'}`;
+  } else if (mode === 'duel') hudEls.round.textContent = `${DN.remote ? 'Wager Duel' : 'Duel vs Bot'} · Round ${match.round + 1} · You ${DN.score[0]} – ${DN.score[1]} ${DN.opp ? DN.opp.name : ''}`;
+  else if (mode === 'gun') hudEls.round.textContent = `Gun Game · Weapon ${(me.gg || 0) + 1} of ${GG.length}${me.gg < GG.length - 1 ? ' · Next: ' + WEAPONS[GG[(me.gg || 0) + 1]].name : ' · Final weapon'}`;
   else hudEls.round.textContent = `Round ${match.round + 1} of 3 · ${M.name}`;
   if (mode !== 'range') hudEls.time.textContent = match.phase === 'live' ? `${Math.floor(match.t / 60)}:${String(Math.floor(Math.max(0, match.t) % 60)).padStart(2, '0')}` : '';
   hudEls.feed.innerHTML = feed.filter(f => performance.now() - f.at < 5000).map(f => `<div>${f.t}</div>`).join('');
@@ -1338,7 +1493,8 @@ function updateHud() {
   hudEls.scope.style.opacity = g.s.scope && me.ads > 0.85 ? '1' : '0';
   hudEls.flash.style.opacity = Math.min(1, Math.max(0, me.flashT) / 1.2).toFixed(2);
   const showBoard = keys.Tab || boardOpen || match.phase === 'done';
-  hudEls.board.hidden = !showBoard;
+  const rbUp = (() => { const el = document.getElementById('rb'); return !!el && !el.hidden; })();
+  hudEls.board.hidden = !showBoard || rbUp;
   if (showBoard) drawBoard();
   drawMini();
   const rc = document.getElementById('h-recoil'), rst = document.getElementById('h-rstats');
@@ -1496,6 +1652,7 @@ function mapRandomizer(win, done) {
   requestAnimationFrame(() => requestAnimationFrame(() => { s.style.transition = 'transform 3.4s cubic-bezier(.1,.7,.12,1)'; s.style.transform = `translateX(${-target}px)`; }));
 }
 function quit() {
+  hideBoard();
   if (document.exitPointerLock) document.exitPointerLock();
   if (mode === 'zombies') {
     if (ZN.on) { if (ZN.host && ZS && !ZS.over) { ZS.over = true; ZN.lastS = 0; zNetTick(); } if (zcoReady()) FB.r.remove(zR('games/' + ZN.code + '/p/' + ME_UID)).catch(() => {}); zLeaveLobby(true); }
@@ -1510,10 +1667,13 @@ window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTi
 
 /* ================= main loop ================= */
 let blankFrames = 0, blankChecked = false;
+// Test-only switch: run the game without drawing it, so logic tests run at full speed.
+const NORENDER = TEST && new URLSearchParams(location.search).has('norender');
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (running && G && !G.lost) {
     if (!paused) step(dt);
+    if (NORENDER) { if (!attract) updateHud(); requestAnimationFrame(frame); return; }
     render();
     if (!blankChecked) {
       const px = G.selfTest();
@@ -1529,12 +1689,15 @@ function frame(now) {
 function step(dt) {
   match.clock += dt;
   if (match.phase === 'intro') { match.phaseT -= dt; if (match.phaseT <= 0) { match.phase = 'live'; for (const e of ents) if (e.alive) e.prot = PROT; say('Go!', ''); } }
-  else if (match.phase === 'between') { match.phaseT -= dt; if (match.phaseT <= 0) { match.round++; match.phase = 'spin'; mapRandomizer(match.maps[match.round], () => startRound()); } return; }
+  else if (match.phase === 'between') { match.phaseT -= dt; const rt = document.getElementById('rb-time'); if (rt) rt.textContent = `Next round in ${Math.max(0, Math.ceil(match.phaseT))}`; if (mode === 'duel') { if (DN.remote) duelNetTick(); if (match.phaseT <= 0) { match.round++; duelStartRound(); } return; } if (match.phaseT <= 0) { match.round++; match.phase = 'spin'; mapRandomizer(match.maps[match.round], () => startRound()); } return; }
   else if (match.phase === 'done' || match.phase === 'spin') return;
   else if (mode === 'match' || mode === 'gun') { match.t -= dt; if (match.t <= 0) { endRound(); return; } }
+  else if (mode === 'duel') { match.t -= dt; if (match.t <= 0 && match.phase === 'live') { duelTimeout(); } }
+  if (mode === 'duel' && DN.remote) duelNetTick();
   const live = match.phase === 'live';
   for (const e of ents) {
-    if (!e.alive) { e.respawn -= dt; if (e === me && !attract) { if (me.wantSpawn && live) { me.wantSpawn = false; spawn(me); hideDeath(); clearInput(); me.justSpawned = true; setTimeout(() => { if (me) me.justSpawned = false; }, 1500); } } else if (e.respawn <= 0 && live) spawn(e); continue; }
+    if (e.remote) { duelProxyStep(e, dt); continue; }
+    if (!e.alive) { if (mode === 'duel') continue; e.respawn -= dt; if (e === me && !attract) { if (me.wantSpawn && live) { me.wantSpawn = false; spawn(me); hideDeath(); clearInput(); me.justSpawned = true; setTimeout(() => { if (me) me.justSpawned = false; }, 1500); } } else if (e.respawn <= 0 && live) spawn(e); continue; }
     e.fireT -= dt; e.swapT -= dt; e.flashT -= dt; e.prot -= dt; e.meleeT = (e.meleeT || 0) - dt; e.knifeAnim = (e.knifeAnim || 0) - dt; e.flashMuzzle = (e.flashMuzzle || 0) - dt; e.recoil *= Math.pow(0.02, dt);
     if (e.reloadT > 0) { e.reloadT -= dt; if (e.reloadT <= 0) { const g = e.guns[e.cur]; if (mode === 'zombies') zReloadDone(g); else g.ammo = g.s.mag; } }
     if (e.stimT > 0) { e.stimT -= dt; e.hp = Math.min(e.maxHp || 100, e.hp + 100 * dt); }
@@ -2032,8 +2195,9 @@ function zGameOver() {
   ZS.over = true; match.phase = 'done'; me.v = [0, 0, 0];
   if (ZN.on && ZN.host) { ZN.lastS = 0; zNetTick(); FB.r.update(zR('lobbies/' + ZN.code), { st: 'over' }).catch(() => {}); }
   const mins = Math.floor((performance.now() - ZS.startAt) / 60000);
-  say('Game Over', `You survived ${ZS.round} round${ZS.round === 1 ? '' : 's'} on ${ZM.name}. ${ZS.kills} kills, ${ZS.heads} headshots, ${mins} min. Press Esc for the menu.`, true);
+  const before = unlockSnapshot();
   zSave(false);
+  showResults(false, before, `You survived ${ZS.round} round${ZS.round === 1 ? '' : 's'} on ${ZM.name}`, `<div class="rb-zstats"><div><b>${ZS.round}</b><span>Round</span></div><div><b>${ZS.kills}</b><span>Kills</span></div><div><b>${ZS.heads}</b><span>Headshots</span></div><div><b>${ZS.pts.toLocaleString()}</b><span>Points</span></div><div><b>${ZS.downs}</b><span>Downs</span></div><div><b>${mins}</b><span>Minutes</span></div></div>`);
 }
 function zWin() {
   zMsg('Main quest complete!', 'The Jelly Juggernaut is gone. Every perk is yours and 10,000 points are in your pocket.');
@@ -2504,6 +2668,211 @@ function zClientHit(z, dmg, part, how) {
   for (let k = 0; k < 10; k++) fx.push({ p: add(z.p, [0, 1, 0]), v: [rand(-3, 3), rand(1, 5), rand(-3, 3)], t: 0, life: 0.6, c: k % 2 ? '#5A1A1A' : z.col, r: 0.12 });
 }
 const zesc = v => String(v == null ? '' : v).replace(/[<&]/g, c => (c === '<' ? '&lt;' : '&amp;'));
+
+/* ================= Wager Duel ================= */
+const DN = { remote: null, opp: null, score: [0, 0], code: '', host: true, lobby: null, wager: { r: 0, n: 0 }, m: '', online: {}, invites: {}, lastP: 0, hitOut: 0, hitSeen: 0, oppUid: '', over: false, stakeState: '', bridge: null, bridgeWait: {}, bridgeReady: false, bridgeQueue: [], bal: null, watching: false, netUnsub: [] };
+const rd2 = p => FB.r.ref(rtdb, 'duel/' + p);
+const duelOk = () => zcoReady();
+// Avatars for the lobby, drawn with the same 3D character everyone uses.
+const avCv = document.createElement('canvas'), avCache = {}; let G4 = null;
+function avatarThumb(look) {
+  const key = JSON.stringify(look || {}); if (avCache[key] != null) return avCache[key];
+  try {
+    if (!G4) G4 = create(avCv, 140, 166, { free: true, opaque: true });
+    if (!G4) return (avCache[key] = '');
+    G4.begin(); G4.setSky('#2A2F3A', '#14171D'); G4.fog('#181B21', 0); G4.light([-0.4, 0.85, 0.5]); G4.time(0);
+    const eye = [0.8, 1.3, 2.7], d = [-0.8, -0.35, -2.7], dl = Math.hypot(d[0], d[1], d[2]);
+    G4.view(eye, Math.atan2(d[0], -d[2]), Math.asin(d[1] / dl), 40, 0.05, 30);
+    drawScobb(G4, { x: 0, y: 0, z: 0, yaw: Math.PI + 0.25, look: Object.assign({ body: '#B98BFF' }, look || {}), pose: 'stand' }, 0);
+    avCache[key] = avCv.toDataURL('image/png');
+  } catch (e) { avCache[key] = ''; }
+  return avCache[key];
+}
+// ScobbBucks itself writes the wager to the ledger, through a hidden copy of the app.
+function bridgeCall(op, args) {
+  return new Promise(res => {
+    if (!DN.bridge) { DN.bridge = document.createElement('iframe'); DN.bridge.style.display = 'none'; DN.bridge.src = './?bridge=1&v=20261102v'; document.body.appendChild(DN.bridge); }
+    const id = Math.random().toString(36).slice(2);
+    DN.bridgeWait[id] = res;
+    setTimeout(() => { if (DN.bridgeWait[id]) { delete DN.bridgeWait[id]; res({ ok: false, why: 'timeout' }); } }, 20000);
+    const send = () => DN.bridge.contentWindow.postMessage({ type: 'bridge', id, op, args }, location.origin);
+    if (DN.bridgeReady) send(); else DN.bridgeQueue.push(send);
+  });
+}
+window.addEventListener('message', e => {
+  if (e.origin !== location.origin || !e.data) return;
+  if (e.data.type === 'bridge-ready') { DN.bridgeReady = true; DN.bridgeQueue.forEach(f => f()); DN.bridgeQueue = []; }
+  if (e.data.type === 'bridge-reply' && DN.bridgeWait[e.data.id]) { const f = DN.bridgeWait[e.data.id]; delete DN.bridgeWait[e.data.id]; f(e.data); }
+});
+// ---- the lobby ----
+function duelEnter() {
+  view = 'duel'; drawUI();
+  // still signing in: try again shortly
+  if (!duelOk()) { clearTimeout(DN.retryT); DN.retryT = setTimeout(() => { if (view === 'duel') duelEnter(); }, 1000); return; }
+  if (!DN.watching) duelWatch();
+  if (!DN.code) duelNewLobby();
+  bridgeCall('bal').then(r => { if (r.ok) { DN.bal = r.data; if (view === 'duel') drawUI(); } });
+}
+function duelPresence() { if (duelOk() && DN.code) FB.r.set(rd2('online/' + ME_UID), { n: myName, lk: myLook || {}, c: DN.code, t: FB.r.serverTimestamp() }).catch(() => {}); }
+function duelWatch() {
+  DN.watching = true;
+  FB.r.onDisconnect(rd2('online/' + ME_UID)).remove().catch(() => {});
+  FB.r.onValue(rd2('online'), s => { const v = s.val() || {}; delete v[ME_UID]; DN.online = v; if (view === 'duel') drawUI(); }, () => {});
+  FB.r.onValue(rd2('invites/' + ME_UID), s => { DN.invites = s.val() || {}; if (view === 'duel') drawUI(); }, () => {});
+  setInterval(() => { if (view === 'duel') duelPresence(); }, 15000);
+}
+function duelNewLobby() {
+  const code = zCode() + zCode();
+  DN.code = code; DN.host = true; DN.wager = { r: 0, n: 0 };
+  FB.r.set(rd2('lobbies/' + code), { h: ME_UID, hn: myName, hl: myLook || {}, w: DN.wager, st: 'open', t: FB.r.serverTimestamp() })
+    .then(() => { FB.r.onDisconnect(rd2('lobbies/' + code)).remove().catch(() => {}); duelWatchLobby(code); duelPresence(); })
+    .catch(() => flashMsg('Couldn’t open a duel lobby. The bank may need to add the duel rule in Firebase.'));
+}
+function duelWatchLobby(code) {
+  if (DN.lobbyUnsub) DN.lobbyUnsub();
+  DN.lobbyUnsub = FB.r.onValue(rd2('lobbies/' + code), s => {
+    const v = s.val(); DN.lobby = v;
+    if (!v) { if (!DN.host && code === DN.code) { flashMsg('The host left, so you’re back in your own lobby.'); DN.code = ''; duelNewLobby(); } return; }
+    if (v.w) DN.wager = v.w;
+    if (v.st === 'staking' && v.m && DN.stakeState !== v.m) { DN.stakeState = v.m; duelStake(v); }
+    if (DN.host && v.st === 'staking' && v.sk && Object.keys(v.sk).length === 2) {
+      const all = Object.values(v.sk).every(x => x === 1);
+      FB.r.update(rd2('lobbies/' + code), all ? { st: 'live' } : { st: 'open', sk: null }).catch(() => {});
+      if (!all) flashMsg('Someone didn’t have enough coins for that wager. Nothing was taken.');
+    }
+    if (v.st === 'live' && v.g && v.m && mode !== 'duel' && DN.lastMatch !== v.m) { DN.lastMatch = v.m; beginDuel({ remote: true, lobby: v }); return; }
+    if (view === 'duel') drawUI();
+  }, () => {});
+}
+function duelInvite(uid) { FB.r.set(rd2('invites/' + uid + '/' + ME_UID), { n: myName, lk: myLook || {}, c: DN.code, t: FB.r.serverTimestamp() }).then(() => flashMsg('Invite sent.')).catch(() => {}); }
+function duelAccept(from) {
+  const inv = DN.invites[from]; if (!inv) return;
+  FB.r.remove(rd2('invites/' + ME_UID + '/' + from)).catch(() => {});
+  FB.r.get(rd2('lobbies/' + inv.c)).then(s => {
+    const v = s.val();
+    if (!v || v.st !== 'open' || (v.g && v.g.u !== ME_UID)) { flashMsg('That lobby isn’t open anymore.'); return; }
+    if (DN.host && DN.code && DN.code !== inv.c) FB.r.remove(rd2('lobbies/' + DN.code)).catch(() => {});
+    DN.code = inv.c; DN.host = false;
+    return FB.r.update(rd2('lobbies/' + inv.c), { g: { u: ME_UID, n: myName, l: myLook || {} } }).then(() => { FB.r.onDisconnect(rd2('lobbies/' + inv.c + '/g')).remove().catch(() => {}); duelWatchLobby(inv.c); duelPresence(); });
+  });
+}
+function duelLeave() { if (!DN.host && DN.code) { FB.r.remove(rd2('lobbies/' + DN.code + '/g')).catch(() => {}); DN.code = ''; duelNewLobby(); } }
+function duelStart() {
+  const v = DN.lobby;
+  if (!v || !v.g) { beginDuel({ bot: true }); return; }
+  if (!DN.host) return;
+  const m = 'd' + DN.code + Date.now().toString(36);
+  FB.r.update(rd2('lobbies/' + DN.code), DN.wager.n > 0 ? { st: 'staking', m, sk: null, w: DN.wager } : { st: 'live', m, w: DN.wager }).catch(() => {});
+}
+function duelStake(v) {
+  const opp = v.h === ME_UID ? v.g.u : v.h;
+  bridgeCall('stake', { m: v.m, r: v.w.r, n: v.w.n, opp }).then(r => FB.r.set(rd2('lobbies/' + DN.code + '/sk/' + ME_UID), r.ok ? 1 : 0).catch(() => {}));
+}
+// ---- the match ----
+function beginDuel(o) {
+  mode = 'duel'; attract = false; boardOpen = false; paused = false;
+  const remote = !!o.remote, v = o.lobby;
+  DN.score = [0, 0]; DN.hitOut = 0; DN.hitSeen = 0; DN.over = false; DN.m = remote ? v.m : ''; DN.wager = remote && v.w ? v.w : { r: 0, n: 0 };
+  match = { round: 0, maps: [1, 0, 1, 0, 1], clock: 0 };
+  const look = myLook ? Object.assign({ body: '#B98BFF' }, myLook) : botLook('#B98BFF');
+  me = makeEnt('You', look.body, false, loadout, look); me.card = myCard;
+  if (remote) {
+    const them = v.h === ME_UID ? { u: v.g.u, n: v.g.n, l: v.g.l } : { u: v.h, n: v.hn, l: v.hl };
+    DN.oppUid = them.u; DN.host = v.h === ME_UID;
+    const ol = them.l && them.l.body ? them.l : botLook('#FF5DA2');
+    const o2 = makeEnt(them.n, ol.body || '#FF5DA2', false, loadout, ol);
+    o2.remote = true; o2.lastT = performance.now(); DN.remote = o2; DN.opp = o2;
+    duelNetBegin();
+  } else {
+    DN.remote = null;
+    const b = makeEnt(pick(BOT_NAMES), pick(BOT_COLS), true, randomLoadout()); b.camo = pick(ALLC.filter(x => x[7] === 'camo'))[0]; b.card = pick(CARDS.slice(0, 7))[0]; DN.opp = b;
+  }
+  ents = [me, DN.opp];
+  view = 'game'; drawUI(); buildHud(); $('#hud').hidden = false; feed = [];
+  duelStartRound();
+  if (!TEST && !touchDev && cv.requestPointerLock) cv.requestPointerLock();
+}
+function duelStartRound() {
+  hideBoard();
+  M = MAPS[match.maps[match.round % match.maps.length]]; setMapLook();
+  nades = []; fires = []; smokes = []; fx = []; tracers = [];
+  // the two ground-level spawns furthest apart; the host always takes the first one
+  let best = [0, 1], bd = -1;
+  M.spawns.forEach((a2, i) => M.spawns.forEach((b2, j) => { if (j > i && a2[1] < 0.5 && b2[1] < 0.5) { const d = Math.hypot(a2[0] - b2[0], a2[2] - b2[2]); if (d > bd) { bd = d; best = [i, j]; } } }));
+  const flip = DN.remote && !DN.host, mine = M.spawns[best[flip ? 1 : 0]], theirs = M.spawns[best[flip ? 0 : 1]];
+  for (const [e, sp, to] of [[me, mine, theirs], [DN.opp, theirs, mine]]) {
+    spawn(e); e.p = [sp[0], sp[1] + 0.05, sp[2]]; e.v = [0, 0, 0]; e.hp = 100; e.alive = true; e.leth = 0; e.tac = 0; e.prot = 0;
+    e.yaw = Math.atan2(to[0] - sp[0], -(to[2] - sp[2])); e.guns.forEach(g => { g.ammo = g.s.mag; });
+    if (e.remote) { e.np = e.p.slice(); e.tyaw = e.yaw; }
+  }
+  me.rounds = DN.score[0]; DN.opp.rounds = DN.score[1];
+  match.t = 90; match.phase = 'intro'; match.phaseT = 3;
+  say(`Round ${match.round + 1}`, `You ${DN.score[0]} – ${DN.score[1]} ${DN.opp.name} · first to 3`);
+}
+function duelRoundOver(winner) {
+  if (match.phase !== 'live' || DN.over) return;
+  if (DN.remote) { DN.lastP = 0; duelNetTick(); }
+  if (winner) DN.score[winner === me ? 0 : 1]++;
+  me.rounds = DN.score[0]; DN.opp.rounds = DN.score[1];
+  if (DN.score[0] >= 3 || DN.score[1] >= 3 || match.round >= 4) return duelEnd();
+  match.phase = 'between'; match.phaseT = 6;
+  say(!winner ? 'Round tied' : winner === me ? 'You won the round' : `${DN.opp.name} won the round`, `You ${DN.score[0]} – ${DN.score[1]} ${DN.opp.name}`);
+  showBoard(false);
+}
+function duelEnd() {
+  if (DN.remote) { DN.lastP = 0; duelNetTick(); }
+  DN.over = true; match.phase = 'done'; match.phaseT = 99;
+  const won = DN.score[0] > DN.score[1], tie = DN.score[0] === DN.score[1], before = unlockSnapshot();
+  recordMatch(won);
+  // Both players report the winner. If they agree the pot is paid; a tie is reported both ways, which refunds it.
+  if (DN.remote && DN.m && DN.wager.n > 0) bridgeCall('result', { m: DN.m, w: won || tie ? ME_UID : DN.oppUid });
+  if (DN.remote && DN.host && duelOk()) FB.r.update(rd2('lobbies/' + DN.code), { st: 'open', m: null, sk: null }).catch(() => {});
+  const pot = DN.remote && DN.wager.n > 0 ? ` · ${won ? 'you take' : tie ? 'everyone gets back' : DN.opp.name + ' takes'} ${tie ? DN.wager.n : DN.wager.n * 2} ${RN[DN.wager.r]}` : '';
+  showResults(won, before, `${tie ? 'It’s a draw' : won ? 'You win the duel' : DN.opp.name + ' wins the duel'} ${DN.score[0]} – ${DN.score[1]}${pot}`);
+}
+function duelTimeout() {
+  // Out of time: whoever has more health takes the round. Against a real player the host decides.
+  if (DN.remote && !DN.host) return;
+  const a = me.alive ? me.hp : 0, b = DN.opp.alive ? (DN.remote ? (DN.remote.netHp || 0) : DN.opp.hp) : 0;
+  const w = a > b ? me : b > a ? DN.opp : null;
+  if (DN.remote) FB.r.set(rd2('games/' + DN.m + '/to/' + match.round), w === me ? ME_UID : w ? DN.oppUid : 'draw').catch(() => {});
+  duelRoundOver(w);
+}
+// ---- the network for a real duel ----
+function duelNetBegin() {
+  const g = p2 => rd2('games/' + DN.m + '/' + p2);
+  DN.netUnsub.forEach(f => { try { f(); } catch (e) { /* gone */ } }); DN.netUnsub = [];
+  FB.r.onDisconnect(g('p/' + ME_UID)).remove().catch(() => {});
+  DN.netUnsub.push(FB.r.onValue(g('p/' + DN.oppUid), s => { const v = s.val(); if (v) { if (DN.remote) DN.remote.goneAt = 0; duelRemoteState(v); } else if (DN.remote && DN.remote.lastFl != null) DN.remote.goneAt = performance.now(); }, () => {}));
+  DN.netUnsub.push(FB.r.onValue(g('h/' + ME_UID), s => { const v = s.val(); if (!v || !(v.n > DN.hitSeen)) return; const d = v.n - DN.hitSeen; DN.hitSeen = v.n; if (match.phase === 'live' && me.alive) damage(me, d, DN.remote, v.hd ? 'head' : 'gun'); }, () => {}));
+  DN.netUnsub.push(FB.r.onValue(g('to'), s => { const v = s.val() || {}; const w = v[match.round]; if (DN.host || !w || match.phase !== 'live') return; duelRoundOver(w === 'draw' ? null : w === ME_UID ? me : DN.opp); }, () => {}));
+}
+function duelHitOut(amt) { if (!DN.remote || match.phase !== 'live') return; DN.hitOut += amt; FB.r.set(rd2('games/' + DN.m + '/h/' + DN.oppUid), { n: Math.round(DN.hitOut * 10) / 10, hd: 0 }).catch(() => {}); }
+function duelNetTick() {
+  const now = performance.now(); if (now - DN.lastP < 66) return; DN.lastP = now;
+  const g = me.guns[me.cur];
+  FB.r.set(rd2('games/' + DN.m + '/p/' + ME_UID), { x: +me.p[0].toFixed(2), y: +me.p[1].toFixed(2), z: +me.p[2].toFixed(2), yw: +me.yaw.toFixed(3), pt: +me.pitch.toFixed(3), g: g.key, cm: (me.lo.camos || {})[g.key] || '', hp: Math.max(0, Math.round(me.hp)), al: me.alive ? 1 : 0, r: match.round, fl: me.shots || 0, sc: me.tp || 0, dd: Math.round(me.dmgDone || 0), dt: Math.round(me.dmgTaken || 0), t: FB.r.serverTimestamp() }).catch(() => {});
+}
+function duelRemoteState(v) {
+  const o = DN.remote; if (!o) return;
+  o.np = [v.x, v.y, v.z]; o.tyaw = v.yw; o.pitch = v.pt || 0; o.netHp = v.hp; o.hp = v.hp; o.camo = v.cm || ''; o.lastT = performance.now(); o.tp = v.sc || 0; if (v.dd != null) o.dmgDone = v.dd; if (v.dt != null) o.dmgTaken = v.dt;
+  if (WEAPONS[v.g] && o.guns[0].key !== v.g) o.guns[0] = { key: v.g, s: gunStats(v.g, null), ammo: 30 };
+  o.cur = 0;
+  if (v.fl !== o.lastFl) { if (o.lastFl != null) { o.flashMuzzle = 0.06; const eye = [o.p[0], o.p[1] + 1.5, o.p[2]], d = dirOf(o.yaw, o.pitch); tracers.push({ a: add(eye, scl(d, 0.6)), b: add(eye, scl(d, 40)), t: 0, c: '#FFE38A' }); } o.lastFl = v.fl; }
+  if (v.al === 0 && v.r === match.round && match.phase === 'live' && o.alive) { o.alive = false; me.tk = (me.tk || 0) + 1; me.kills++; o.td = (o.td || 0) + 1; me.tp = (me.tp || 0) + KILL_PTS; duelRoundOver(me); }
+  if (v.al === 1 && match.phase !== 'live') o.alive = true;
+}
+function duelProxyStep(e, dt) {
+  e.prot = 0;
+  if (!e.np) return;
+  const k = Math.min(1, dt * 14), ox = e.p[0], oz = e.p[2];
+  e.p = [e.p[0] + (e.np[0] - e.p[0]) * k, e.p[1] + (e.np[1] - e.p[1]) * k, e.p[2] + (e.np[2] - e.p[2]) * k];
+  let dy = (e.tyaw || 0) - e.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; e.yaw += dy * k;
+  e.walk = (e.walk || 0) + Math.hypot(e.p[0] - ox, e.p[2] - oz) * 1.4; e.flashMuzzle = (e.flashMuzzle || 0) - dt;
+  // the other player vanished: after 12 seconds you win by forfeit
+  const now2 = performance.now();
+  if (!DN.over && ((e.goneAt && now2 - e.goneAt > 8000) || now2 - (e.lastT || now2) > 45000)) { say(`${e.name} left`, 'You win by forfeit'); DN.score = [3, DN.score[1]]; match.phase = 'live'; duelEnd(); }
+}
 
 /* ================= drawing ================= */
 // A scobb character built from your ScobbBucks avatar: body color, top, pants, hat, glasses and backpack.

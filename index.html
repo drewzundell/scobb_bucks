@@ -1986,17 +1986,37 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     const e = Object.assign({ i: rid(), q, t, k, a: uid }, f);
     const id = uid + '_' + e.i;
     pendingEntries.set(id, e);
-    const body = clone(e);
-    body.ct = body.t;
-    delete body.t;
-    body.st = FB.serverTimestamp();
-    FB.setDoc(FB.doc(fs, 'entries/' + id), body).catch(err => {
-      pendingEntries.delete(id);
+    outboxPut(id, e);
+    sendEntry(id, e).catch(err => {
+      pendingEntries.delete(id); outboxDrop(id);
       onDenied(err && err.code);
       recompute();
     });
     recompute();
     return e;
+  }
+  function sendEntry(id, e) {
+    const body = clone(e);
+    body.ct = body.t;
+    delete body.t;
+    body.st = FB.serverTimestamp();
+    return FB.setDoc(FB.doc(fs, 'entries/' + id), body).then(() => outboxDrop(id));
+  }
+  // Every new entry is kept on this device until the server confirms it, so closing the app right after
+  // a game can't lose the coins. Anything left over is sent again the next time ScobbBucks opens.
+  const OUTBOX = 'scobbbucks-outbox-v1';
+  function outboxAll() { try { return JSON.parse(localStorage.getItem(OUTBOX)) || {}; } catch (e) { return {}; } }
+  function outboxPut(id, e) { try { const o = outboxAll(); o[id] = e; localStorage.setItem(OUTBOX, JSON.stringify(o)); } catch (err) { /* storage off */ } }
+  function outboxDrop(id) { try { const o = outboxAll(); if (o[id]) { delete o[id]; localStorage.setItem(OUTBOX, JSON.stringify(o)); } } catch (err) { /* storage off */ } }
+  function outboxFlush() {
+    const o = outboxAll();
+    for (const id in o) {
+      const e = o[id];
+      if (!e || e.a !== uid) continue;
+      pendingEntries.set(id, e);
+      // If the entry already reached the server, the rules refuse a second write; either way it's done.
+      sendEntry(id, e).catch(() => { outboxDrop(id); pendingEntries.delete(id); recompute(); });
+    }
   }
 
   /* ================= phone ================= */
@@ -2290,7 +2310,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   function render() {
     const s = route();
     ui.screen = s;
-    const tabsOn = s === 'main' && !STORE_MODE && !CASINO_GAME;
+    const tabsOn = s === 'main' && !STORE_MODE && !CASINO_GAME && !BRIDGE;
     $('#tabs').hidden = !tabsOn;
     document.body.classList.toggle('has-tabs', tabsOn);
     if (s === 'main') { renderTab(); renderTabs(); return; }
@@ -2578,6 +2598,27 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   const STORE_MODE = new URLSearchParams(location.search).has('store'), STORE_KIND = new URLSearchParams(location.search).get('store');
   // The 3D Scobbsino opens ScobbBucks with ?casino=<game> at a table to run that one game.
   if (new URLSearchParams(location.search).has('casino')) document.documentElement.classList.add('in-casino');
+  // ?bridge=1: an invisible copy of ScobbBucks that Scobb Strike asks to put wagers in escrow and report results.
+  const BRIDGE = new URLSearchParams(location.search).has('bridge');
+  if (BRIDGE) {
+    let told = false;
+    const ready = () => { if (!told && L && uid) { told = true; window.parent.postMessage({ type: 'bridge-ready' }, location.origin); } };
+    setInterval(ready, 400);
+    window.addEventListener('message', ev => {
+      if (ev.origin !== location.origin || !ev.data || ev.data.type !== 'bridge') return;
+      const { id, op, args } = ev.data, reply = (ok, data, why) => window.parent.postMessage({ type: 'bridge-reply', id, ok, data, why }, location.origin);
+      if (!L || !uid) return reply(false, null, 'signed-out');
+      if (op === 'bal') return reply(true, availOf(uid));
+      if (op === 'stake') {
+        const r = args.r | 0, n = args.n | 0;
+        if (n < 1 || n > FPS_MAX || availOf(uid)[r] < n) return reply(false, null, 'funds');
+        const e = newEntry('fps', { op: 'stake', m: String(args.m), r, n, opp: String(args.opp) });
+        return setTimeout(() => reply(!L.bad[uid + ':' + e.i], null, L.bad[uid + ':' + e.i] || ''), 1200);
+      }
+      if (op === 'result') { newEntry('fps', { op: 'result', m: String(args.m), w: String(args.w) }); return reply(true); }
+      reply(false, null, 'op');
+    });
+  }
   const CASINO_GAME = (g => (['slots', 'roulette', 'plinko', 'blackjack', 'poker'].includes(g) ? g : ''))(new URLSearchParams(location.search).get('casino'));
   function strikeShopHTML() {
     const av = availOf(uid), now = Date.now(), owner = uid === L.issuer;
@@ -2632,6 +2673,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     const inp = $('#dm-input'), had = !!inp && document.activeElement === inp;
     if (inp) ui.dmDraft = inp.value;
     if (CASINO_GAME && !ui.casOpened) { ui.casOpened = true; const owner = uid === L.issuer; setTimeout(() => casShow(CAS_GAMES[CASINO_GAME].solo ? { view: CASINO_GAME, practice: owner } : { view: 'setup', g: CASINO_GAME, practice: owner }), 0); }
+    if (BRIDGE) { app.innerHTML = ''; return; }
     if (t === 'closet' && !STORE_MODE && !CASINO_GAME) setTimeout(closetMount, 0);
     app.innerHTML = CASINO_GAME ? '' : STORE_MODE ? (STORE_KIND === 'armory' ? armoryHTML(true) : storeTab()) : t === 'shop' ? shopTab() : t === 'market' ? marketTab() : t === 'closet' ? closetTab() : t === 'trades' ? tradesTab() : t === 'feed' ? feedTab() : t === 'chats' ? chatsTab() : t === 'arcade' ? arcadeTab() : t === 'casino' ? casinoTab() : walletTab();
     const ni = $('#dm-input');
@@ -2935,7 +2977,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     if (!slot || CL.failed) return;
     if (!CL.G) {
       try {
-        const [m, ch] = await Promise.all([import('./scobb3d.js?v=20261102u'), import('./scobbchar.js?v=20261102u')]);
+        const [m, ch] = await Promise.all([import('./scobb3d.js?v=20261102v'), import('./scobbchar.js?v=20261102v')]);
         CL.draw = ch.drawScobb;
         CL.cv = document.createElement('canvas'); CL.cv.className = 'closet3d';
         CL.G = m.create(CL.cv, 300, 340, { free: true, opaque: false });
@@ -3657,7 +3699,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102u'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102v'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -4163,7 +4205,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102u" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102v" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -4393,21 +4435,23 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102u'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102v'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
     BANK = bank;
     FARM_LIVE = cfgMod.FARM_LIVE === true;
-    try { FSK = await import('./farm-skins.js?v=20261102u'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
+    try { FSK = await import('./farm-skins.js?v=20261102v'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     FARM_TESTERS = Array.isArray(cfgMod.FARM_TESTERS) ? cfgMod.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(cfg);
     auth = FB.getAuth(fbApp);
-    fs = FB.getFirestore(fbApp);
+    // Writes are cached on the device too, so they still go out if the app was closed before they finished.
+    try { fs = FB.initializeFirestore(fbApp, { localCache: FB.persistentLocalCache({ tabManager: FB.persistentMultipleTabManager() }) }); }
+    catch (e) { fs = FB.getFirestore(fbApp); }
     FB.onAuthStateChanged(auth, user => {
       authReady = true;
-      if (user) startSession(user);
+      if (user) { startSession(user); setTimeout(outboxFlush, 1500); }
       else { endSession(); render(); }
     });
   }

@@ -109,6 +109,10 @@ void main(){
     else if (uPat == 2) { vec2 c = fract(vec2(q.z + q.x, q.y + q.x) * 0.9 + vec2(tm * 0.2, 0.0)) - 0.5; base = mix(uColor, uColor2, 1.0 - step(0.26, length(c))); }
     else if (uPat == 3) { float n1 = vnoise(q * 0.6 + vec3(0.0, 0.0, tm * 0.3)), n2 = vnoise(q * 1.3 + 7.1); base = n1 > 0.55 ? uColor2 : (n2 > 0.58 ? uColor * 0.62 : uColor); }
     else if (uPat == 4) { float k = 0.5 + 0.5 * sin(q.z * 0.35 + q.y * 0.2 + tm * 1.6); base = mix(uColor, uColor2, k); }
+    else if (uPat == 5) { float n1 = vnoise(q * 0.3 + vec3(0.0, uTime * 0.25, uTime * 0.4)); vec3 neb = mix(uColor, uColor2, smoothstep(0.35, 0.8, n1)); vec3 cell = floor(q * 2.2); float star = step(0.975, hsh(cell)) * (0.55 + 0.45 * sin(uTime * 5.0 + hsh(cell + 3.1) * 40.0)); base = neb + vec3(star) + uColor2 * 0.25 * vnoise(q * 1.4 - vec3(uTime * 0.3)); }
+    else if (uPat == 6) { vec3 cell = floor(q * 1.3); float h = hsh(cell); vec3 cc = mix(uColor, uColor2, h * 0.8); float sp = pow(max(0.0, sin(uTime * 2.6 + h * 25.0)), 14.0); base = cc * (0.85 + 0.25 * vnoise(q * 2.0)) + vec3(sp) * 1.2; }
+    else if (uPat == 7) { float sw = smoothstep(0.86, 1.0, sin((q.z + q.y * 0.7) * 0.22 - uTime * 2.4)); base = mix(uColor, uColor2, 0.2 + 0.25 * vnoise(q * 0.9)) + vec3(1.0, 0.95, 0.7) * sw * 0.7; }
+    else if (uPat == 8) { float v = sin(q.z * 0.4 + uTime * 2.0) + sin(q.y * 0.5 - uTime * 1.6) + sin((q.x + q.z) * 0.3 + uTime * 1.2); base = mix(uColor, uColor2, 0.5 + 0.5 * sin(v * 1.6)); }
   }
   float dif = max(dot(n, uL), 0.0);
   float wrap = max((dot(n, uL) + 0.35) / 1.35, 0.0);
