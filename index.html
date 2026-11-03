@@ -2229,8 +2229,9 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     ITEM_COL.set(id, res);
     return res;
   }
-  function look3d(u) {
-    const look = lookOf(u), eq = equipIds(u), out = { body: (BODY[look.color] || BODY.grape).c };
+  function look3d(u) { return look3dFrom(lookOf(u), equipIds(u)); }
+  function look3dFrom(look, eq) {
+    const out = { body: (BODY[look.color] || BODY.grape).c, face: { eyes: look.eyes || 'dots', mouth: look.mouth || 'smile', blush: look.blush !== false } };
     for (const sl in eq) {
       const id = eq[sl], m = /^g:([a-z]+):(\d+):(\d+)(?::(\d+))?/.exec(id);
       let c = '#8F96A3', c2 = '', pat = 0, kind = '';
@@ -2348,12 +2349,13 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
       return `<button type="button" class="opt${on ? ' on' : ''}" data-act="look" data-k="${k}" data-v="${v}" aria-pressed="${on}"><span class="face">${avatarSVG(Object.assign({}, d, { [k]: v }), {}, { crop: '50 34 100 66', cls: 'still', fx: false, label })}</span><span>${label}</span></button>`;
     };
     app.innerHTML = `<header class="top"><h1>${isNew ? 'Make your avatar' : 'Edit your look'}</h1>${isNew ? '' : '<button type="button" class="btn btn-ghost btn-sm" data-act="look-cancel">Cancel</button>'}</header>
-      <div class="stage"><button type="button" class="stage-btn" data-act="look-wave" aria-label="Wave">${avatarSVG(d, eq, { cls: 'big', label: 'Your avatar' })}</button></div>
+      <div class="stage"><div class="stage3d" id="closet-3d-slot"><button type="button" class="stage-btn" data-act="look-wave" aria-label="Wave">${avatarSVG(d, eq, { cls: 'big', label: 'Your avatar' })}</button></div></div><p class="small soft" style="text-align:center;margin-top:-4px">This is you in the casino and Scobb Strike. Drag to spin, tap to wave.</p>
       <h3>Color</h3><div class="swatches">${Object.keys(BODY).map(k => `<button type="button" class="sw${d.color === k ? ' on' : ''}" data-act="look" data-k="color" data-v="${k}" aria-label="${BODY[k].n}" aria-pressed="${d.color === k}" style="--sw:${BODY[k].c}"></button>`).join('')}</div>
       <h3>Eyes</h3><div class="opts">${EYES.map(([v, l]) => faceOpt('eyes', v, l)).join('')}</div>
       <h3>Mouth</h3><div class="opts">${MOUTHS.map(([v, l]) => faceOpt('mouth', v, l)).join('')}</div>
       <h3>Cheeks</h3><div class="opts">${[[true, 'Rosy'], [false, 'Plain']].map(([v, l]) => { const on = !!d.blush === v; return `<button type="button" class="opt${on ? ' on' : ''}" data-act="look" data-k="blush" data-v="${v}" aria-pressed="${on}"><span class="face">${avatarSVG(Object.assign({}, d, { blush: v }), {}, { crop: '50 34 100 66', cls: 'still', fx: false, label: l })}</span><span>${l}</span></button>`; }).join('')}</div>
       <button type="button" class="btn btn-grape btn-block mt" data-act="look-save">${isNew ? 'Done' : 'Save look'}</button>`;
+    setTimeout(() => closetMount(() => look3dFrom(ui.lookDraft || d, isNew ? {} : equipIds(uid))), 0);
   }
 
   /* ================= Skins, crates and the market ================= */
@@ -2926,49 +2928,15 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   /* ---- closet ---- */
   function uniqueItems(list) { const seen = new Map(); for (const x of list) { if (!seen.has(x.it)) seen.set(x.it, Object.assign({ count: 0 }, x)); seen.get(x.it).count++; } return [...seen.values()]; }
   // ===== The closet avatar, drawn in 3D with the same character the casino and Scobb Strike use =====
-  function avatar3dDraw(G, e, t) {
-    const L = e.look || {}, body = L.body || '#B98BFF', yaw = e.yaw;
-    const f = [Math.sin(yaw), -Math.cos(yaw)], r = [Math.cos(yaw), Math.sin(yaw)];
-    const P = (fw, up, rt) => [e.p[0] + f[0] * fw + r[0] * rt, up, e.p[1] + f[1] * fw + r[1] * rt];
-    const seat = e.seated ? 0.32 : 0, ry = -yaw, sway = e.seated ? 0 : Math.sin(e.walk * 5) * 0.14;
-    const bob = e.kind === 'dealer' ? Math.sin(t / 900 + (e.t || 0)) * 0.01 : 0;
-    G.blob(e.p[0], 0.02, e.p[1], 0.5, 0.35);
-    const legC = L.pants ? L.pants.c : body, topC = L.top ? L.top.c : body;
-    const patOf = it => (it && it.pat && it.c2 ? { pat: it.pat, c2: it.c2, patS: 7 } : {});
-    for (const sg of [-1, 1]) {
-      if (e.seated) { const q = P(0.2, 0.42, 0.13 * sg); G.box(q[0], q[1], q[2], 0.1, 0.09, 0.24, 0.05, legC, { ry }); const sh = P(0.42, 0.22, 0.13 * sg); G.box(sh[0], sh[1], sh[2], 0.09, 0.22, 0.09, 0.04, legC, { ry }); }
-      else { const q = P(sway * sg, 0.3, 0.13 * sg); G.cyl(q[0], q[1], q[2], 0.1, 0.27, legC, Object.assign({ ry, spec: 0.4 }, patOf(L.pants))); const ft = P(sway * sg + 0.05, 0.06, 0.13 * sg); G.sphere(ft[0], ft[1], ft[2], 0.12, '#2A2D33', { ky: 0.55, kz: 1.2, ry }); }
-    }
-    const tor = P(0, 0.88 - seat * 0.6 + bob, 0);
-    G.sphere(tor[0], tor[1], tor[2], 0.38, topC, Object.assign({ ky: 1.15, spec: 0.5 }, patOf(L.top)));
-    if (L.back) { const bk = P(-0.36, tor[1] + 0.05, 0); G.box(bk[0], bk[1], bk[2], 0.12, 0.25, 0.22, 0.05, L.back.c, Object.assign({ ry, spec: 0.4 }, patOf(L.back))); }
-    if (L.vest) { const sh2 = P(0.27, tor[1] + 0.12, 0); G.box(sh2[0], sh2[1], sh2[2], 0.03, 0.18, 0.08, 0.02, '#FFFFFF', { ry }); const bt = P(0.31, tor[1] + 0.3, 0); G.box(bt[0], bt[1], bt[2], 0.03, 0.035, 0.09, 0.015, '#C0392B', { ry }); }
-    const arm = e.seated ? 0.3 : 0;
-    for (const sg of [-1, 1]) { const sh = P(0.06 + arm, tor[1] + 0.05, 0.36 * sg); G.sphere(sh[0], sh[1], sh[2], 0.12, topC, { spec: 0.4 }); const wv = e.wave > 0 && sg > 0, hd = wv ? P(0.12, tor[1] + 0.75, 0.48 + Math.sin(t / 90) * 0.1) : P(0.16 + arm * 1.2, tor[1] - 0.18 + (e.seated && sg > 0 ? Math.max(0, Math.sin(t / 600 + (e.t || 0))) * 0.15 : 0), 0.38 * sg); G.sphere(hd[0], hd[1], hd[2], 0.085, body, { spec: 0.6 }); }
-    if (L.watch) { const wr = P(0.16 + arm * 1.2, tor[1] - 0.1, 0.38); G.cyl(wr[0], wr[1], wr[2], 0.09, 0.025, L.watch.c, { spec: 1.2 }); }
-    const head = P(0, tor[1] + 0.55, 0);
-    G.sphere(head[0], head[1], head[2], 0.31, body, { spec: 0.9, shiny: 60 });
-    for (const sg of [-1, 1]) { const ey = P(0.27, head[1] + 0.04, 0.11 * sg); G.sphere(ey[0], ey[1], ey[2], 0.05, '#15171C', { spec: 1.4, ky: 1.3 }); const ck = P(0.25, head[1] - 0.06, 0.18 * sg); G.sphere(ck[0], ck[1], ck[2], 0.045, '#FF8FB0', { spec: 0.1, kz: 0.5 }); }
-    if (L.eyes) { const gl = P(0.3, head[1] + 0.04, 0); G.box(gl[0], gl[1], gl[2], 0.03, 0.045, 0.19, 0.02, L.eyes.c || '#15171C', { ry, spec: 1.4 }); }
-    const hat = L.hat, hk = hat ? (hat.kind || '') : '', top = [head[0], head[1] + 0.19, head[2]];
-    if (hat) {
-      const hc = hat.c;
-      if (/crown/.test(hk)) G.cyl(top[0], top[1] + 0.06, top[2], 0.25, 0.08, '#E3B341', { spec: 1.4 });
-      else if (/top/.test(hk)) { G.cyl(top[0], top[1] + 0.2, top[2], 0.2, 0.2, hc, { spec: 0.7 }); G.cyl(top[0], top[1] + 0.01, top[2], 0.32, 0.02, hc); }
-      else if (/cowboy/.test(hk)) { G.cyl(top[0], top[1] + 0.03, top[2], 0.46, 0.025, hc); G.sphere(top[0], top[1] + 0.1, top[2], 0.23, hc, { ky: 0.7 }); }
-      else if (/beanie|knit/.test(hk)) G.sphere(top[0], top[1] - 0.04, top[2], 0.32, hc, { ky: 0.75 });
-      else { G.sphere(top[0], top[1] - 0.05, top[2], 0.32, hc, Object.assign({ ky: 0.7, spec: 0.6 }, patOf(hat))); const br = P(0.24, head[1] + 0.15, 0); G.box(br[0], br[1], br[2], 0.19, 0.02, 0.21, 0.02, hc, { ry }); }
-    } else if (L.hair) { G.sphere(top[0], top[1] - 0.02, top[2], 0.29, L.hair.c, { ky: 0.55 }); }
-  }
-  let roomDt = 0.016;
-  // Someone lying on the carpet after getting shot.
-  const CL = { cv: null, G: null, yaw: 0.35, spin: true, wave: 0, drag: null, failed: false, running: false };
-  async function closetMount() {
+  const CL = { cv: null, G: null, draw: null, lookFn: () => look3d(uid), yaw: 0.35, spin: true, wave: 0, drag: null, failed: false, running: false };
+  async function closetMount(lookFn) {
+    CL.lookFn = lookFn || (() => look3d(uid));
     const slot = document.getElementById('closet-3d-slot');
     if (!slot || CL.failed) return;
     if (!CL.G) {
       try {
-        const m = await import('./scobb3d.js?v=20261102t');
+        const [m, ch] = await Promise.all([import('./scobb3d.js?v=20261102u'), import('./scobbchar.js?v=20261102u')]);
+        CL.draw = ch.drawScobb;
         CL.cv = document.createElement('canvas'); CL.cv.className = 'closet3d';
         CL.G = m.create(CL.cv, 300, 340, { free: true, opaque: false });
         if (!CL.G) { CL.failed = true; return; }
@@ -2996,7 +2964,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     const eye = [Math.sin(CL.yaw) * 3.1, 1.35, -Math.cos(CL.yaw) * 3.1], d = [-eye[0], 1.0 - eye[1], -eye[2]], dl = Math.hypot(d[0], d[1], d[2]);
     G.view(eye, Math.atan2(d[0], -d[2]), Math.asin(d[1] / dl), 40, 0.05, 40);
     G.box(0, -0.06, 0, 0.9, 0.06, 0.9, 0.06, dark ? '#2F3540' : '#D8DCE4', { spec: 0.4 });
-    avatar3dDraw(G, { p: [0, 0], yaw: 0, look: look3d(uid), walk: 0, kind: 'player', wave: CL.wave }, t);
+    CL.draw(G, { x: 0, y: 0, z: 0, yaw: 0, walk: 0, look: CL.lookFn(), pose: CL.wave > 0 ? 'wave' : 'stand' }, t);
     requestAnimationFrame(closetFrame);
   }
   function closetTab() {
@@ -3689,7 +3657,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   let ARCADE = null;
   async function loadArcade() {
     if (ARCADE) return ARCADE;
-    try { ARCADE = await import('./arcade.js?v=20261102t'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
+    try { ARCADE = await import('./arcade.js?v=20261102u'); const st = document.createElement('style'); st.textContent = ARCADE.CSS; document.head.appendChild(st); return ARCADE; }
     catch (e) { toast('The arcade needs arcade.js uploaded next to this page.'); return null; }
   }
   function arcState() {
@@ -4195,7 +4163,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     'cos-view': b => {
       const id = b.dataset.s, inf = sknInfo(id), pr = SKN_PRICE[inf[2]], inShop = cosShopAt(Date.now(), config.salt).includes(id), sk = b.dataset.sk;
       const html = sheetHead(esc(inf[1]), `${RN[inf[2]]} ${COS_KIND[inf[7]].toLowerCase()}${inf[6] ? ' · animated' : ''}`)
-        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102t" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
+        + `<div class="cos-frame"><iframe src="./fps.html?preview=${encodeURIComponent(id)}&v=20261102u" title="${esc(inf[1])} on a gun" loading="eager"></iframe></div>`
         + `<p class="small soft">${inf[7] === 'camo' ? 'Camos cover the body and stock of one gun. You pick which gun in Scobb Strike.' : inf[7] === 'charm' ? 'Charms hang off the side of every gun you carry.' : 'Tracers change the color of your bullet trails.'}</p>`
         + (sk ? `<button type="button" class="btn btn-ghost btn-block mt" data-act="skin-list" data-sk="${sk}">Sell on market</button>` : inShop ? `<button type="button" class="btn btn-grape btn-block mt" data-act="cos-buy" data-s="${id}"${availOf(uid)[pr[0]] >= pr[1] ? '' : ' disabled'}>Buy for ${coinsAmt(pr[0], pr[1])}</button>` : '');
       openSheet('cos-view', html);
@@ -4425,13 +4393,13 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   async function boot() {
     render();
     let cfgMod = null;
-    try { cfgMod = await import('./firebase-config.js?v=20261102t'); } catch (e) { cfgMod = null; }
+    try { cfgMod = await import('./firebase-config.js?v=20261102u'); } catch (e) { cfgMod = null; }
     const cfg = cfgMod && cfgMod.FIREBASE_CONFIG;
     const bank = String((cfgMod && cfgMod.BANK_USERNAME) || '').trim().replace(/^@/, '').toLowerCase();
     if (!cfg || !cfg.apiKey || /paste/i.test(cfg.apiKey) || !/^[a-z0-9_.]{3,16}$/.test(bank) || bank === 'change_me') { ui.fatal = 'notconfigured'; render(); return; }
     BANK = bank;
     FARM_LIVE = cfgMod.FARM_LIVE === true;
-    try { FSK = await import('./farm-skins.js?v=20261102t'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
+    try { FSK = await import('./farm-skins.js?v=20261102u'); const st = document.createElement('style'); st.textContent = FSK.CSS; document.head.appendChild(st); } catch (e) { ui.fatal = 'noskins'; render(); return; }
     FARM_TESTERS = Array.isArray(cfgMod.FARM_TESTERS) ? cfgMod.FARM_TESTERS.map(x => String(x).trim().replace(/^@/, '').toLowerCase()) : [];
     try { FB = await loadFirebase(); } catch (e) { ui.fatal = 'offline'; render(); return; }
     const fbApp = FB.initializeApp(cfg);
