@@ -1188,6 +1188,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
 
   /* ================= ledger replay ================= */
   const okCoins = c => Array.isArray(c) && c.length === 6 && c.every(n => Number.isInteger(n) && n >= 0 && n <= 1000000);
+  const OFFER_LIFE = 7 * 86400000;
   const okItems = a => Array.isArray(a) && a.length <= 24 && a.every(s => typeof s === 'string' && s.length < 160) && new Set(a).size === a.length;
   const str = n => (typeof n === 'string' ? n.slice(0, 120) : '');
 
@@ -1760,7 +1761,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
         if (lot.bid) move(SKN_MKT, lot.bid.u, coinsOf(lot.r, lot.bid.n));
         lot.bid = { u: a, n: e.n };
         events.push({ k: 'bid', key, a, lot: e.lot, amt: e.n, r: lot.r, seller: lot.seller, t: e.t });
-      } else if (e.k === 'buy_now' || e.k === 'accept') {
+      } else if (e.k === 'buy_now' || (e.k === 'accept' && typeof e.lot === 'string')) {
         const lot = typeof e.lot === 'string' ? lots[e.lot] : null;
         if (!lot || lot.status !== 'open') { bad[key] = 'closed'; continue; }
         if (e.k === 'buy_now') {
@@ -1779,8 +1780,8 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
         skins[lot.sk].o = lot.buyer;
         lot.status = 'sold';
         events.push({ k: 'sold', key, a, lot: e.lot, sk: lot.sk, r: lot.r, amt: lot.price, seller: lot.seller, buyer: lot.buyer, t: e.t });
-      } else if (e.k === 'cancel') {
-        const lot = typeof e.lot === 'string' ? lots[e.lot] : null;
+      } else if (e.k === 'cancel' && typeof e.lot === 'string') {
+        const lot = lots[e.lot];
         if (!lot || lot.status !== 'open' || a !== lot.seller) { bad[key] = 'closed'; continue; }
         if (lot.bid) { bad[key] = 'bid'; continue; }
         skins[lot.sk].o = a; lot.status = 'cancelled';
@@ -1842,7 +1843,8 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
         if (sumC(gc) + gi.length < 1 || sumC(wc) + wi.length < 1) { bad[key] = 'empty'; continue; }
         offers[key] = { key, from: a, to: e.to, gc: gc.slice(), wc: wc.slice(), gi: gi.slice(), wi: wi.slice(), n: str(e.n), t: e.t, status: 'open', end: 0, why: '' };
       } else if (e.k === 'cancel' || e.k === 'decline' || e.k === 'accept') {
-        const o = offers[e.o];
+        const o = typeof e.o === 'string' ? offers[e.o] : null;
+        if (o && o.status === 'open' && e.t - o.t > OFFER_LIFE) { o.status = 'expired'; o.end = o.t + OFFER_LIFE; }
         if (!o || o.status !== 'open') { bad[key] = 'closed'; continue; }
         if (e.k === 'cancel') {
           if (o.from !== a) { bad[key] = 'who'; continue; }
@@ -1905,9 +1907,12 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   const nameOf = u => { const p = P_(u); return p && p.username ? '@' + p.username : 'someone'; };
   const lookOf = u => { const p = P_(u); return (p && p.avatar) || DEFAULT_LOOK; };
   function balOf(u) { return L && L.bal[u] ? L.bal[u].slice() : z(); }
+  // An offer is live until it's answered or a week passes.
+  const offerLive = o => o.status === 'open' && Date.now() - o.t <= OFFER_LIFE;
+  const offerState = o => (o.status === 'open' && !offerLive(o) ? 'expired' : o.status);
   function reservedOf(u) {
     const c = z(), it = new Set();
-    if (L) for (const k in L.offers) { const o = L.offers[k]; if (o.status === 'open' && o.from === u) { o.gc.forEach((n, r) => { c[r] += n; }); o.gi.forEach(i => it.add(i)); } }
+    if (L) for (const k in L.offers) { const o = L.offers[k]; if (offerLive(o) && o.from === u) { o.gc.forEach((n, r) => { c[r] += n; }); o.gi.forEach(i => it.add(i)); } }
     return { c, it };
   }
   function availOf(u) { const b = balOf(u), rs = reservedOf(u).c; return b.map((n, r) => Math.max(0, n - rs[r])); }
@@ -1931,7 +1936,7 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     const list = L.events.filter(ev => ev.k === 'send' && ev.to === uid && !seen.has(ev.key) && ev.t >= (meDoc.joinedAt || 0) - 120000);
     return { count: list.reduce((a, ev) => a + sumC(ev.c), 0), list };
   }
-  const incomingOpen = () => (L ? Object.values(L.offers).filter(o => o.status === 'open' && o.to === uid).sort((a, b) => b.t - a.t) : []);
+  const incomingOpen = () => (L ? Object.values(L.offers).filter(o => offerLive(o) && o.to === uid).sort((a, b) => b.t - a.t) : []);
 
   /* ================= saving ================= */
   const wq = { chain: Promise.resolve(), queued: false };
@@ -2972,11 +2977,12 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
     const other = incoming ? o.from : o.to;
     const give = incoming ? sideHTML(o.wc, o.wi, uid) : sideHTML(o.gc, o.gi, uid);
     const get = incoming ? sideHTML(o.gc, o.gi, other) : sideHTML(o.wc, o.wi, other);
-    const stat = { done: 'Traded', declined: 'Declined', cancelled: 'Cancelled', failed: 'Didn’t go through' }[o.status];
-    const head = o.status === 'open' ? (incoming ? `<b>${esc(nameOf(other))}</b> wants to trade` : `Waiting on <b>${esc(nameOf(other))}</b>`) : `Trade with <b>${esc(nameOf(other))}</b>`;
-    const prob = o.status === 'open' ? offerProblem(o) : '';
+    const st0 = offerState(o);
+    const stat = { done: 'Traded', declined: 'Declined', cancelled: 'Cancelled', failed: 'Didn’t go through', expired: 'Expired' }[st0];
+    const head = st0 === 'open' ? (incoming ? `<b>${esc(nameOf(other))}</b> wants to trade` : `Waiting on <b>${esc(nameOf(other))}</b>`) : `Trade with <b>${esc(nameOf(other))}</b>`;
+    const prob = st0 === 'open' ? offerProblem(o) : '';
     let btns = '';
-    if (o.status === 'open' && !readOnly) {
+    if (st0 === 'open' && !readOnly) {
       btns = incoming
         ? `<div class="row2"><button type="button" class="btn btn-ghost" data-act="decline" data-o="${esc(o.key)}">Decline</button><button type="button" class="btn btn-lime" data-act="accept" data-o="${esc(o.key)}"${prob ? ' disabled' : ''}>Accept</button></div>`
         : `<div class="row2" style="grid-template-columns:1fr"><button type="button" class="btn btn-ghost" data-act="cancel" data-o="${esc(o.key)}">Cancel offer</button></div>`;
@@ -2987,9 +2993,9 @@ html.in-casino .slots, html.in-casino .rl-win, html.in-casino .plinko { backgrou
   }
   function tradesTab() {
     const all = Object.values(L.offers).filter(o => o.from === uid || o.to === uid);
-    const inc = all.filter(o => o.status === 'open' && o.to === uid).sort((a, b) => b.t - a.t);
-    const out = all.filter(o => o.status === 'open' && o.from === uid).sort((a, b) => b.t - a.t);
-    const done = all.filter(o => o.status !== 'open').sort((a, b) => b.end - a.end).slice(0, 20);
+    const inc = all.filter(o => offerLive(o) && o.to === uid).sort((a, b) => b.t - a.t);
+    const out = all.filter(o => offerLive(o) && o.from === uid).sort((a, b) => b.t - a.t);
+    const done = all.filter(o => !offerLive(o)).sort((a, b) => (b.end || b.t + OFFER_LIFE) - (a.end || a.t + OFFER_LIFE)).slice(0, 20);
     let h = `<header class="top"><h1>Trades</h1><button type="button" class="btn btn-grape btn-sm" data-act="new-trade">New trade</button></header>`;
     h += `<p class="small soft">Swap coins for better rarities, or trade coins and items with anyone by username or phone number.</p>`;
     h += `<h2>Waiting on you</h2>${inc.length ? inc.map(offerCard).join('') : '<p class="empty">No offers right now.</p>'}`;

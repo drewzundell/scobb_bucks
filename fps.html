@@ -120,6 +120,32 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .scope::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #000; }
 .scope::after { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #000; }
 .board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92vw, 520px); background: rgba(8,9,13,.88); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; font-size: 14.5px; }
+/* ===== Scobb Zombies HUD ===== */
+#zhud { position: absolute; inset: 0; pointer-events: none; }
+.z-round { position: absolute; left: 22px; bottom: calc(120px + env(safe-area-inset-bottom, 0px)); color: #C0392B; font: 900 64px Georgia, serif; text-shadow: 0 0 18px rgba(192,57,43,.6), 0 3px 4px rgba(0,0,0,.8); line-height: 1; }
+.z-round small { display: block; font: 800 14px var(--font); color: #FF8A8E; letter-spacing: .12em; text-transform: uppercase; }
+.z-pts { position: absolute; right: 22px; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); text-align: right; }
+.z-pts b { display: block; font: 900 30px var(--font); color: #FFE9A8; text-shadow: 0 2px 4px rgba(0,0,0,.8); }
+.z-pts small { color: #CDBF9E; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; }
+.z-perks { position: absolute; left: 22px; bottom: calc(196px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 6px; }
+.z-perks span { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; font: 900 15px var(--font); color: #15171C; box-shadow: 0 0 10px rgba(255,255,255,.35); }
+.z-pups { position: absolute; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; gap: 8px; }
+.z-pups span { background: rgba(8,9,13,.7); border: 1px solid; border-radius: 999px; padding: 3px 10px; font-weight: 800; font-size: 13px; }
+.z-gear { position: absolute; right: 22px; top: calc(70px + env(safe-area-inset-top, 0px)); display: grid; gap: 4px; justify-items: end; }
+.z-gear span { background: rgba(8,9,13,.6); border-radius: 8px; padding: 2px 9px; font-size: 13px; }
+.z-gear span.ready { color: #5BE38A; font-weight: 800; }
+.z-prompt { position: absolute; left: 50%; top: 62%; transform: translateX(-50%); max-width: 80vw; text-align: center; font: 800 16px var(--font); text-shadow: 0 2px 4px rgba(0,0,0,.9); }
+.z-prompt b { color: #FFE9A8; }
+.z-prompt .small { font-weight: 600; font-size: 12.5px; color: #CDBF9E; margin-top: 4px; }
+.z-down { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(transparent 30%, rgba(120,0,0,.55)); font: 900 40px Georgia, serif; color: #FF8A8E; }
+.z-down[hidden] { display: none; }
+.chalk { position: absolute; transform: translate(-50%, -100%); font: 700 14px "Comic Sans MS", "Marker Felt", var(--font); color: #F4F1E6; text-shadow: 0 0 6px rgba(255,255,255,.4); white-space: nowrap; }
+.perklbl { position: absolute; transform: translate(-50%, -100%); font: 800 12.5px var(--font); background: rgba(8,9,13,.72); border: 1px solid; border-radius: 8px; padding: 2px 8px; white-space: nowrap; }
+.bossbar { position: absolute; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); width: min(520px, 80vw); text-align: center; }
+.bossbar b { font: 900 16px var(--font); color: #E5B8FF; }
+.bossbar i { display: block; height: 10px; border-radius: 6px; background: linear-gradient(90deg, #7C4DEB, #FF4F8B); margin-top: 4px; box-shadow: 0 0 10px rgba(185,139,255,.6); }
+.zwin { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; background: radial-gradient(rgba(60,20,90,.4), rgba(8,4,14,.85)); z-index: 40; animation: kp-in .6s; pointer-events: none; }
+.zwin h2 { font: 900 44px Georgia, serif; color: #E5B8FF; margin: 6px 0; text-shadow: 0 0 24px rgba(185,139,255,.8); }
 .lockhint { position: absolute; left: 50%; top: 42%; transform: translateX(-50%); background: rgba(8,9,13,.75); border: 1px solid rgba(255,255,255,.3); padding: 8px 16px; border-radius: 999px; font-size: 15px; }
 .lockhint[hidden] { display: none; }
 .kpops { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); display: grid; gap: 6px; justify-items: center; }
@@ -210,7 +236,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102n';
+import { create } from './scobb3d.js?v=20261102r';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -446,7 +472,7 @@ for (const m of MAPS) {
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102n');
+    const cfg = await import('./firebase-config.js?v=20261102r');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
     const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB = Object.assign({}, app, au, fs);
@@ -483,7 +509,7 @@ function drawUI() {
   fixLoadout();
   const P = WEAPONS[loadout.primary];
   let h = `<div class="shade"></div><div class="side"><h1 class="logo">Scobb<span>Strike</span></h1><div class="tag">Free for all · Best of 3</div>
-    <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" disabled><span>Wager 1v1</span><small>Bet ScobbBucks against a friend. Coming next.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="gungame"><span>Gun Game</span><small>20 weapons. Kill to climb. Getting knifed drops you one.</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="armory"><span>Armory</span><small>Buy guns and attachments with ScobbBucks</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Calling cards</span><small>Challenges and the card killers see</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
+    <nav class="nav"><button type="button" data-act="practice"><span>Practice</span><small>Free for all vs 5 bots. No coins.</small></button><button type="button" disabled><span>Wager 1v1</span><small>Bet ScobbBucks against a friend. Coming next.</small></button><button type="button" data-act="view" data-v="loadout" class="${view === 'loadout' ? 'on' : ''}"><span>Loadout</span><small>${P.name} · ${WEAPONS[loadout.secondary].name}</small></button><button type="button" data-act="view" data-v="zombies" class="${view === 'zombies' ? 'on' : ''}"><span>Scobb Zombies</span><small>Round-based survival on classic maps</small></button><button type="button" data-act="gungame"><span>Gun Game</span><small>20 weapons. Kill to climb. Getting knifed drops you one.</small></button><button type="button" data-act="range"><span>Shooting range</span><small>Test damage, recoil and aim on dummies</small></button><button type="button" data-act="armory"><span>Armory</span><small>Buy guns and attachments with ScobbBucks</small></button><button type="button" data-act="store"><span>Inventory</span><small>Your skins, crates and the skin shop</small></button><button type="button" data-act="view" data-v="cards" class="${view === 'cards' ? 'on' : ''}"><span>Calling cards</span><small>Challenges and the card killers see</small></button><button type="button" data-act="view" data-v="controls" class="${view === 'controls' ? 'on' : ''}"><span>Controls</span><small>Keys and touch controls</small></button></nav>
     <div class="kd"><div><b>${kdText()}</b><span>K/D</span></div><div><b>${stats.k || 0}</b><span>Kills</span></div><div><b>${stats.pts || 0}</b><span>Points</span></div><div><b>${stats.wins || 0}</b><span>Match wins</span></div></div>
     <p class="small soft" style="margin-top:22px">${ME_UID ? 'Your K/D shows on your ScobbBucks profile.' : 'Log in on ScobbBucks to track your K/D and use the gear you unlock.'} <a href="./" style="color:#C9C2FF">Back to ScobbBucks</a></p></div>`;
   if (view === 'loadout') {
@@ -507,6 +533,13 @@ function drawUI() {
     h += `<div class="stats">${st('Damage', g.dmg, base.dmg)}${st('Fire rate', g.rpm, base.rpm)}${st('Magazine', g.mag, base.mag)}${st('Range', g.range, base.range, ' m')}${st('Reload', g.reload, base.reload, ' s', true, x => x.toFixed(1))}${st('Move', g.move * 100, base.move * 100, '%')}${st('Aim time', g.ads * 1000, base.ads * 1000, ' ms', true)}${st('Kick', g.recoil * 1000, base.recoil * 1000, '', true)}${st('Zoom', g.zoom, base.zoom, '×', false, x => x.toFixed(1))}</div>`;
     h += `<div class="slots">${slots.map(([k, label, cur]) => `<button type="button" class="slotb${smithSlot === k ? ' on' : ''}" data-act="slot" data-v="${k}"><span>${label}</span><b>${cur}</b></button>`).join('')}</div>`;
     h += `<div class="sopts">${slotOptions(id, smithSlot, at)}</div></div>`;
+  } else if (view === 'zombies') {
+    h += `<div class="panel wide"><h2>Scobb Zombies</h2><p class="small soft">Survive round after round. Zombies climb in through the windows, so rebuild the barriers. Earn points for every hit and kill, then spend them on doors, wall guns, the Mystery Box and Perk-a-Colas. Turn on the power to wake up the perks and Pack-a-Punch. Your own guns, camos and attachments come with you.</p>`;
+    h += `<h3>Map</h3><div class="wgrid">${ZMAPS.map((m, i) => `<button type="button" class="wcard${zSel.map === i ? ' eq' : ''}" data-act="zmap" data-v="${i}"><b>${m.name}</b><span>${m.blurb}</span></button>`).join('')}</div>`;
+    h += `<h3>Field upgrade</h3><div class="row">${Object.keys(ZFIELD).map(k => opt('zfu', k, zSel.fu === k, ZFIELD[k].name, ZFIELD[k].blurb)).join('')}</div>`;
+    h += `<p class="small soft">Best round ${stats.zr || 0} · ${stats.zk || 0} zombie kills · ${stats.zq ? 'main quest done ' + stats.zq + '×' : 'main quest not done yet'}</p>`;
+    h += `<button type="button" class="btn block" data-act="zstart" style="margin-top:6px">Start ${ZMAPS[zSel.map].name}</button>`;
+    h += `<details class="small soft" style="margin-top:12px"><summary>How it works</summary><p><b>Keys:</b> F buys and opens things, hold F at a window to rebuild it. V knifes. G throws a frag. X uses your field upgrade. 1 to 3 switch guns. Hold C at the crafting table and press 1 to 4 to craft. Tab shows your stats and the main quest step.</p><p><b>Points:</b> 10 per hit, 60 per kill, 100 for a headshot kill, 130 for a knife kill, 10 per plank. Double Points doubles them.</p><p><b>Perks</b> (up to ${ZPERK_LIMIT}): ${Object.values(ZPERKS).map(p => `${p.name} ${p.cost}`).join(', ')}. Going down loses them.</p><p><b>Power-ups</b> drop from zombies: Max Ammo, Insta-Kill, Double Points, Nuke, Carpenter and Fire Sale.</p><p><b>Salvage</b> drops too. Spend it at the crafting table on armor plates, grenades, a self-revive, or a better weapon rarity (Uncommon to Legendary).</p><p><b>Every 5th round</b> is a Hellhound round.</p><p><b>Main quest:</b> there’s more to each map than surviving. Start by turning on the power.</p></details></div>`;
   } else if (view === 'armory') {
     h += `<div class="panel"><h2>Armory</h2><p class="small soft">Each class has 5 guns. Higher tiers hit harder and handle better. Unlock them with ScobbBucks in the ScobbBucks app under Scobb Strike Armory, and they show up here.</p>`;
     for (const c in CLASSES) h += `<h3>${CLASSES[c].name}</h3><div class="row">${[0, 1, 2, 3, 4].map(t => { const w = WEAPONS[c + t]; return `<div class="opt${ownsW(c + t) ? '' : ' lock'}" style="min-width:150px">${w.name}<small>Damage ${w.dmg}${w.pellets ? '×' + w.pellets : ''} · ${w.rpm} rpm · Mag ${w.mag}</small><span class="price">${ownsW(c + t) ? 'Owned' : priceText(WPRICE[t])}</span></div>`; }).join('')}</div>`;
@@ -618,6 +651,9 @@ ui.addEventListener('click', e => {
   else if (a === 'practice') return beginPractice();
   else if (a === 'range') return beginRange();
   else if (a === 'gungame') return beginPractice('gun');
+  else if (a === 'zmap') { zSel.map = Number(v); drawUI(); return; }
+  else if (a === 'zfu') { zSel.fu = v; drawUI(); return; }
+  else if (a === 'zstart') { const go = () => beginZombies(zSel.map); const first = (() => { try { return !localStorage.getItem('scobbstrike-controls-seen'); } catch (e) { return false; } })(); if (first && !TEST) { try { localStorage.setItem('scobbstrike-controls-seen', '1'); } catch (e) { /* ignore */ } } return go(); }
   else if (a === 'store') return openStore();
   else if (a === 'armory') return openStore('armory');
   else if (a === 'card') { myCard = v; try { localStorage.setItem('scobbstrike-card', v); } catch (e2) { /* ignore */ } if (FB && ME_UID) FB.setDoc(FB.doc(fsdb, 'fpsStats/' + ME_UID), { card: v }, { merge: true }).catch(() => {}); }
@@ -626,7 +662,7 @@ ui.addEventListener('click', e => {
 function openStore(kind) {
   if (document.querySelector('.store')) return;
   const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102n" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102r" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -648,7 +684,7 @@ function rayBox(o, d, bx, maxT) {
   return t0;
 }
 function raySphere(o, d, c, r, maxT) { const oc = sub(o, c), b = oc[0] * d[0] + oc[1] * d[1] + oc[2] * d[2], cc = oc[0] * oc[0] + oc[1] * oc[1] + oc[2] * oc[2] - r * r, h = b * b - cc; if (h < 0) return -1; const t = -b - Math.sqrt(h); return t >= 0 && t <= maxT ? t : -1; }
-function worldHit(o, d, maxT) { let best = maxT; for (const bx of M.solid) { const t = rayBox(o, d, bx, best); if (t >= 0 && t < best) best = t; } return best; }
+function worldHit(o, d, maxT) { let best = maxT; for (const bx of M.solid) { if (mode === 'zombies' && !bx.b[6] && bx.max[1] > 0.01) continue; const t = rayBox(o, d, bx, best); if (t >= 0 && t < best) best = t; } return best; }
 function smokeBlocks(o, d, maxT) { return smokes.some(s => raySphere(o, d, s.p, 3.2, maxT) >= 0); }
 function canSee(a, b) { const d0 = sub(b, a), L = len(d0), d = scl(d0, 1 / L); return worldHit(a, d, L) >= L - 0.05 && !smokeBlocks(a, d, L); }
 const PR = 0.32, PH = 1.75;
@@ -744,6 +780,7 @@ function endRound() {
 function eyeOf(e) { return [e.p[0], e.p[1] + 1.55, e.p[2]]; }
 function dirOf(yaw, pitch) { return [Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch)]; }
 function damage(target, amt, from, how, head) {
+  if (mode === 'zombies') { if (target === me) zHurt(amt * 0.5, how); return; }
   if (!target.alive || match.phase !== 'live' || target.prot > 0) return;
   if (how === 'boom' && target.lo.perks[0] === 1) amt *= 0.5;
   if (target === me && from && from.bot && how === 'boom') amt *= 0.6;
@@ -794,20 +831,27 @@ function shoot(e) {
   const g = e.guns[e.cur], s = g.s;
   if (e.reloadT > 0 || e.swapT > 0 || e.fireT > 0) return false;
   if (g.ammo <= 0) { reload(e); return false; }
-  g.ammo--; e.fireT = 60 / s.rpm; e.prot = 0;
+  g.ammo--; e.fireT = 60 / (s.rpm * (mode === 'zombies' && zHas('dt') ? 1.33 : 1)); e.prot = 0;
   const moving = Math.hypot(e.v[0], e.v[2]) > 1;
   let spread = e.ads > 0.6 ? s.adsS : s.hip * (e.lo.perks[1] === 2 ? 0.7 : e.lo.perks[1] === 0 ? 1.15 : 1);
   if (moving) spread *= 1.6;
+  if (mode === 'zombies' && zHas('dead')) spread *= 0.6;
   if (e.bot) spread += 0.022;
   const o = eyeOf(e), n = s.pellets || 1;
   for (let k = 0; k < n; k++) {
     const d = nrm(add(dirOf(e.yaw + (e.bot ? e.aimErr[0] * 0.15 : 0), e.pitch + (e.bot ? e.aimErr[1] * 0.15 : 0)), [rand(-spread, spread), rand(-spread, spread), rand(-spread, spread)]));
-    const r = hitTest(o, d, worldHit(o, d, 200), e);
+    const r = mode === 'zombies' ? zHitTest(o, d, worldHit(o, d, 200)) : hitTest(o, d, worldHit(o, d, 200), e);
     const best = r.best; let victim = r.victim;
     if (victim && smokeBlocks(o, d, best)) victim = null;
     const hitP = add(o, scl(d, best));
-    if (k < 3) { const tc = e.lo.tracer && skinInfo(e.lo.tracer); tracers.push({ a: add(o, add(scl(d, 0.6), [0, -0.12, 0])), b: hitP, t: 0, c: tc ? (tc[2] === 5 ? ['#FF4F8B', '#FFC233', '#5BE38A', '#3EC1FF', '#B98BFF'][Math.floor(Math.random() * 5)] : tc[3]) : '#FFE9A8' }); }
-    if (victim) {
+    if (k < 3 && s.ray) tracers.push({ a: add(o, add(scl(d, 0.6), [0, -0.12, 0])), b: hitP, t: 0, c: '#5BE38A' });
+    else if (k < 3) { const tc = e.lo.tracer && skinInfo(e.lo.tracer); tracers.push({ a: add(o, add(scl(d, 0.6), [0, -0.12, 0])), b: hitP, t: 0, c: tc ? (tc[2] === 5 ? ['#FF4F8B', '#FFC233', '#5BE38A', '#3EC1FF', '#B98BFF'][Math.floor(Math.random() * 5)] : tc[3]) : '#FFE9A8' }); }
+    if (victim && mode === 'zombies') {
+      const fall = best > s.range ? Math.max(0.55, 1 - (best - s.range) / (s.range * 1.5)) : 1;
+      zHit(victim, s.dmg * fall, r.part, 'gun');
+      if (s.ray) zExplode(hitP, g.pap ? 2.6 : 1.8, g.pap ? 1400 : 700, true);
+    } else if (mode === 'zombies') { if (s.ray && best < 200) zExplode(hitP, g.pap ? 2.6 : 1.8, g.pap ? 1400 : 700, true); else if (best < 200) fx.push({ p: hitP, v: [0, 0.5, 0], t: 0, life: 0.3, c: '#DDDDDD', r: 0.05 }); }
+    else if (victim) {
       const fall = best > s.range ? Math.max(0.55, 1 - (best - s.range) / (s.range * 1.5)) : 1;
       const mult = r.part === 'head' ? (e.lo.perks[2] === 2 ? 1.75 : 1.5) : r.part === 'legs' ? 0.85 : (e.lo.perks[2] === 2 ? 0.9 : 1);
       const botOnYou = e.bot && victim === me ? 0.55 : 1;
@@ -827,6 +871,13 @@ function shoot(e) {
 }
 function melee(e) {
   if ((e.meleeT || 0) > 0 || !e.alive) return false;
+  if (mode === 'zombies') {
+    e.meleeT = 0.7; e.knifeAnim = 0.35;
+    const f = dirOf(e.yaw, 0); let best = null, bd = 2.2;
+    for (const z of Z) { if (z.state === 'climb') continue; const dx = z.p[0] - e.p[0], dz = z.p[2] - e.p[2], dist = Math.hypot(dx, dz); if (dist < bd && (dx * f[0] + dz * f[2]) / (dist || 1) > 0.5) { bd = dist; best = z; } }
+    if (best) zHit(best, 94, 'body', 'melee');
+    return !!best;
+  }
   e.meleeT = 0.9; e.prot = 0; e.knifeAnim = 0.35;
   const f = dirOf(e.yaw, 0), eye = eyeOf(e);
   let best = null, bd = 2.3;
@@ -834,8 +885,8 @@ function melee(e) {
   if (best) { damage(best, 150, e, 'melee'); fx.push({ p: add(best.p, [0, 1, 0]), v: [0, 1, 0], t: 0, life: 0.3, c: '#FFFFFF', r: 0.15 }); }
   return !!best;
 }
-function reload(e) { const g = e.guns[e.cur]; if (e.reloadT > 0 || g.ammo >= g.s.mag) return; e.reloadT = g.s.reload * (e.lo.perks[1] === 0 ? 0.7 : 1) * (e.lo.perks[0] === 0 ? 1.15 : 1); }
-function swap(e, i) { if (e.cur === i) return; e.cur = i; e.reloadT = 0; e.swapT = (e.lo.perks[1] === 0 ? 0.35 : 0.5) * (e.lo.perks[1] === 1 ? 1.3 : 1); }
+function reload(e) { const g = e.guns[e.cur]; if (e.reloadT > 0 || g.ammo >= g.s.mag) return; if (mode === 'zombies' && g.res <= 0) return; e.reloadT = g.s.reload * (e.lo.perks[1] === 0 ? 0.7 : 1) * (e.lo.perks[0] === 0 ? 1.15 : 1) * (mode === 'zombies' && zHas('speed') ? 0.5 : 1); if (mode === 'zombies') zCherry(); }
+function swap(e, i) { if (e.cur === i || !e.guns[i]) return; e.cur = i; e.reloadT = 0; e.swapT = (e.lo.perks[1] === 0 ? 0.35 : 0.5) * (e.lo.perks[1] === 1 ? 1.3 : 1); }
 function throwNade(e, kind, cooked) {
   e.prot = 0;
   const d = dirOf(e.yaw, e.pitch + 0.12), o = add(eyeOf(e), scl(d, 0.5));
@@ -845,6 +896,7 @@ function throwNade(e, kind, cooked) {
 }
 function explode(n) {
   if (n.kind === 'frag' || n.kind === 'semtex') {
+    if (mode === 'zombies') zExplode(n.p, 5.5, 300 + ZS.round * 60);
     for (const t of ents) { if (!t.alive) continue; const d = len(sub(add(t.p, [0, 0.8, 0]), n.p)); if (d < 5.5) damage(t, 140 * (1 - d / 5.5) + 10, n.owner, 'boom'); }
     for (let i = 0; i < 40; i++) fx.push({ p: n.p.slice(), v: [rand(-7, 7), rand(1, 9), rand(-7, 7)], t: 0, life: 0.6, c: i % 3 ? '#FFB347' : '#FF5A2A', r: 0.16 });
     fx.push({ p: n.p.slice(), v: [0, 0, 0], t: 0, life: 0.3, c: '#FFF2B0', r: 2.6, boom: 1 });
@@ -991,6 +1043,14 @@ function updateHud() {
   if (!me.alive && !attract) showDeath();
   const lh = document.getElementById('h-lock');
   if (lh) lh.hidden = TEST || touchDev || paused || !me.alive || document.pointerLockElement === cv || (match && match.phase === 'done');
+  if (mode === 'zombies') {
+    zHud();
+    hudEls.ch.style.opacity = me.ads > 0.6 ? '0.25' : '1'; hudEls.scope.style.opacity = g.s.scope && me.ads > 0.85 ? '1' : '0';
+    hudEls.ch.style.transform = `scale(${1 + (me.ads > 0.6 ? g.s.adsS : g.s.hip) * 18})`;
+    hudEls.flash.style.opacity = '0';
+    hudEls.board.hidden = !keys.Tab; if (keys.Tab) zBoard();
+    return;
+  }
   if (mode === 'range') {
     hudEls.round.textContent = 'Shooting range';
     hudEls.time.textContent = '';
@@ -1035,14 +1095,15 @@ document.addEventListener('keydown', e => {
     if (n && mode !== 'gun') { pickClass(Number(n[1]) - 1); return; }
   }
   keys[e.code] = true;
+  if (mode === 'zombies' && zKey(e.code)) return;
   if (e.code === 'KeyR') reload(me);
   if (e.code === 'KeyB' && mode === 'range') { const ids = PRIM.flatMap(c => [0, 1, 2, 3, 4].map(t => c + t)).filter(ownsW); const i = ids.indexOf(me.guns[0].key); setPrimary(ids[(i + 1) % ids.length]); lastHit = null; shots = []; }
   if (e.code === 'Digit1' && mode !== 'gun') swap(me, 0);
   if (e.code === 'Digit2' && mode !== 'gun') swap(me, 1);
-  if ((e.code === 'KeyV' || e.code === 'KeyF') && me.alive) melee(me);
+  if ((e.code === 'KeyV' || (e.code === 'KeyF' && mode !== 'zombies')) && me.alive) melee(me);
   if (e.code === 'KeyQ' && me.alive && me.tac > 0) useTac();
   if (e.code === 'KeyG' && me.alive && me.leth > 0 && me.cook < 0 && me.lo.leth === 'frag') me.cook = 0;
-  if (e.code === 'Escape' && (TEST || match.phase === 'done')) { if (match.phase === 'done') quit(); else togglePause(true); }
+  if (e.code === 'Escape' && (TEST || match.phase === 'done' || (mode === 'zombies' && ZS && ZS.over))) { if (match.phase === 'done') quit(); else togglePause(true); }
 });
 document.addEventListener('keyup', e => {
   keys[e.code] = false;
@@ -1174,6 +1235,7 @@ function mapRandomizer(win, done) {
 }
 function quit() {
   if (document.exitPointerLock) document.exitPointerLock();
+  if (mode === 'zombies') { if (ZS && !ZS.over && ZS.round > 1) zSave(false); const zh = document.getElementById('zhud'); if (zh) zh.remove(); Z = []; ZS = null; }
   if ((mode === 'match' || mode === 'gun') && me && !attract && match && match.phase !== 'done' && ((me.tk || 0) + (me.td || 0)) > 0) recordMatch(false, true);
   hideDeath(); paused = false; mode = 'match'; startAttract();
 }
@@ -1209,9 +1271,9 @@ function step(dt) {
   for (const e of ents) {
     if (!e.alive) { e.respawn -= dt; if (e === me && !attract) { if (me.wantSpawn && live) { me.wantSpawn = false; spawn(me); hideDeath(); clearInput(); me.justSpawned = true; setTimeout(() => { if (me) me.justSpawned = false; }, 1500); } } else if (e.respawn <= 0 && live) spawn(e); continue; }
     e.fireT -= dt; e.swapT -= dt; e.flashT -= dt; e.prot -= dt; e.meleeT = (e.meleeT || 0) - dt; e.knifeAnim = (e.knifeAnim || 0) - dt; e.flashMuzzle = (e.flashMuzzle || 0) - dt; e.recoil *= Math.pow(0.02, dt);
-    if (e.reloadT > 0) { e.reloadT -= dt; if (e.reloadT <= 0) { const g = e.guns[e.cur]; g.ammo = g.s.mag; } }
-    if (e.stimT > 0) { e.stimT -= dt; e.hp = Math.min(100, e.hp + 100 * dt); }
-    if (match.clock - e.lastHurt > (e.lo.perks[2] === 1 ? 2.5 : 5)) e.hp = Math.min(100, e.hp + (e.lo.perks[0] === 2 ? 15 : 25) * dt);
+    if (e.reloadT > 0) { e.reloadT -= dt; if (e.reloadT <= 0) { const g = e.guns[e.cur]; if (mode === 'zombies') zReloadDone(g); else g.ammo = g.s.mag; } }
+    if (e.stimT > 0) { e.stimT -= dt; e.hp = Math.min(e.maxHp || 100, e.hp + 100 * dt); }
+    if (match.clock - e.lastHurt > (e.lo.perks[2] === 1 ? 2.5 : mode === 'zombies' ? 3.5 : 5) && !(mode === 'zombies' && zDown())) e.hp = Math.min(e.maxHp || 100, e.hp + (e.lo.perks[0] === 2 ? 15 : mode === 'zombies' ? 60 : 25) * dt);
     if (e.cook >= 0) { e.cook += dt; if (e.cook >= 3) { e.leth--; e.cook = -1; nades.push({ kind: 'frag', p: eyeOf(e), v: [0, 0, 0], owner: e, t: 0, fuse: 0 }); } }
     if (e.dummy) { e.hp = 100; e.v = [0, 0, 0]; if (e.move) e.p[0] = e.base + Math.sin(match.clock * 0.9) * 5; e.yaw = Math.PI; e.walk += e.move ? dt * 2 : 0; continue; }
     if (e.bot) { if (live) botThink(e, dt); else { e.v[0] = 0; e.v[2] = 0; } }
@@ -1220,10 +1282,10 @@ function step(dt) {
       let mx = (keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0) + touchMove[0], mz = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0) - touchMove[1];
       const fl = Math.hypot(mx, mz); if (fl > 1) { mx /= fl; mz /= fl; }
       const sprint = keys.ShiftLeft && mz > 0 && e.ads < 0.2;
-      const sp = 5 * e.guns[e.cur].s.move * (e.lo.perks[0] === 0 ? 1.08 : e.lo.perks[0] === 1 ? 0.92 : 1) * (e.lo.perks[1] === 2 ? 0.92 : 1) * (sprint ? 1.45 : 1) * (1 - e.ads * 0.4);
+      const sp = (mode === 'zombies' ? (zDown() ? 0 : zHas('stam') ? 1.12 : 1) : 1) * 5 * e.guns[e.cur].s.move * (e.lo.perks[0] === 0 ? 1.08 : e.lo.perks[0] === 1 ? 0.92 : 1) * (e.lo.perks[1] === 2 ? 0.92 : 1) * (sprint ? 1.45 : 1) * (1 - e.ads * 0.4);
       const f = [Math.sin(e.yaw), 0, -Math.cos(e.yaw)], r = [Math.cos(e.yaw), 0, Math.sin(e.yaw)];
       e.v[0] = (f[0] * mz + r[0] * mx) * sp; e.v[2] = (f[2] * mz + r[2] * mx) * sp;
-      if (keys.Space && e.ground) e.v[1] = 7;
+      if (keys.Space && e.ground && !(mode === 'zombies' && zDown())) e.v[1] = 7;
       e.bob += Math.hypot(e.v[0], e.v[2]) * dt;
       if ((mouse.l || touchFire) && live && !sprint) { const did = shoot(e); if (did && !e.guns[e.cur].s.auto) { mouse.l = false; touchFire = false; } }
       e.kick = Math.max(0, (e.kick || 0) - dt * 8);
@@ -1231,6 +1293,7 @@ function step(dt) {
     e.walk += Math.hypot(e.v[0], e.v[2]) * dt;
     moveBody(e, dt);
   }
+  if (mode === 'zombies') zStep(dt);
   for (const n of nades.slice()) {
     n.t += dt;
     if (!n.stuck) {
@@ -1257,6 +1320,659 @@ function step(dt) {
   for (const p of fx.slice()) { p.t += dt; if (p.t > p.life) { fx.splice(fx.indexOf(p), 1); continue; } p.v[1] -= 9 * dt; p.p = add(p.p, scl(p.v, dt)); }
   for (const t of tracers.slice()) { t.t += dt; if (t.t > 0.06) tracers.splice(tracers.indexOf(t), 1); }
   for (const d of dmgNums.slice()) { d.t += dt; d.p[1] += dt * 0.8; if (d.t > 1.1) dmgNums.splice(dmgNums.indexOf(d), 1); }
+}
+
+
+/* ================= Scobb Zombies ================= */
+// Round-based survival. Same guns, camos and attachments as the rest of Scobb Strike.
+const ZPERKS = {
+  qr: { name: 'Quick Revive', cost: 500, col: '#5BC8F5', icon: '✚', blurb: 'Revive yourself up to three times when you go down', noPower: true },
+  jug: { name: 'Juggernog', cost: 2500, col: '#E5484D', icon: '♥', blurb: 'More health: take five hits instead of two' },
+  speed: { name: 'Speed Cola', cost: 3000, col: '#23A26F', icon: '⚡', blurb: 'Reload and rebuild barriers twice as fast' },
+  dt: { name: 'Double Tap', cost: 2000, col: '#F2C14E', icon: '❚❚', blurb: 'Fire faster and hit harder' },
+  stam: { name: 'Stamin-Up', cost: 2000, col: '#FFB347', icon: '➤', blurb: 'Move and sprint faster' },
+  phd: { name: 'PhD Flopper', cost: 2000, col: '#B98BFF', icon: '✹', blurb: 'Your own explosives can’t hurt you' },
+  dead: { name: 'Deadshot Daiquiri', cost: 1500, col: '#9EF6FF', icon: '◎', blurb: 'Tighter aim and bigger headshots' },
+  mule: { name: 'Mule Kick', cost: 4000, col: '#7EDDB0', icon: '③', blurb: 'Carry a third weapon' },
+  cherry: { name: 'Electric Cherry', cost: 2000, col: '#3EC1FF', icon: '✦', blurb: 'Reloading shocks zombies around you' }
+};
+const ZPERK_LIMIT = 4;
+const ZFIELD = {
+  shroud: { name: 'Ether Shroud', blurb: 'Turn invisible for 5 seconds. Zombies lose you.' },
+  aura: { name: 'Healing Aura', blurb: 'Instantly heal to full and get back up if you’re down.' },
+  frost: { name: 'Frost Blast', blurb: 'Freeze and hurt every zombie near you.' },
+  mine: { name: 'Energy Mine', blurb: 'Drop a mine that blows up the next zombies to walk over it.' }
+};
+const ZPUPS = {
+  max: { name: 'Max Ammo', col: '#5BE38A', icon: '▣' },
+  insta: { name: 'Insta-Kill', col: '#FFFFFF', icon: '☠' },
+  double: { name: 'Double Points', col: '#F2C14E', icon: '×2' },
+  nuke: { name: 'Nuke', col: '#FF7A1A', icon: '☢' },
+  carp: { name: 'Carpenter', col: '#B87333', icon: '⚒' },
+  fire: { name: 'Fire Sale', col: '#E5484D', icon: '$' }
+};
+const ZRAR = [['Common', '#CDD3DC', 1], ['Uncommon', '#5BE38A', 1.3], ['Rare', '#3EC1FF', 1.7], ['Epic', '#B98BFF', 2.3], ['Legendary', '#FFB347', 3.2]];
+const ZRAR_COST = [0, 500, 1000, 2500, 5000];
+const ARMOR_COST = [0, 500, 1000, 1500];
+const PAP_CAMO = 'cy1';
+
+// ---- map building helpers ----
+const ZT = 0.15;
+// A wall along x at z, from x0 to x1, with openings: [xa, xb, 'door' | 'win'].
+function zwallX(out, x0, x1, z, h, col, tex, gaps) {
+  gaps = (gaps || []).slice().sort((a, b) => a[0] - b[0]); let x = x0;
+  for (const [a, b, kind] of gaps) {
+    if (a > x) out.push(BX((x + a) / 2, 0, z, (a - x) / 2, h / 2, ZT, col, tex));
+    const m = (a + b) / 2, hw = (b - a) / 2;
+    if (kind === 'win') { out.push(BX(m, 0, z, hw, 0.45, ZT, col, tex)); out.push(BX(m, 2.1, z, hw, (h - 2.1) / 2, ZT, col, tex)); }
+    else out.push(BX(m, 2.45, z, hw, (h - 2.45) / 2, ZT, col, tex));
+    x = b;
+  }
+  if (x < x1) out.push(BX((x + x1) / 2, 0, z, (x1 - x) / 2, h / 2, ZT, col, tex));
+}
+function zwallZ(out, z0, z1, x, h, col, tex, gaps) {
+  gaps = (gaps || []).slice().sort((a, b) => a[0] - b[0]); let z = z0;
+  for (const [a, b, kind] of gaps) {
+    if (a > z) out.push(BX(x, 0, (z + a) / 2, ZT, h / 2, (a - z) / 2, col, tex));
+    const m = (a + b) / 2, hw = (b - a) / 2;
+    if (kind === 'win') { out.push(BX(x, 0, m, ZT, 0.45, hw, col, tex)); out.push(BX(x, 2.1, m, ZT, (h - 2.1) / 2, hw, col, tex)); }
+    else out.push(BX(x, 2.45, m, ZT, (h - 2.45) / 2, hw, col, tex));
+    z = b;
+  }
+  if (z < z1) out.push(BX(x, 0, (z + z1) / 2, ZT, h / 2, (z1 - z) / 2, col, tex));
+}
+// A window: n is the direction pointing into the room.
+const zwin = (x, z, n, zone) => ({ x, z, n, zone, planks: 6 });
+const zdoor = (x, z, hx, hz, cost, zone, label, look) => ({ box: BX(x, 0, z, hx, 1.25, hz, look === 'debris' ? '#6B5A48' : '#7A4A26', look === 'debris' ? 9 : 2), cost, zone, label, look: look || 'door' });
+const zcrate = (x, z, s, c) => BX(x, 0, z, s, s, s, c || '#8A6A44', 2);
+const zbarrel = (x, z, c) => [x, 0.55, z, 0.32, 0.55, 0.32, c || '#5A6E4A', 0, 4, 1];
+const ztable = (out, x, z, hx, hz) => { out.push(BX(x, 0.72, z, hx, 0.04, hz, '#6A4A2E', 2)); for (const sx of [-1, 1]) for (const sz of [-1, 1]) out.push(BX(x + sx * (hx - 0.06), 0, z + sz * (hz - 0.06), 0.04, 0.36, 0.04, '#4A3220', 2)); };
+
+function nachtMap() {
+  const b = [], d = [], W = '#7A6A58', Bk = 1, H = 3.2;
+  // Start room: the bunker
+  zwallX(b, -6, 6, -5, H, W, Bk, [[-3.7, -2.3, 'win'], [2.3, 3.7, 'win']]);
+  zwallZ(b, -5, 5, -6, H, W, Bk, [[-0.7, 0.7, 'win']]);
+  zwallX(b, -6, 6, 5, H, W, Bk, [[-3.7, -2.3, 'win'], [2.2, 3.8, 'door']]);
+  zwallZ(b, -5, 5, 6, H, W, Bk, [[-2.8, -1.2, 'door']]);
+  ztable(b, -2, -1.5, 1.1, 0.6); ztable(b, 2.2, 1.8, 0.7, 0.7);
+  b.push(zcrate(-4.6, 3.6, 0.5), zcrate(-4.6, 2.6, 0.4, '#7A5A3A'), zbarrel(4.8, -4, '#5A6E4A'), zbarrel(4.2, -4.2, '#6E5A3A'), BX(0, 0, -4.4, 1.4, 0.35, 0.3, '#B5A17A', 9));
+  // Barracks (east)
+  zwallX(b, 6, 14, -5, H, W, Bk, [[9.3, 10.7, 'win']]);
+  zwallZ(b, -5, 3, 14, H, W, Bk, [[-1.7, -0.3, 'win']]);
+  b.push(BX(8, 0, -4.3, 1.6, 0.45, 0.45, '#5A4A3A', 2), BX(12, 0, -4.3, 1.6, 0.45, 0.45, '#5A4A3A', 2));
+  // Help room (south)
+  zwallZ(b, 5, 13, -6, H, W, Bk, [[8.3, 9.7, 'win']]);
+  zwallX(b, -6, 6, 13, H, W, Bk, [[-2.7, -1.3, 'win'], [2.3, 3.7, 'win']]);
+  zwallZ(b, 5, 13, 6, H, W, Bk, [[8.8, 10.4, 'door']]);
+  ztable(b, -3, 8, 1.2, 0.6); b.push(zcrate(1.5, 12.3, 0.5), zcrate(-1, 12.3, 0.5, '#7A5A3A'));
+  // Power room (southeast), joined to the barracks too
+  zwallX(b, 6, 14, 3, H, W, Bk, [[9.2, 10.8, 'door']]);
+  zwallZ(b, 3, 13, 14, H, W, Bk, [[7.3, 8.7, 'win']]);
+  zwallX(b, 6, 14, 13, H, W, Bk, [[9.3, 10.7, 'win']]);
+  b.push(BX(13.2, 0, 11.6, 0.5, 1.1, 1.1, '#3A4048', 4), [12, 0.5, 4, 0.5, 0.5, 0.5, '#3A4048', 0, 4, 1]);
+  // a courtyard fence and ruined car outside the windows
+  d.push(BX(0, 0, -9, 7, 0.6, 0.1, '#5A4A3A', 2), BX(-1, 0, 16.5, 5, 0.5, 0.1, '#5A4A3A', 2), BX(-11, 0, 0, 0.1, 0.7, 6, '#5A4A3A', 2), [3, 0.55, -12, 1.0, 0.55, 2.2, '#3A4A3A', 0, 4, 0], [3, 1.25, -12.3, 0.9, 0.3, 1.2, '#2A3A2A', 0, 4, 0]);
+  // ceilings, hanging lamps and boards over the walls
+  for (const [x, z, hx, hz] of [[0, 0, 6, 5], [10, -1, 4, 4], [0, 9, 6, 4], [10, 8, 4, 5]]) d.push(BX(x, H, z, hx, 0.08, hz, '#3A3028', 2));
+  return {
+    name: 'Nacht der Scobb', blurb: 'The classic bunker. Hold the start room, then fight your way to the power.', sky: '#3A3448', ground: '#2A2A2A', fog: ['#1A1820', 0.03], floor: '#6E5A44', floorTex: 2, S: 20, light: [-0.3, 0.9, 0.3],
+    start: [0, 0, 0], boxes: b, decor: d,
+    windows: [zwin(-3, -5, [0, 1], 'start'), zwin(3, -5, [0, 1], 'start'), zwin(-6, 0, [1, 0], 'start'), zwin(-3, 5, [0, -1], 'start'), zwin(10, -5, [0, 1], 'barracks'), zwin(14, -1, [-1, 0], 'barracks'), zwin(-6, 9, [1, 0], 'help'), zwin(-2, 13, [0, -1], 'help'), zwin(3, 13, [0, -1], 'help'), zwin(14, 8, [-1, 0], 'power'), zwin(10, 13, [0, -1], 'power')],
+    doors: [zdoor(6, -2, ZT + 0.05, 0.8, 750, 'barracks', 'Barracks'), zdoor(3, 5, 0.8, ZT + 0.05, 1000, 'help', 'Help Room', 'debris'), zdoor(6, 9.6, ZT + 0.05, 0.8, 1250, 'power', 'Power Room'), zdoor(10, 3, 0.8, ZT + 0.05, 1000, 'power', 'Power Room')],
+    zones: { start: [[-6, -5, 6, 5]], barracks: [[6, -5, 14, 3]], help: [[-6, 5, 6, 13]], power: [[6, 3, 14, 13]] },
+    walls: [{ gun: 'dmr0', cost: 500, p: [-5.84, 1.45, -2.6], n: [1, 0] }, { gun: 'smg0', cost: 1000, p: [5.84, 1.45, 2.8], n: [-1, 0] }, { gun: 'ar0', cost: 1200, p: [13.84, 1.45, 1.4], n: [-1, 0] }, { gun: 'sg0', cost: 1500, p: [-5.84, 1.45, 11], n: [1, 0] }],
+    perks: [{ id: 'qr', p: [5.2, -0.4], n: [-1, 0] }, { id: 'jug', p: [7, -1], n: [1, 0] }, { id: 'speed', p: [13.2, -2.6], n: [-1, 0] }, { id: 'cherry', p: [7, 1.8], n: [1, 0] }, { id: 'dt', p: [-5.2, 12.2], n: [1, 0] }, { id: 'dead', p: [5.2, 12.2], n: [-1, 0] }, { id: 'stam', p: [7, 12.2], n: [1, 0] }, { id: 'mule', p: [7, 4.2], n: [1, 0] }, { id: 'phd', p: [13.2, 4.2], n: [-1, 0] }],
+    boxSpots: [[0, -3.6, 0], [0, 11.8, Math.PI], [10, 0.8, 0], [12, 7.5, -Math.PI / 2]], power: [13.84, 1.4, 9.8, [-1, 0]], pap: [9.8, 7.6], craft: [-4.7, 6.2], altar: [-4.6, -3.7],
+    jars: [[12.5, 1.15, -4.3], [-1, 1.25, 12.3], [13.2, 2.4, 11.6]], bossSpawn: [0, 9]
+  };
+}
+function kinoMap() {
+  const b = [], d = [], R = '#7A2A30', Wd = '#6A3A2A', H = 4.2;
+  // Lobby (start)
+  zwallZ(b, 6, 16, -8, H, R, 2, [[10.3, 11.7, 'win']]);
+  zwallZ(b, 6, 16, 8, H, R, 2, [[10.3, 11.7, 'win']]);
+  zwallX(b, -8, 8, 16, H, R, 2, [[-4.7, -3.3, 'win'], [3.3, 4.7, 'win']]);
+  zwallX(b, -8, 8, 6, H, R, 2, [[-5.8, -4.2, 'door'], [4.2, 5.8, 'door']]);
+  b.push(BX(0, 0, 11.2, 1.6, 0.6, 0.7, '#4A2A18', 2), BX(0, 1.2, 11.2, 1.6, 0.04, 0.75, '#E8E2D6', 15));
+  for (const [x, z] of [[-4.5, 9], [4.5, 9]]) b.push([x, H / 2, z, 0.35, H / 2, 0.35, '#E8E2D6', 0, 15, 1]);
+  d.push(BX(0, 0.002, 11, 1.4, 0.004, 5, '#8A1020', 13));
+  for (const [x, z, c] of [[-7.8, 8, '#FF4F8B'], [-7.8, 14, '#3EC1FF'], [7.8, 8, '#F2C14E'], [7.8, 14, '#5BE38A']]) d.push(BX(x + (x < 0 ? 0.04 : -0.04), 1.2, z, 0.02, 0.7, 0.5, c, 0, 0.6));
+  // Foyer (northwest)
+  zwallZ(b, -4, 6, -8, H, R, 2, [[-2.7, -1.3, 'win']]);
+  zwallZ(b, -4, 6, 0, H, R, 2);
+  b.push(BX(-2, 0, 3.6, 1.0, 0.45, 0.45, '#5A1E28', 2), BX(-5.5, 0, 3.6, 1.0, 0.45, 0.45, '#5A1E28', 2));
+  // Alley (northeast, outside)
+  zwallZ(b, -4, 6, 8, H, '#6A6A70', 1, [[0.3, 1.7, 'win']]);
+  b.push(zbarrel(6.9, 4.8, '#3A4A3A'), zbarrel(6.9, 4.1, '#4A3A2A'), BX(1.2, 0, -2.8, 0.6, 0.6, 0.6, '#3A4048', 4), BX(5.5, 0, 0, 0.9, 0.7, 0.5, '#2F5A3A', 4));
+  d.push([4, 1.6, 2.5, 0.06, 1.6, 0.06, '#2A2D33', 0, 0, 1], [4, 3.3, 2.5, 0.2, 0.15, 0.2, '#FFE9A8', 1, 0, 0]);
+  // Theater
+  zwallX(b, -8, 8, -4, H, R, 2, [[-5.8, -4.2, 'door'], [4.2, 5.8, 'door']]);
+  zwallZ(b, -16, -4, -8, H, R, 2, [[-10.7, -9.3, 'win'], [-6.7, -5.3, 'win']]);
+  zwallZ(b, -16, -4, 8, H, R, 2, [[-10.7, -9.3, 'win']]);
+  zwallX(b, -8, 8, -16, H, R, 2);
+  for (let r = 0; r < 4; r++) for (const sx of [-1, 1]) b.push(BX(sx * 3.4, 0, -6.2 - r * 1.3, 2.3, 0.4, 0.3, '#8A1020', 0));
+  b.push(BX(0, 0, -14, 8, 0.45, 2, '#5A3A22', 2), BX(0, 0, -11.75, 2, 0.3, 0.3, '#5A3A22', 2), BX(0, 0, -11.25, 2, 0.15, 0.25, '#5A3A22', 2));
+  d.push(BX(-6.5, 0.9, -15.6, 1.4, 1.6, 0.1, '#9B1B30', 0), BX(6.5, 0.9, -15.6, 1.4, 1.6, 0.1, '#9B1B30', 0), BX(0, 3.6, -15.9, 7.8, 0.4, 0.08, '#9B1B30', 0), BX(0, 2.0, -15.95, 4.5, 1.5, 0.02, '#E8E8F0', 0, 0.15));
+  for (const [x, z, hx, hz] of [[0, 11, 8, 5], [-4, 1, 4, 5], [0, -10, 8, 6]]) d.push(BX(x, H, z, hx, 0.08, hz, '#2A1418', 2));
+  return {
+    name: 'Kino der Scobb', blurb: 'A haunted old theater. Lobby, foyer, alley and the big stage where the power and Pack-a-Punch wait.', sky: '#2A2030', ground: '#1A1418', fog: ['#160E12', 0.025], floor: '#4A2A20', floorTex: 2, S: 24, light: [-0.2, 0.9, 0.4],
+    start: [0, 0, 14.6], boxes: b, decor: d,
+    windows: [zwin(-8, 11, [1, 0], 'start'), zwin(8, 11, [-1, 0], 'start'), zwin(-4, 16, [0, -1], 'start'), zwin(4, 16, [0, -1], 'start'), zwin(-8, -2, [1, 0], 'foyer'), zwin(8, 1, [-1, 0], 'alley'), zwin(-8, -10, [1, 0], 'theater'), zwin(-8, -6, [1, 0], 'theater'), zwin(8, -10, [-1, 0], 'theater')],
+    doors: [zdoor(-5, 6, 0.8, ZT + 0.05, 750, 'foyer', 'Foyer'), zdoor(5, 6, 0.8, ZT + 0.05, 1000, 'alley', 'Alley', 'debris'), zdoor(-5, -4, 0.8, ZT + 0.05, 1250, 'theater', 'Theater'), zdoor(5, -4, 0.8, ZT + 0.05, 1250, 'theater', 'Theater')],
+    zones: { start: [[-8, 6, 8, 16]], foyer: [[-8, -4, 0, 6]], alley: [[0, -4, 8, 6]], theater: [[-8, -16, 8, -4]] },
+    walls: [{ gun: 'dmr0', cost: 500, p: [-7.84, 1.45, 13.6], n: [1, 0] }, { gun: 'smg0', cost: 1000, p: [7.84, 1.45, 13.6], n: [-1, 0] }, { gun: 'ar0', cost: 1200, p: [-7.84, 1.45, 1.4], n: [1, 0] }, { gun: 'sg1', cost: 1500, p: [7.84, 1.45, -1.6], n: [-1, 0] }, { gun: 'lmg0', cost: 2500, p: [7.84, 1.45, -7.6], n: [-1, 0] }],
+    perks: [{ id: 'qr', p: [6.8, 15], n: [-1, 0] }, { id: 'speed', p: [-0.7, -3.2], n: [-1, 0] }, { id: 'jug', p: [-7.2, -3.2], n: [1, 0] }, { id: 'dt', p: [7.2, -3.2], n: [-1, 0] }, { id: 'stam', p: [0.8, 5], n: [1, 0] }, { id: 'mule', p: [7.2, -11.4], n: [-1, 0] }, { id: 'phd', p: [7.2, -4.9], n: [-1, 0] }, { id: 'dead', p: [-7.2, -8.2], n: [1, 0] }, { id: 'cherry', p: [-7.2, -11.6], n: [1, 0] }],
+    boxSpots: [[-6.8, 8, Math.PI / 2], [-4, -3, 0], [4, -3.4, 0], [6.9, -8.8, Math.PI / 2]], power: [0, 2.3, -15.84, [0, 1]], pap: [-3.4, -11.3], craft: [-6.8, 14.8], altar: [0, 8.4],
+    jars: [[-2, 1.15, 3.6], [6.9, 1.3, 4.8], [-6.5, 2.8, -15.4]], bossSpawn: [0, -8]
+  };
+}
+const ZMAPS = [nachtMap(), kinoMap()];
+const ZBOX_IDS = Object.keys(WEAPONS), ZBOX_STATS = Object.fromEntries(ZBOX_IDS.map(id => [id, gunStats(id, null)]));
+
+// ---- game state ----
+let ZM = null, Z = [], ZS = null, zFlowT = 0, zFlow = null, zNav = null, zPups = [], zMines = [], zBolts = [];
+const zSel = { map: 0, fu: 'shroud' };
+const zHas = id => !!(ZS && ZS.perks.includes(id));
+const zDown = () => !!(ZS && ZS.downT > 0);
+const zCount = r => (r < 10 ? [6, 8, 13, 18, 24, 27, 28, 28, 29][r - 1] : Math.floor(0.0842 * r * r + 0.1954 * r + 22.05));
+const zHealth = r => (r < 10 ? 150 + 100 * (r - 1) : Math.floor(950 * Math.pow(1.1, r - 9)));
+const zDogRound = r => r >= 5 && r % 5 === 0;
+
+function zPrep(src) {
+  const m = Object.assign({}, src);
+  m.boxes = src.boxes.slice();
+  m.decor = src.decor.slice();
+  m.doors = src.doors.map(d => Object.assign({ open: false }, d));
+  m.windows = src.windows.map((w, i) => Object.assign({ id: i, planks: 6, tear: 0 }, w));
+  m.spawns = [src.start];
+  // invisible blockers keep players in and only zombies climb through windows
+  for (const w of m.windows) { const along = w.n[0] ? 'z' : 'x'; w.block = along === 'x' ? [w.x, 1.5, w.z, 0.75, 0.6, 0.18, null, 0, 0, 0] : [w.x, 1.5, w.z, 0.18, 0.6, 0.75, null, 0, 0, 0]; }
+  // machines are solid
+  m.machines = [];
+  for (const pk of src.perks) m.machines.push([pk.p[0], 0.95, pk.p[1], 0.38, 0.95, 0.38, null, 0, 0, 0]);
+  m.machines.push([src.pap[0], 0.9, src.pap[1], 0.7, 0.9, 0.45, null, 0, 0, 0], [src.craft[0], 0.45, src.craft[1], 0.8, 0.45, 0.4, null, 0, 0, 0], [src.altar[0], 0.5, src.altar[1], 0.45, 0.5, 0.45, null, 0, 0, 0]);
+  return m;
+}
+function zSolids() {
+  const list = ZM.boxes.concat(ZM.machines, ZM.windows.map(w => w.block), ZM.doors.filter(d => !d.open).map(d => d.box));
+  if (ZS && ZS.box && !ZS.box.moving) { const s = ZM.boxSpots[ZS.box.at]; list.push([s[0], 0.4, s[1], Math.abs(Math.cos(s[2])) > 0.5 ? 0.62 : 0.3, 0.4, Math.abs(Math.cos(s[2])) > 0.5 ? 0.3 : 0.62, null, 0, 0, 0]); }
+  M.solid = list.map(b => ({ min: [b[0] - b[3], b[1] - b[4], b[2] - b[5]], max: [b[0] + b[3], b[1] + b[4], b[2] + b[5]], b }));
+  M.solid.push({ min: [-M.S, -1, -M.S], max: [M.S, 0, M.S], b: [0, -0.5, 0, M.S, 0.5, M.S, M.floor, 0, M.floorTex || 0, 0] });
+  zBuildNav();
+}
+// ---- navigation: a height grid and a flow field toward you, so zombies find their way around walls ----
+const NC = 0.5;
+function zBuildNav() {
+  const S = M.S, N = Math.ceil(2 * S / NC), h = new Float32Array(N * N), blk = new Uint8Array(N * N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+    const x = -S + (i + 0.5) * NC, z = -S + (j + 0.5) * NC, k = j * N + i;
+    let top = 0;
+    for (const bx of M.solid) { if (bx.max[1] <= 0.001) continue; if (x + 0.22 > bx.min[0] && x - 0.22 < bx.max[0] && z + 0.22 > bx.min[2] && z - 0.22 < bx.max[2] && bx.max[1] <= 0.95 && bx.min[1] < 0.05 + top) top = Math.max(top, bx.max[1]); }
+    h[k] = top;
+    for (const bx of M.solid) { if (bx.max[1] <= 0.001) continue; if (x + 0.28 > bx.min[0] && x - 0.28 < bx.max[0] && z + 0.28 > bx.min[2] && z - 0.28 < bx.max[2] && bx.max[1] > top + 0.46 && bx.min[1] < top + 1.6) { blk[k] = 1; break; } }
+  }
+  zNav = { N, h, blk, S };
+  zFlow = null;
+}
+const zCell = (x, z) => { const N = zNav.N, i = Math.floor((x + zNav.S) / NC), j = Math.floor((z + zNav.S) / NC); return i < 0 || j < 0 || i >= N || j >= N ? -1 : j * N + i; };
+function zMakeFlow(tx, tz) {
+  const N = zNav.N, dist = new Int32Array(N * N).fill(1e9), q = new Int32Array(N * N); let qh = 0, qt = 0;
+  const s = zCell(tx, tz); if (s < 0) return null;
+  dist[s] = 0; q[qt++] = s;
+  while (qh < qt) {
+    const k = q[qh++], i = k % N, j = (k - i) / N;
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+      if (!di && !dj) continue; const ni = i + di, nj = j + dj; if (ni < 0 || nj < 0 || ni >= N || nj >= N) continue;
+      const nk = nj * N + ni; if (zNav.blk[nk] || dist[nk] <= dist[k] + 1) continue;
+      if (di && dj && (zNav.blk[j * N + ni] || zNav.blk[nj * N + i])) continue;
+      if (Math.abs(zNav.h[nk] - zNav.h[k]) > 0.46) continue;
+      dist[nk] = dist[k] + 1; q[qt++] = nk;
+    }
+  }
+  return dist;
+}
+// ---- starting a game ----
+function beginZombies(mapIdx) {
+  mode = 'zombies'; attract = false;
+  ZM = zPrep(ZMAPS[mapIdx]); M = ZM;
+  match = { round: 0, maps: [0], clock: 0, phase: 'live' };
+  const look = myLook ? Object.assign({ body: '#B98BFF' }, myLook) : botLook('#B98BFF');
+  const lo = Object.assign({}, loadout, { perks: [9, 9, 9], leth: 'frag', tac: 'stim' });
+  me = makeEnt('You', look.body, false, lo, look); me.card = myCard;
+  ents = [me]; Z = []; zPups = []; zMines = []; zBolts = [];
+  ZS = { round: 0, pts: 500, kills: 0, heads: 0, downs: 0, power: false, opened: new Set(['start']), perks: [], qrUses: 0, downT: 0, salvage: 0, armorTier: 0, armor: 0, selfRevive: 0, fu: zSel.fu, fuCharge: 0.35, invis: 0, insta: 0, double: 0, fire: 0, pupsThisRound: 0, toSpawn: 0, spawnT: 0, betweenT: 0, boss: null, quest: 0, jars: [false, false, false], core: false, papBusy: null, box: { at: 0, uses: 0, state: 'idle', t: 0, gun: null, moving: false }, over: false, repairT: 0, startAt: performance.now(), mapIdx };
+  zSolids();
+  me.guns = [zGun(loadout.secondary || 'pi0')]; me.cur = 0;
+  me.p = ZM.start.slice(); me.p[1] = 0.05; me.v = [0, 0, 0]; me.hp = 150; me.maxHp = 150; me.alive = true; me.yaw = 0; me.pitch = 0; me.prot = 0; me.leth = 2; me.tac = 0; me.cook = -1; me.lastHurt = -99; me.reloadT = 0; me.fireT = 0; me.swapT = 0;
+  setMapLook(); G.light(ZM.light);
+  nades = []; fires = []; smokes = []; fx = []; tracers = []; feed = [];
+  view = 'game'; drawUI(); buildHud(); zBuildHud(); $('#hud').hidden = false; paused = false;
+  zNextRound();
+  if (!TEST && !touchDev && cv.requestPointerLock) cv.requestPointerLock();
+}
+// A gun for zombies: your own attachments and camo on it, plus reserve ammo.
+function zGun(id) {
+  if (id === 'ray') {
+    const s = Object.assign({}, gunStats('pi4', null), { name: 'Scobb Ray', dmg: 900, rpm: 180, mag: 20, reload: 2.2, auto: false, ray: true, quiet: false, range: 60, hip: 0.01, adsS: 0.004, recoil: 0.01 });
+    return { key: 'ray', s, base: s, ammo: 20, res: 160, max: 160, rar: 0, pap: false, camo: 'cx1' };
+  }
+  const w = WEAPONS[id] || WEAPONS.pi0, isP = CLASSES[w.ck].p;
+  const s = gunStats(id, isP ? attOf(id) : null);
+  const mags = w.ck === 'pi' ? 6 : w.ck === 'sn' ? 5 : w.ck === 'lmg' ? 3 : 5;
+  return { key: id, s, base: s, ammo: s.mag, res: s.mag * mags, max: s.mag * mags, rar: 0, pap: false, camo: loadout.camos[id] || '' };
+}
+function zRestat(g) {
+  const b = g.base, r = ZRAR[g.rar][2], p = g.pap ? 2.2 : 1;
+  g.s = Object.assign({}, b, { dmg: b.dmg * r * p, mag: Math.round(b.mag * (g.pap ? 1.5 : 1)), rpm: b.rpm * (g.pap ? 1.1 : 1), name: (g.pap ? '★ ' : '') + b.name });
+}
+function zNextRound() {
+  ZS.round++; ZS.pupsThisRound = 0;
+  const r = ZS.round, dogs = zDogRound(r);
+  ZS.dogRound = dogs;
+  ZS.toSpawn = dogs ? Math.min(24, 4 + r) : zCount(r);
+  ZS.spawnT = 2.5;
+  if (r > 1) { me.leth = Math.min(4, me.leth + 2); }
+  zMsg(dogs ? `Round ${r} · Hellhounds` : `Round ${r}`, dogs ? 'Something is coming. Stay out of the open.' : r === 1 ? `${ZM.name}. Survive. Rebuild barriers with F.` : '');
+}
+function zMsg(a, b) { say(a, b); }
+// ---- spawning ----
+function zSpawnOne() {
+  const r = ZS.round, hp = zHealth(r);
+  if (ZS.dogRound) {
+    for (let tries = 0; tries < 40; tries++) {
+      const a = Math.random() * Math.PI * 2, d = 7 + Math.random() * 6, x = me.p[0] + Math.cos(a) * d, z = me.p[2] + Math.sin(a) * d, k = zCell(x, z);
+      if (k < 0 || zNav.blk[k] || !zInOpen(x, z)) continue;
+      fx.push({ p: [x, 1.5, z], v: [0, 0, 0], t: 0, life: 0.5, c: '#9EF6FF', r: 1.4, boom: 1 });
+      Z.push({ zombie: true, kind: 'dog', p: [x, 0.05, z], v: [0, 0, 0], hp: hp * 0.4, max: hp * 0.4, speed: 6.2, state: 'chase', yaw: a + Math.PI, walk: 0, atkT: 0, ground: false, col: '#3A1414' });
+      return true;
+    }
+    return false;
+  }
+  const open = ZM.windows.filter(w => ZS.opened.has(w.zone));
+  if (!open.length) return false;
+  const w = open[Math.floor(Math.random() * open.length)], lat = (Math.random() - 0.5) * 2.4;
+  const sx = w.x - w.n[0] * 3.4 + (w.n[0] ? 0 : lat), sz = w.z - w.n[1] * 3.4 + (w.n[1] ? 0 : lat);
+  const roll = Math.random();
+  const run = r >= 10 ? 0.8 : r >= 6 ? 0.45 : r >= 4 ? 0.12 : 0, jog = r >= 3 ? 0.5 : 0;
+  const speed = roll < run ? 4.0 + Math.random() * 0.4 : roll < run + jog ? 2.5 + Math.random() * 0.3 : 1.25 + Math.random() * 0.25;
+  Z.push({ zombie: true, kind: 'z', p: [sx, 0.05, sz], v: [0, 0, 0], hp, max: hp, speed, state: 'outside', win: w, yaw: Math.atan2(w.n[0], -w.n[1]), walk: Math.random() * 10, atkT: 0, ground: false, col: pick(['#8FA37A', '#9AA58A', '#7F9A6A', '#A0A890']), shirt: pick(['#4A4A52', '#5A3A2A', '#3A4A5A', '#6A5A4A', '#4A5A3A']) });
+  return true;
+}
+const zInOpen = (x, z) => { for (const zn of ZS.opened) for (const r of ZM.zones[zn] || []) if (x > r[0] && x < r[2] && z > r[1] && z < r[3]) return true; return false; };
+// ---- the main zombies step ----
+function zStep(dt) {
+  if (ZS.over) return;
+  const now = match.clock;
+  ZS.insta = Math.max(0, ZS.insta - dt); ZS.double = Math.max(0, ZS.double - dt); ZS.fire = Math.max(0, ZS.fire - dt); ZS.invis = Math.max(0, ZS.invis - dt);
+  ZS.fuCharge = Math.min(1, ZS.fuCharge + dt / 120);
+  // downed: Quick Revive brings you back, otherwise it's game over
+  if (ZS.downT > 0) {
+    ZS.downT -= dt; me.v[0] = 0; me.v[2] = 0;
+    if (ZS.downT <= 0) { me.hp = me.maxHp; ZS.armor = ZS.armorTier * 50; me.lastHurt = now; zMsg('Back on your feet', ZS.selfRevived ? 'Self-revive used.' : `Quick Revive used (${ZS.qrUses} of 3).`); for (const z of Z) if (len(sub(z.p, me.p)) < 4) { z.p = add(z.p, scl(nrm([z.p[0] - me.p[0], 0, z.p[2] - me.p[2]]), 3)); } }
+  }
+  // spawning and rounds
+  if (ZS.betweenT > 0) { ZS.betweenT -= dt; if (ZS.betweenT <= 0) zNextRound(); }
+  else if (!ZS.boss || !ZS.boss.alive) {
+    if (ZS.toSpawn > 0 && Z.filter(z => z.kind !== 'boss').length < 24) { ZS.spawnT -= dt; if (ZS.spawnT <= 0) { if (zSpawnOne()) ZS.toSpawn--; ZS.spawnT = ZS.dogRound ? 2.2 : Math.max(0.25, 2.2 * Math.pow(0.93, ZS.round)); } }
+    if (ZS.toSpawn <= 0 && !Z.some(z => z.kind !== 'boss')) { if (ZS.dogRound) zDropPup('max', me.p.slice()); ZS.betweenT = 10; zMsg(`Round ${ZS.round} survived`, 'The next one is coming.'); }
+  }
+  // the flow field follows you
+  zFlowT -= dt;
+  if (zFlowT <= 0 || !zFlow) { zFlowT = 0.25; zFlow = zMakeFlow(me.p[0], me.p[2]); }
+  const target = ZS.invis > 0 ? null : me;
+  for (const z of Z.slice()) zThink(z, dt, target);
+  // barrier repair
+  const w = zNearWindow();
+  if (w && keys.KeyF && w.planks < 6 && !zDown()) { ZS.repairT -= dt; if (ZS.repairT <= 0) { ZS.repairT = zHas('speed') ? 0.4 : 0.75; w.planks++; zPoints(10); fx.push({ p: [w.x, 1.4, w.z], v: [0, 1, 0], t: 0, life: 0.3, c: '#B87333', r: 0.15 }); } }
+  else ZS.repairT = 0.2;
+  // power-ups
+  for (const pu of zPups.slice()) { pu.t += dt; if (pu.t > 30) { zPups.splice(zPups.indexOf(pu), 1); continue; } if (len(sub([pu.p[0], 0, pu.p[2]], [me.p[0], 0, me.p[2]])) < 1.3) { zPups.splice(zPups.indexOf(pu), 1); zGrabPup(pu.kind); } }
+  // energy mines
+  for (const mn of zMines.slice()) { const hit = Z.find(z => z.alive !== false && len(sub(z.p, mn.p)) < 2); if (hit) { zMines.splice(zMines.indexOf(mn), 1); zExplode(mn.p, 4, 600 + ZS.round * 120, true); } }
+  // Mystery Box timers and Pack-a-Punch
+  const bx = ZS.box; bx.t -= dt;
+  if (bx.state === 'spin' && bx.t <= 0) { if (bx.bear) { bx.state = 'bear'; bx.t = 3; zMsg('Bye bye!', 'The Mystery Box is moving. You got your points back.'); zPoints(950, true); } else { bx.state = 'offer'; bx.t = 9; } }
+  else if (bx.state === 'offer' && bx.t <= 0) { bx.state = 'idle'; bx.gun = null; }
+  else if (bx.state === 'bear' && bx.t <= 0) { bx.state = 'idle'; bx.gun = null; bx.uses = 0; let nx = bx.at; while (nx === bx.at) nx = Math.floor(Math.random() * ZM.boxSpots.length); bx.at = nx; zSolids(); }
+  if (ZS.papBusy && performance.now() > ZS.papBusy.until) { const g = ZS.papBusy.g; g.pap = true; g.camo = PAP_CAMO; zRestat(g); g.ammo = g.s.mag; g.max = Math.round(g.max * 1.5); g.res = g.max; ZS.papBusy = null; zMsg('Pack-a-Punched', g.s.name); }
+  // the boss
+  if (ZS.boss && !ZS.boss.alive && ZS.quest === 4) { ZS.quest = 5; zWin(); }
+}
+function zThink(z, dt, target) {
+  z.atkT = Math.max(0, z.atkT - dt); z.frozen = Math.max(0, (z.frozen || 0) - dt);
+  if (z.frozen > 0) { z.v[0] = 0; z.v[2] = 0; moveBody(z, dt); return; }
+  if (z.state === 'outside') {
+    const ox = z.win.x - z.win.n[0] * 0.7, oz = z.win.z - z.win.n[1] * 0.7, d = [ox - z.p[0], oz - z.p[2]], L = Math.hypot(d[0], d[1]);
+    if (L > 0.15) { z.p[0] += d[0] / L * Math.min(L, z.speed * 0.8 * dt); z.p[2] += d[1] / L * Math.min(L, z.speed * 0.8 * dt); z.walk += dt * z.speed; z.yaw = Math.atan2(d[0], -d[1]); return; }
+    z.yaw = Math.atan2(z.win.n[0], -z.win.n[1]);
+    if (z.win.planks > 0) { z.tearT = (z.tearT || 1.1) - dt; z.reach = 1; if (z.tearT <= 0) { z.tearT = 1.1; z.win.planks--; fx.push({ p: [z.win.x, 1.3 + z.win.planks * 0.15, z.win.z], v: [z.win.n[0] * -2, 2, z.win.n[1] * -2], t: 0, life: 0.5, c: '#8A6A44', r: 0.14 }); } return; }
+    z.state = 'climb'; z.climbT = 0; z.from = z.p.slice(); return;
+  }
+  if (z.state === 'climb') {
+    z.climbT += dt / 1.1; const u = Math.min(1, z.climbT), ix = z.win.x + z.win.n[0] * 0.8, iz = z.win.z + z.win.n[1] * 0.8;
+    z.p = [z.from[0] + (ix - z.from[0]) * u, 0.05 + Math.sin(u * Math.PI) * 0.9, z.from[2] + (iz - z.from[2]) * u];
+    if (u >= 1) { z.state = 'chase'; z.v = [0, 0, 0]; }
+    return;
+  }
+  // inside: chase you through the flow field, or straight at you when close
+  let dir = null;
+  if (target && !zDown()) {
+    const dx = target.p[0] - z.p[0], dz = target.p[2] - z.p[2], dist = Math.hypot(dx, dz);
+    if (dist < 1.05 && Math.abs(target.p[1] - z.p[1]) < 1.2) {
+      z.v[0] = 0; z.v[2] = 0; z.yaw = Math.atan2(dx, -dz);
+      if (z.atkT <= 0) { z.atkT = z.kind === 'dog' ? 0.7 : 1.0; z.swing = 0.4; setTimeout(() => { if (Z.includes(z) && len(sub(z.p, me.p)) < 1.5 && !ZS.over) zHurt(z.kind === 'boss' ? 90 : z.kind === 'dog' ? 25 : 50, 'zombie'); }, 380); }
+      moveBody(z, dt); return;
+    }
+    if (dist < 3 && canSee(add(z.p, [0, 1.4, 0]), eyeOf(target))) dir = [dx / dist, dz / dist];
+    else if (zFlow) {
+      const N = zNav.N, k = zCell(z.p[0], z.p[2]);
+      if (k >= 0) {
+        const i = k % N, j = (k - i) / N; let best = zFlow[k], bk = -1;
+        for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const ni = i + di, nj = j + dj; if (ni < 0 || nj < 0 || ni >= N || nj >= N) continue; const nk = nj * N + ni; if (zFlow[nk] < best) { best = zFlow[nk]; bk = nk; } }
+        if (bk >= 0) { const bi = bk % N, bj = (bk - bi) / N, cx = -zNav.S + (bi + 0.5) * NC, cz = -zNav.S + (bj + 0.5) * NC, ddx = cx - z.p[0], ddz = cz - z.p[2], L = Math.hypot(ddx, ddz) || 1; dir = [ddx / L, ddz / L]; }
+        else if (zFlow[k] >= 1e9) dir = [dx / dist, dz / dist];
+      }
+    }
+  } else { z.wander = (z.wander || 0) - dt; if (z.wander <= 0) { z.wander = 2; const a = Math.random() * Math.PI * 2; z.wdir = [Math.cos(a), Math.sin(a)]; } dir = z.wdir; }
+  if (dir) {
+    // keep a little space between zombies
+    for (const o of Z) { if (o === z) continue; const ox = z.p[0] - o.p[0], oz = z.p[2] - o.p[2], dd = ox * ox + oz * oz; if (dd < 0.36 && dd > 1e-4) { const k2 = (0.6 - Math.sqrt(dd)) * 1.5; dir = [dir[0] + ox * k2, dir[1] + oz * k2]; } }
+    const L = Math.hypot(dir[0], dir[1]) || 1, sp = z.speed * (target ? 1 : 0.35);
+    z.v[0] = dir[0] / L * sp; z.v[2] = dir[1] / L * sp;
+    const want = Math.atan2(dir[0], -dir[1]); let dy = want - z.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; z.yaw += dy * Math.min(1, dt * 8);
+    z.walk += dt * z.speed;
+  }
+  z.swing = Math.max(0, (z.swing || 0) - dt);
+  const px = z.p[0], pz = z.p[2];
+  moveBody(z, dt);
+  if (Math.hypot(z.p[0] - px, z.p[2] - pz) < 0.002 && dir) { z.stuck = (z.stuck || 0) + dt; if (z.stuck > 0.6 && z.ground) { z.v[1] = 6; z.stuck = 0; } } else z.stuck = 0;
+}
+// ---- hurting zombies and earning points ----
+function zPoints(n, raw) { ZS.pts += raw ? n : n * (ZS.double > 0 ? 2 : 1); }
+function zHitTest(o, d, best) {
+  let victim = null, part = '';
+  for (const z of Z) {
+    if (z.state === 'climb') continue;
+    const sc = z.kind === 'boss' ? 2.1 : z.kind === 'dog' ? 0.7 : 1;
+    if (z.kind === 'dog') { const tb = raySphere(o, d, [z.p[0], z.p[1] + 0.55, z.p[2]], 0.5, best); if (tb >= 0) { best = tb; victim = z; part = 'body'; } continue; }
+    const th = raySphere(o, d, [z.p[0], z.p[1] + 1.45 * sc, z.p[2]], 0.28 * sc, best); if (th >= 0) { best = th; victim = z; part = 'head'; continue; }
+    const tb = raySphere(o, d, [z.p[0], z.p[1] + 0.9 * sc, z.p[2]], 0.45 * sc, best); if (tb >= 0) { best = tb; victim = z; part = 'body'; continue; }
+    const tl = raySphere(o, d, [z.p[0], z.p[1] + 0.35 * sc, z.p[2]], 0.3 * sc, best); if (tl >= 0) { best = tl; victim = z; part = 'legs'; }
+  }
+  // the quest jars can be shot too
+  if (ZS && ZS.power && ZS.quest === 1) ZM.jars.forEach((j, i) => { if (ZS.jars[i]) return; const t = raySphere(o, d, j, 0.22, best); if (t >= 0) { best = t; victim = { jar: i }; part = 'jar'; } });
+  return { best, victim, part };
+}
+function zHit(z, dmg, part, how) {
+  if (z.jar != null) { ZS.jars[z.jar] = true; const j = ZM.jars[z.jar]; for (let i = 0; i < 24; i++) fx.push({ p: j.slice(), v: [rand(-4, 4), rand(1, 5), rand(-4, 4)], t: 0, life: 0.8, c: '#9EF6FF', r: 0.1 }); const n = ZS.jars.filter(Boolean).length; zMsg(`Aether jar ${n} of 3`, n === 3 ? 'Something answered. Check the Pack-a-Punch.' : 'There are more of them hidden around.'); if (n === 3) ZS.quest = 2; return; }
+  if (!Z.includes(z)) return;
+  const head = part === 'head';
+  let amt = dmg * 1.6 * (head ? (zHas('dead') ? 3.1 : 2.5) : part === 'legs' ? 0.8 : 1) * (zHas('dt') ? 1.3 : 1);
+  if (ZS.insta > 0 && z.kind !== 'boss') amt = z.hp + 1;
+  z.hp -= amt; hitmark(z.hp <= 0);
+  fx.push({ p: add(z.p, [0, head ? 1.45 : 0.9, 0]), v: [0, 1, 0], t: 0, life: 0.25, c: '#6A1A1A', r: 0.12 });
+  if (z.hp <= 0) zKill(z, how === 'melee' ? 'melee' : head ? 'head' : 'body');
+  else zPoints(10);
+}
+function zKill(z, how, noPts) {
+  const i = Z.indexOf(z); if (i < 0) return;
+  Z.splice(i, 1); ZS.kills++; me.tk = (me.tk || 0) + 1;
+  if (how === 'head') ZS.heads++;
+  if (!noPts) zPoints(z.kind === 'boss' ? 5000 : how === 'melee' ? 130 : how === 'head' ? 100 : 60);
+  ZS.fuCharge = Math.min(1, ZS.fuCharge + 0.02);
+  for (let k = 0; k < 10; k++) fx.push({ p: add(z.p, [0, 1, 0]), v: [rand(-3, 3), rand(1, 5), rand(-3, 3)], t: 0, life: 0.6, c: k % 2 ? '#5A1A1A' : z.col, r: 0.12 });
+  if (z.kind === 'boss') { z.alive = false; return; }
+  if (Math.random() < 0.14) { ZS.salvage += Math.random() < 0.2 ? 100 : 50; }
+  if (ZS.pupsThisRound < 4 && Math.random() < 0.03) zDropPup(pick(Object.keys(ZPUPS)), z.p.slice());
+}
+function zDropPup(kind, p) { ZS.pupsThisRound++; zPups.push({ kind, p: [p[0], 0, p[2]], t: 0 }); }
+function zGrabPup(k) {
+  const P = ZPUPS[k]; zMsg(P.name, '');
+  if (k === 'max') { for (const g of me.guns) { g.res = g.max; } me.leth = 4; }
+  if (k === 'insta') ZS.insta = 30;
+  if (k === 'double') ZS.double = 30;
+  if (k === 'fire') ZS.fire = 30;
+  if (k === 'nuke') { for (const z of Z.slice()) if (z.kind !== 'boss') zKill(z, 'body', true); fx.push({ p: add(me.p, [0, 2, 0]), v: [0, 0, 0], t: 0, life: 0.6, c: '#FFF2B0', r: 12, boom: 1 }); zPoints(400); }
+  if (k === 'carp') { for (const w of ZM.windows) w.planks = 6; zPoints(200); }
+}
+function zExplode(p, r, dmg, mine) {
+  for (const z of Z.slice()) { const d = len(sub(add(z.p, [0, 0.8, 0]), p)); if (d < r) zHit(z, dmg * (1 - d / r) / 1.6 + 10, 'body', 'boom'); }
+  for (let i = 0; i < 30; i++) fx.push({ p: p.slice(), v: [rand(-6, 6), rand(1, 8), rand(-6, 6)], t: 0, life: 0.6, c: mine ? '#9EF6FF' : i % 3 ? '#FFB347' : '#FF5A2A', r: 0.16 });
+  fx.push({ p: p.slice(), v: [0, 0, 0], t: 0, life: 0.3, c: mine ? '#9EF6FF' : '#FFF2B0', r: r * 0.5, boom: 1 });
+}
+// ---- getting hurt, going down ----
+function zHurt(amt, how) {
+  if (ZS.over || zDown()) return;
+  if (how === 'boom' && zHas('phd')) return;
+  if (ZS.armor > 0) { const a = Math.min(ZS.armor, amt); ZS.armor -= a; amt -= a; }
+  me.hp -= amt; me.lastHurt = match.clock;
+  const dd = $('.dmg'); if (dd) { dd.style.opacity = '1'; setTimeout(() => { dd.style.opacity = '0'; }, 160); }
+  if (me.hp > 0) return;
+  me.hp = 1; ZS.downs++;
+  ZS.selfRevived = false;
+  if (zHas('qr') && ZS.qrUses < 3) { ZS.qrUses++; ZS.perks = []; zRecalc(); ZS.downT = 4; zMsg('You’re down!', `Quick Revive is getting you back up. You lost your perks.${ZS.qrUses < 3 ? ' You can buy Quick Revive again.' : ''}`); return; }
+  if (ZS.selfRevive > 0) { ZS.selfRevive--; ZS.selfRevived = true; ZS.perks = []; zRecalc(); ZS.downT = 4; zMsg('You’re down!', 'Using your self-revive. You lost your perks.'); return; }
+  zGameOver();
+}
+function zRecalc() { me.maxHp = zHas('jug') ? 250 : 150; me.hp = Math.min(me.hp, me.maxHp); }
+function zGameOver() {
+  ZS.over = true; match.phase = 'done'; me.v = [0, 0, 0];
+  const mins = Math.floor((performance.now() - ZS.startAt) / 60000);
+  say('Game Over', `You survived ${ZS.round} round${ZS.round === 1 ? '' : 's'} on ${ZM.name}. ${ZS.kills} kills, ${ZS.heads} headshots, ${mins} min. Press Esc for the menu.`, true);
+  zSave(false);
+}
+function zWin() {
+  zMsg('Main quest complete!', 'The Jelly Juggernaut is gone. Every perk is yours and 10,000 points are in your pocket.');
+  for (const id in ZPERKS) if (!ZS.perks.includes(id)) ZS.perks.push(id);
+  zRecalc(); me.hp = me.maxHp; zPoints(10000, true); ZS.questDone = true; zSave(true);
+  const d = document.createElement('div'); d.className = 'zwin'; d.innerHTML = `<div><p class="dlbl">${ZM.name}</p><h2>Main quest complete</h2><p>You broke the Aether jars, fed the core to the altar and put down the Jelly Juggernaut.</p><p class="small soft">Keep surviving as long as you can. Every perk is yours.</p></div>`;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 7000);
+}
+function zSave(quest) {
+  if (!FB || !ME_UID) return;
+  const up = { zk: FB.increment(ZS.kills), zg: FB.increment(1) };
+  if (ZS.round > (stats.zr || 0)) up.zr = ZS.round;
+  if (quest) up.zq = FB.increment(1);
+  FB.setDoc(FB.doc(fsdb, 'fpsStats/' + ME_UID), up, { merge: true }).catch(() => {});
+}
+// ---- interacting with the world ----
+function zNearWindow() { let best = null, bd = 1.8; for (const w of ZM.windows) { if (!ZS.opened.has(w.zone)) continue; const d = Math.hypot(me.p[0] - (w.x + w.n[0] * 0.9), me.p[2] - (w.z + w.n[1] * 0.9)); if (d < bd) { bd = d; best = w; } } return best; }
+const zNear = (x, z, r) => Math.hypot(me.p[0] - x, me.p[2] - z) < (r || 1.7);
+// What F would do right now, as a prompt and an action.
+function zOption() {
+  if (zDown() || ZS.over) return null;
+  const g = me.guns[me.cur];
+  for (const d of ZM.doors) if (!d.open && zNear(d.box[0], d.box[2], 2.0)) return { t: `Press F to ${d.look === 'debris' ? 'clear the debris' : 'open the door'} to the ${d.label}`, cost: d.cost, go: () => { d.open = true; ZS.opened.add(d.zone); ZM.doors.filter(x => x.zone === d.zone && x.label === d.label).forEach(x => { x.open = true; }); zSolids(); zMsg(`${d.label} opened`, ''); } };
+  for (const pk of ZM.perks) if (zNear(pk.p[0], pk.p[1], 1.7)) {
+    const P = ZPERKS[pk.id];
+    if (zHas(pk.id)) return { t: `You already have ${P.name}` };
+    if (pk.id === 'qr' && ZS.qrUses >= 3) return { t: 'Quick Revive is used up' };
+    if (!ZS.power && !P.noPower) return { t: `${P.name} needs the power on` };
+    if (ZS.perks.length >= ZPERK_LIMIT && !ZS.questDone) return { t: `You can carry ${ZPERK_LIMIT} perks` };
+    return { t: `Press F to drink ${P.name}. ${P.blurb}`, cost: P.cost, go: () => { ZS.perks.push(pk.id); zRecalc(); if (pk.id === 'jug') me.hp = me.maxHp; zMsg(P.name, P.blurb); } };
+  }
+  for (const wb of ZM.walls) if (zNear(wb.p[0] + wb.n[0] * 0.9, wb.p[2] + wb.n[1] * 0.9, 1.5)) {
+    const have = me.guns.find(x => x.key === wb.gun), nm = WEAPONS[wb.gun].name;
+    if (have) { const c = have.pap ? 4500 : Math.round(wb.cost / 2); return { t: `Press F to buy ammo for the ${nm}`, cost: c, go: () => { have.res = have.max; have.ammo = have.s.mag; } }; }
+    return { t: `Press F to buy the ${nm}`, cost: wb.cost, go: () => zGive(zGun(wb.gun)) };
+  }
+  const s0 = ZM.boxSpots[ZS.box.at], bx = ZS.box;
+  if (zNear(s0[0], s0[1], 1.8)) {
+    if (bx.state === 'offer' && bx.gun) return { t: `Press F to take the ${bx.gun.s.name}`, go: () => { zGive(bx.gun); bx.state = 'idle'; bx.gun = null; } };
+    if (bx.state === 'idle') { const c = ZS.fire > 0 ? 10 : 950; return { t: 'Press F to spin the Mystery Box', cost: c, go: () => zSpinBox() }; }
+    return null;
+  }
+  if (zNear(ZM.power[0], ZM.power[2], 1.8) && !ZS.power) return { t: 'Press F to turn on the power', go: () => { ZS.power = true; if (ZS.quest === 0) ZS.quest = 1; zMsg('The power is on', 'Perk-a-Colas and Pack-a-Punch are working. Something hums in the walls.'); } };
+  if (zNear(ZM.pap[0], ZM.pap[1], 2.0)) {
+    if (!ZS.power) return { t: 'Pack-a-Punch needs the power on' };
+    if (ZS.quest === 2 && !ZS.core) return { t: 'Press F to take the glowing core from the machine', go: () => { ZS.core = true; ZS.quest = 3; zMsg('You took the core', 'Bring it to the altar.'); } };
+    if (ZS.papBusy) return { t: 'Pack-a-Punch is working…' };
+    if (g.pap) return { t: 'This weapon is already Pack-a-Punched' };
+    return { t: `Press F to Pack-a-Punch the ${g.s.name}`, cost: 5000, go: () => { ZS.papBusy = { g, until: performance.now() + 3000 }; zMsg('Pack-a-Punch', 'Upgrading…'); } };
+  }
+  if (zNear(ZM.altar[0], ZM.altar[1], 1.8) && ZS.quest === 3) return { t: 'Press F to place the core on the altar', go: () => zStartBoss() };
+  if (zNear(ZM.craft[0], ZM.craft[1], 1.9)) return { craft: true, t: 'Crafting table: 1 armor, 2 frag grenade, 3 self-revive, 4 upgrade weapon rarity' };
+  const w = zNearWindow();
+  if (w && w.planks < 6) return { t: 'Hold F to rebuild the barrier' };
+  return null;
+}
+function zGive(g) {
+  const slots = zHas('mule') ? 3 : 2;
+  if (me.guns.length < slots) { me.guns.push(g); me.cur = me.guns.length - 1; }
+  else me.guns[me.cur] = g;
+  me.swapT = 0.5; me.reloadT = 0;
+}
+function zSpinBox() {
+  const bx = ZS.box; bx.state = 'spin'; bx.t = 4; bx.uses++;
+  bx.bear = ZS.fire <= 0 && bx.uses > 4 && Math.random() < 0.18;
+  const pool = Object.keys(WEAPONS).filter(id => !me.guns.some(g => g.key === id));
+  bx.gun = Math.random() < 0.07 && !me.guns.some(g => g.key === 'ray') ? zGun('ray') : zGun(pick(pool));
+}
+function zCraft(n) {
+  if (n === 1) { const tier = Math.min(3, ZS.armorTier + 1), c = ARMOR_COST[tier]; if (ZS.armorTier >= 3 && ZS.armor >= 150) return zMsg('Your armor is maxed', ''); const cost = ZS.armorTier >= 3 ? 250 : c; if (ZS.salvage < cost) return zMsg('Not enough salvage', `You need ${cost}.`); ZS.salvage -= cost; ZS.armorTier = tier; ZS.armor = tier * 50; zMsg(`Armor tier ${tier}`, `${tier} plate${tier > 1 ? 's' : ''} of armor.`); }
+  if (n === 2) { if (ZS.salvage < 250) return zMsg('Not enough salvage', 'You need 250.'); if (me.leth >= 4) return zMsg('You can’t carry more grenades', ''); ZS.salvage -= 250; me.leth++; zMsg('Frag grenade', ''); }
+  if (n === 3) { if (ZS.salvage < 1500) return zMsg('Not enough salvage', 'You need 1,500.'); if (ZS.selfRevive >= 1) return zMsg('You already have a self-revive', ''); ZS.salvage -= 1500; ZS.selfRevive = 1; zMsg('Self-revive kit', 'It gets you up once if you go down.'); }
+  if (n === 4) { const g = me.guns[me.cur]; if (g.rar >= 4) return zMsg('This weapon is Legendary', 'It can’t go any higher.'); const c = ZRAR_COST[g.rar + 1]; if (ZS.salvage < c) return zMsg('Not enough salvage', `You need ${c} for ${ZRAR[g.rar + 1][0]}.`); ZS.salvage -= c; g.rar++; zRestat(g); zMsg(`${ZRAR[g.rar][0]} ${g.base.name}`, 'It hits harder now.'); }
+}
+function zUseField() {
+  if (ZS.fuCharge < 1 || ZS.over) return;
+  ZS.fuCharge = 0;
+  if (ZS.fu === 'shroud') { ZS.invis = 5; zMsg('Ether Shroud', 'You’re invisible for 5 seconds.'); }
+  if (ZS.fu === 'aura') { me.hp = me.maxHp; ZS.armor = ZS.armorTier * 50; if (ZS.downT > 0) ZS.downT = 0.01; zMsg('Healing Aura', 'Fully healed.'); }
+  if (ZS.fu === 'frost') { for (const z of Z.slice()) if (len(sub(z.p, me.p)) < 7) { z.frozen = 4; zHit(z, z.max * 0.3 / 1.6, 'body', 'frost'); } fx.push({ p: add(me.p, [0, 1, 0]), v: [0, 0, 0], t: 0, life: 0.5, c: '#9EF6FF', r: 6, boom: 1 }); zMsg('Frost Blast', ''); }
+  if (ZS.fu === 'mine') { zMines.push({ p: [me.p[0], 0.1, me.p[2]] }); zMsg('Energy Mine', 'It goes off when a zombie gets close.'); }
+}
+function zStartBoss() {
+  ZS.core = false; ZS.quest = 4;
+  for (const z of Z.slice()) zKill(z, 'body', true);
+  const hp = 30000 + ZS.round * 4000, bs = ZM.bossSpawn;
+  ZS.boss = { zombie: true, kind: 'boss', p: [bs[0], 0.05, bs[1]], v: [0, 0, 0], hp, max: hp, speed: 2.6, state: 'chase', yaw: 0, walk: 0, atkT: 0, ground: false, col: '#B98BFF', alive: true };
+  Z.push(ZS.boss); ZS.toSpawn = 0;
+  for (let i = 0; i < 40; i++) fx.push({ p: [bs[0], 1.5, bs[1]], v: [rand(-6, 6), rand(1, 8), rand(-6, 6)], t: 0, life: 0.8, c: '#B98BFF', r: 0.2 });
+  zMsg('The Jelly Juggernaut', 'Put it down for good.');
+}
+function zKey(code) {
+  if (!ZS || ZS.over) return false;
+  if (code === 'KeyF') { const o = zOption(); if (o && o.go) { if (o.cost) { if (ZS.pts < o.cost) { zMsg('Not enough points', `That costs ${o.cost.toLocaleString()}.`); return true; } ZS.pts -= o.cost; } o.go(); } return true; }
+  if (code === 'KeyX') { zUseField(); return true; }
+  const n = /^Digit([1-4])$/.exec(code);
+  if (n && keys.KeyC && zNear(ZM.craft[0], ZM.craft[1], 1.9)) { zCraft(Number(n[1])); return true; }
+  if (code === 'Digit3') { if (me.guns.length > 2) swap(me, 2); return true; }
+  return false;
+}
+// ---- reloads use reserve ammo ----
+function zReloadDone(g) { const need = g.s.mag - g.ammo, take = Math.min(need, g.res); g.ammo += take; g.res -= take; }
+function zCherry() { if (!zHas('cherry')) return; const g = me.guns[me.cur], frac = 1 - g.ammo / g.s.mag; for (const z of Z.slice()) if (len(sub(z.p, me.p)) < 3.2) { z.frozen = 0.8; zHit(z, 500 * frac / 1.6, 'body', 'shock'); } fx.push({ p: add(me.p, [0, 1, 0]), v: [0, 0, 0], t: 0, life: 0.25, c: '#3EC1FF', r: 3, boom: 1 }); }
+
+// ---- drawing ----
+function drawZombie(z, t) {
+  const sc = z.kind === 'boss' ? 2.1 : 1, yaw = z.yaw, f = [Math.sin(yaw), 0, -Math.cos(yaw)], r = [Math.cos(yaw), 0, Math.sin(yaw)];
+  const P = (fw, up, rt) => [z.p[0] + (f[0] * fw + r[0] * rt) * sc, z.p[1] + up * sc, z.p[2] + (f[2] * fw + r[2] * rt) * sc];
+  const ry = -yaw, sw = Math.sin(z.walk * (z.speed > 3 ? 7 : 4)) * 0.16, frozen = z.frozen > 0;
+  G.blob(z.p[0], 0.02, z.p[2], 0.55 * sc, 0.4);
+  if (z.kind === 'dog') {
+    const body = P(0, 0.55, 0); G.sphere(body[0], body[1], body[2], 0.32, frozen ? '#9EF6FF' : '#3A1414', { kz: 1.8, ry, spec: 0.4 });
+    const hd = P(0.5, 0.7, 0); G.sphere(hd[0], hd[1], hd[2], 0.2, '#2A0E0E', { kz: 1.3, ry });
+    for (const s of [-1, 1]) { const e2 = P(0.66, 0.76, 0.08 * s); G.sphere(e2[0], e2[1], e2[2], 0.04, '#FF6A1A', { emit: 1 }); for (const b2 of [-1, 1]) { const lg = P(0.28 * b2 + Math.sin(z.walk * 9 + b2 + s) * 0.08, 0.22, 0.16 * s); G.cyl(lg[0], lg[1], lg[2], 0.05, 0.22, '#2A0E0E', { ry }); } }
+    for (let i = 0; i < 3; i++) { const fl = P(-0.2 + i * 0.2, 0.92 + Math.abs(Math.sin(t / 120 + i)) * 0.08, 0); G.sphere(fl[0], fl[1], fl[2], 0.08, '#FF7A1A', { emit: 1, a: 0.7 }); }
+    return;
+  }
+  const skin = frozen ? '#BFEFFF' : z.kind === 'boss' ? '#B98BFF' : z.col, shirt = z.kind === 'boss' ? '#5A2A8A' : z.shirt;
+  for (const s of [-1, 1]) { const q = P(sw * s, 0.3, 0.13 * s); G.cyl(q[0], q[1], q[2], 0.1, 0.27, '#3A3A40', { ry, spec: 0.2 }); const ft = P(sw * s + 0.05, 0.06, 0.13 * s); G.sphere(ft[0], ft[1], ft[2], 0.11, '#2A2D33', { ky: 0.55, kz: 1.2, ry }); }
+  const lean = z.speed > 3 ? 0.12 : 0.04, tor = P(lean, 0.9, 0);
+  G.sphere(tor[0], tor[1], tor[2], 0.38, shirt, { ky: 1.15, spec: 0.25 });
+  const rip = P(lean + 0.3, 0.95, 0.12); G.sphere(rip[0], rip[1], rip[2], 0.1, '#6A1A1A', { kz: 0.4 });
+  // arms reach out toward you
+  const reach = z.swing > 0 ? Math.sin((0.4 - z.swing) / 0.4 * Math.PI) * 0.25 : 0;
+  for (const s of [-1, 1]) { const sh = P(0.1 + lean, 1.05, 0.36 * s), hd = P(0.55 + lean + reach + Math.sin(z.walk * 3 + s) * 0.05, 1.12 + (z.reach ? Math.sin(t / 150 + s) * 0.1 : 0), 0.3 * s); G.sphere(sh[0], sh[1], sh[2], 0.11, shirt); const mid = [(sh[0] + hd[0]) / 2, (sh[1] + hd[1]) / 2, (sh[2] + hd[2]) / 2]; G.sphere(mid[0], mid[1], mid[2], 0.075, skin, { kz: 2.4, ry }); G.sphere(hd[0], hd[1], hd[2], 0.085, skin); }
+  const head = P(lean + 0.06, 1.45, 0);
+  G.sphere(head[0], head[1], head[2], 0.29, skin, { spec: 0.3 });
+  for (const s of [-1, 1]) { const ey = P(lean + 0.3, 1.49, 0.1 * s); G.sphere(ey[0], ey[1], ey[2], 0.05, z.kind === 'boss' ? '#FF4F8B' : ZS.round >= 8 ? '#3EC1FF' : '#FFD86B', { emit: 1 }); }
+  const mouth = P(lean + 0.27, 1.34, 0); G.box(mouth[0], mouth[1], mouth[2], 0.02, 0.03, 0.09, 0.01, '#2A0A0A', { ry });
+  if (z.kind === 'boss') { const cr = P(0.06, 1.8, 0); G.cyl(cr[0], cr[1], cr[2], 0.22, 0.08, '#E3B341', { spec: 1.4 }); }
+}
+function zRender(t) {
+  const lit = ZS.power;
+  // planks across windows
+  for (const w of ZM.windows) {
+    const along = w.n[0] ? 'z' : 'x';
+    for (let i = 0; i < w.planks; i++) { const y = 1.0 + i * 0.18, tilt = ((i * 7) % 5 - 2) * 0.06; if (along === 'x') G.box(w.x, y, w.z, 0.8, 0.06, 0.04, 0.01, '#8A6A44', { rz: tilt, tex: 2 }); else G.box(w.x, y, w.z, 0.04, 0.06, 0.8, 0.01, '#8A6A44', { rx: tilt, tex: 2 }); }
+  }
+  // doors are drawn with the world; add chains to the closed ones
+  for (const d of ZM.doors) if (!d.open) G.box(d.box[0], 1.3, d.box[2], d.box[3] + 0.02, 0.05, d.box[5] + 0.02, 0.01, '#9AA0A8', { spec: 1.2 });
+  // perk machines
+  for (const pk of ZM.perks) {
+    const P = ZPERKS[pk.id], on = lit || P.noPower;
+    G.box(pk.p[0], 0.95, pk.p[1], 0.38, 0.95, 0.38, 0.05, P.col, { spec: 0.8, shiny: 50 });
+    G.box(pk.p[0] + pk.n[0] * 0.39, 1.45, pk.p[1] + pk.n[1] * 0.39, pk.n[0] ? 0.01 : 0.3, 0.28, pk.n[0] ? 0.3 : 0.01, 0.01, on ? '#FFF6D6' : '#2A2A2A', { emit: on ? 0.9 : 0 });
+    G.box(pk.p[0], 1.98, pk.p[1], 0.4, 0.06, 0.4, 0.02, on ? P.col : '#333', { emit: on ? 0.8 : 0 });
+  }
+  // Pack-a-Punch
+  { const [x, z] = ZM.pap; G.box(x, 0.9, z, 0.7, 0.9, 0.45, 0.05, '#2A1E4A', { spec: 0.8 }); G.cyl(x, 1.95, z, 0.18, 0.66, '#6A5A8A', { rz: Math.PI / 2, spec: 1.2 }); G.box(x, 1.2, z + 0.46, 0.5, 0.25, 0.01, 0.01, lit ? '#B98BFF' : '#222', { emit: lit ? 0.9 + Math.sin(t / 200) * 0.1 : 0 }); if (ZS.quest === 2) G.sphere(x, 2.3, z, 0.18, '#9EF6FF', { emit: 1, a: 0.9 }); if (ZS.papBusy) { G.sphere(x, 1.3, z + 0.5, 0.3, '#B98BFF', { emit: 1, a: 0.5 }); } }
+  // crafting table, power switch, altar
+  { const [x, z] = ZM.craft; G.box(x, 0.86, z, 0.8, 0.04, 0.4, 0.01, '#6A4A2E', { tex: 2 }); G.box(x - 0.3, 0.95, z, 0.15, 0.06, 0.1, 0.01, '#9AA0A8', { spec: 1.2 }); G.cyl(x + 0.35, 0.95, z, 0.06, 0.08, '#3EC1FF', { emit: 0.6 }); }
+  { const [x, y, z, n] = ZM.power, ang = lit ? -0.7 : 0.7, ax = n[0] !== 0; G.box(x, y, z, ax ? 0.08 : 0.3, 0.4, ax ? 0.3 : 0.08, 0.02, '#3A4048', { spec: 0.8 }); G.box(x + n[0] * 0.12, y + Math.sin(ang) * 0.12, z + n[1] * 0.12, 0.03, 0.18, 0.03, 0.01, '#E5484D', ax ? { rz: ang * -n[0], spec: 1 } : { rx: ang * n[1], spec: 1 }); G.sphere(x + n[0] * 0.1, y + 0.32, z + n[1] * 0.1, 0.05, lit ? '#5BE38A' : '#E5484D', { emit: 1 }); }
+  { const [x, z] = ZM.altar; G.box(x, 0.5, z, 0.45, 0.5, 0.45, 0.04, '#3A3A44', { tex: 15, spec: 0.8 }); if (ZS.quest >= 1 && ZS.quest < 4) G.torus(x, 1.05, z, 0.3, '#9EF6FF', { tube: 0.03, emit: 0.6 + Math.sin(t / 300) * 0.3 }); }
+  // the quest jars glow once the power is on
+  if (ZS.power) ZM.jars.forEach((j, i) => { if (!ZS.jars[i]) { G.cyl(j[0], j[1], j[2], 0.14, 0.2, '#9EF6FF', { emit: 0.7, a: 0.85 }); G.sphere(j[0], j[1] + 0.05, j[2], 0.08, '#FFFFFF', { emit: 1 }); } });
+  // wall buys: chalk outline with the gun on it
+  for (const wb of ZM.walls) {
+    const [x, y, z] = wb.p, px = x + wb.n[0] * 0.02;
+    G.box(px, y, z, 0.01, 0.32, 0.62, 0.01, '#EDEDE0', { emit: 0.35, a: 0.35 });
+    drawGun(G, [x + wb.n[0] * 0.06, y - 0.03, z], gunStats(wb.gun, null), null, '', '', 0, t);
+  }
+  // the Mystery Box
+  { const s0 = ZM.boxSpots[ZS.box.at], bx = ZS.box, [x, z, a] = s0;
+    if (bx.state !== 'bear' || bx.t > 1.5) {
+      G.box(x, 0.35, z, 0.62, 0.35, 0.3, 0.03, '#5A3A1E', { ry: a, tex: 2, spec: 0.5 }); G.box(x, 0.36, z, 0.64, 0.04, 0.31, 0.01, '#E3B341', { ry: a, spec: 1.4 });
+      const open = bx.state === 'idle' ? 0 : 1; G.box(x, 0.72 + open * 0.25, z, 0.62, 0.04, 0.3, 0.02, '#5A3A1E', { ry: a, rx: open * 0.9, tex: 2 });
+      G.cyl(x, 4, z, 0.4, 4, '#9EF6FF', { a: 0.12 + Math.sin(t / 300) * 0.04, emit: 1 });
+      if (bx.gun && (bx.state === 'spin' || bx.state === 'offer')) { const up = bx.state === 'spin' ? 0.9 + (4 - bx.t) * 0.12 : 1.4, ids = ZBOX_IDS, cyc = ids[Math.floor(t / 130) % ids.length]; const show = bx.state === 'spin' ? { key: cyc, s: ZBOX_STATS[cyc], camo: '' } : bx.gun; drawGun(G, [x, up, z], show.s, null, show.camo, '', 0, t); }
+      if (bx.state === 'bear') { G.sphere(x, 1.2, z, 0.25, '#B87333', { spec: 0.3 }); for (const s of [-1, 1]) G.sphere(x + s * 0.16, 1.42, z, 0.08, '#B87333'); }
+    }
+  }
+  // power-ups spin and blink before they go
+  for (const pu of zPups) { if (pu.t > 25 && Math.floor(pu.t * 6) % 2) continue; const P = ZPUPS[pu.kind], y = 1 + Math.sin(t / 300) * 0.1; G.torus(pu.p[0], y, pu.p[2], 0.32, P.col, { tube: 0.05, emit: 1, ry: t / 400 }); G.sphere(pu.p[0], y, pu.p[2], 0.18, P.col, { emit: 0.8 }); G.cyl(pu.p[0], 3, pu.p[2], 0.08, 3, '#5BE38A', { a: 0.15, emit: 1 }); }
+  for (const mn of zMines) G.cyl(mn.p[0], 0.06, mn.p[2], 0.25, 0.04, '#9EF6FF', { emit: 0.6 + Math.sin(t / 150) * 0.4 });
+  // lamps flicker until the power comes on
+  for (const zn in ZM.zones) for (const rr of ZM.zones[zn]) { const cx = (rr[0] + rr[2]) / 2, cz = (rr[1] + rr[3]) / 2, fl = lit ? 1 : (Math.sin(t / 90 + cx) > 0.3 ? 0.7 : 0.25); G.sphere(cx, 2.85, cz, 0.16, '#FFE9A8', { emit: fl }); G.blob(cx, 0.02, cz, 3.2, 0.08 * fl); }
+  for (const z of Z) drawZombie(z, t);
+}
+function zBuildHud() {
+  const h = document.createElement('div'); h.id = 'zhud';
+  h.innerHTML = `<div class="z-round" id="z-round"></div><div class="z-pts" id="z-pts"></div><div class="z-perks" id="z-perks"></div><div class="z-pups" id="z-pups"></div><div class="z-gear" id="z-gear"></div><div class="z-prompt" id="z-prompt"></div><div id="z-labels"></div><div class="z-down" id="z-down" hidden>You’re down</div>`;
+  $('#hud').appendChild(h);
+  for (const id of ['h-mini', 'h-score', 'h-feed']) { const e = document.getElementById(id); if (e) e.style.display = 'none'; }
+}
+function zHud() {
+  const g = me.guns[me.cur];
+  hudEls.round.textContent = ZM.name; hudEls.time.textContent = ZS.betweenT > 0 ? `Next round in ${Math.ceil(ZS.betweenT)}` : `${Z.length + ZS.toSpawn} left`;
+  $('#z-round').innerHTML = `<b>${ZS.round}</b>${ZS.dogRound ? '<small>Hellhounds</small>' : ''}`;
+  $('#z-pts').innerHTML = `<b>${ZS.pts.toLocaleString()}</b><small>points</small>`;
+  $('#z-perks').innerHTML = ZS.perks.map(id => `<span style="background:${ZPERKS[id].col}" title="${ZPERKS[id].name}">${ZPERKS[id].icon}</span>`).join('');
+  $('#z-pups').innerHTML = [['insta', ZS.insta], ['double', ZS.double], ['fire', ZS.fire]].filter(x => x[1] > 0).map(([k, s]) => `<span style="border-color:${ZPUPS[k].col}">${ZPUPS[k].icon} ${ZPUPS[k].name} ${Math.ceil(s)}</span>`).join('') + (ZS.invis > 0 ? `<span>Invisible ${Math.ceil(ZS.invis)}</span>` : '');
+  const fu = ZFIELD[ZS.fu];
+  $('#z-gear').innerHTML = `<span>Armor ${'▰'.repeat(Math.ceil(ZS.armor / 50))}${'▱'.repeat(Math.max(0, ZS.armorTier - Math.ceil(ZS.armor / 50)))}${ZS.armorTier ? '' : ' none'}</span><span>Salvage ${ZS.salvage}</span><span>Grenades ${me.leth}</span>${ZS.selfRevive ? '<span>Self-revive</span>' : ''}<span class="${ZS.fuCharge >= 1 ? 'ready' : ''}">${fu.name} ${ZS.fuCharge >= 1 ? 'ready · X' : Math.floor(ZS.fuCharge * 100) + '%'}</span>`;
+  const o = zOption();
+  $('#z-prompt').innerHTML = o ? `${o.t}${o.cost ? ` <b>[${o.cost.toLocaleString()}]</b>` : ''}${o.craft ? `<div class="small">Hold C and press 1 to 4 · You have ${ZS.salvage} salvage · Armor ${ZS.armorTier >= 3 ? 'refill 250' : ARMOR_COST[Math.min(3, ZS.armorTier + 1)]} · Grenade 250 · Self-revive 1,500 · ${g.rar >= 4 ? 'weapon maxed' : ZRAR[g.rar + 1][0] + ' ' + ZRAR_COST[g.rar + 1]}</div>` : ''}` : '';
+  $('#z-down').hidden = !zDown();
+  hudEls.hp.textContent = `${Math.max(0, Math.ceil(me.hp))} / ${me.maxHp}`;
+  hudEls.hpbar.style.width = Math.max(0, me.hp / me.maxHp * 100) + '%';
+  hudEls.ammo.textContent = `${g.ammo} / ${g.res}`;
+  hudEls.gun.innerHTML = `<span style="color:${ZRAR[g.rar][1]}">${g.s.name}</span>${me.reloadT > 0 ? ' · reloading' : ''}`;
+  hudEls.inv.innerHTML = me.guns.map((x, i) => `<div class="slot${i === me.cur ? ' on' : ''}"><kbd>${i + 1}</kbd><b style="color:${ZRAR[x.rar][1]}">${x.s.name}</b>${x.ammo}/${x.res}</div>`).join('') + `<div class="slot"><kbd>G</kbd><b>Frag</b>×${me.leth}</div><div class="slot"><kbd>X</kbd><b>${fu.name}</b>${ZS.fuCharge >= 1 ? 'ready' : Math.floor(ZS.fuCharge * 100) + '%'}</div>`;
+  // chalk labels on nearby wall buys and perk machines
+  let lab = '';
+  for (const wb of ZM.walls) { if (Math.hypot(me.p[0] - wb.p[0], me.p[2] - wb.p[2]) > 7) continue; const p = G.toScreen(wb.p[0] + wb.n[0] * 0.05, wb.p[1] + 0.45, wb.p[2]); if (p) lab += `<div class="chalk" style="left:${p[0]}px;top:${p[1]}px">${WEAPONS[wb.gun].name} · ${wb.cost}</div>`; }
+  for (const pk of ZM.perks) { if (Math.hypot(me.p[0] - pk.p[0], me.p[2] - pk.p[1]) > 8) continue; const p = G.toScreen(pk.p[0], 2.35, pk.p[1]); if (p) lab += `<div class="perklbl" style="left:${p[0]}px;top:${p[1]}px;border-color:${ZPERKS[pk.id].col}">${ZPERKS[pk.id].name} · ${ZPERKS[pk.id].cost}</div>`; }
+  for (const pu of zPups) { const p = G.toScreen(pu.p[0], 1.55, pu.p[2]); if (p) lab += `<div class="perklbl" style="left:${p[0]}px;top:${p[1]}px;border-color:${ZPUPS[pu.kind].col}">${ZPUPS[pu.kind].name}</div>`; }
+  if (ZS.boss && ZS.boss.alive) lab += `<div class="bossbar"><b>The Jelly Juggernaut</b><i style="width:${Math.max(0, ZS.boss.hp / ZS.boss.max * 100)}%"></i></div>`;
+  $('#z-labels').innerHTML = lab;
+}
+function zBoard() {
+  const mins = Math.floor((performance.now() - ZS.startAt) / 60000);
+  hudEls.board.innerHTML = `<table><tr><th>Player</th><th>Points</th><th>Kills</th><th>Headshots</th><th>Downs</th></tr><tr class="me"><td>You</td><td>${ZS.pts}</td><td>${ZS.kills}</td><td>${ZS.heads}</td><td>${ZS.downs}</td></tr></table><p class="small soft" style="margin:8px 0 0">Round ${ZS.round} on ${ZM.name} · ${mins} min · Best round ${Math.max(stats.zr || 0, ZS.round)}. Main quest: ${['turn on the power', 'find and shoot 3 glowing Aether jars', 'take the core from Pack-a-Punch', 'bring the core to the altar', 'beat the Jelly Juggernaut', 'done'][ZS.quest]}.</p>`;
 }
 
 /* ================= drawing ================= */
@@ -1397,8 +2113,8 @@ function drawViewmodel() {
   const kn = Math.max(0, me.knifeAnim || 0), stab = kn > 0 ? Math.sin((1 - kn / 0.35) * Math.PI) : 0;
   const x = 0.2 * (1 - a2) - stab * 0.12, y = -0.2 + a2 * 0.085 + bob - rl * 0.3 - sw - stab * 0.15, z = -0.48 + kick + stab * 0.1;
   if (stab > 0) { G.box(0.05, -0.12 + stab * 0.05, -0.32 - stab * 0.25, 0.006, 0.014, 0.08, 0.003, '#C9D2DC', { spec: 1.6, shiny: 90 }); G.box(0.05, -0.12 + stab * 0.05, -0.22 - stab * 0.25, 0.01, 0.016, 0.03, 0.004, '#2A2D33'); }
-  const att = me.cur === 0 ? me.lo.att : null, camos = me.lo.camos || {};
-  const front = drawGun(G, [x, y, z], s2, att, camos[g.key], me.lo.charm, rl, performance.now());
+  const zg = mode === 'zombies', att = zg ? (g.key !== 'ray' && CLASSES[WEAPONS[g.key].ck].p ? attOf(g.key) : null) : me.cur === 0 ? me.lo.att : null, camos = me.lo.camos || {};
+  const front = drawGun(G, [x, y, z], s2, att, zg ? g.camo : camos[g.key], me.lo.charm, rl, performance.now());
   const L2 = me.look || {}, skinC = L2.body || '#B98BFF', sleeve = (L2.top && L2.top.c) || skinC, pi = s2.ck === 'pi';
   G.sphere(x, y - 0.075, z + (pi ? 0.06 : 0.1), 0.032, skinC, { ky: 1.25, spec: 0.7 });
   G.cyl(x + 0.03, y - 0.15, z + (pi ? 0.14 : 0.2), 0.038, 0.1, sleeve, { rx: -1.05 });
@@ -1426,8 +2142,9 @@ function render() {
     else if (b[9] === 2) { const ang = Math.atan2(b[4] * 2, b[5]); for (const sg of [-1, 1]) G.box(b[0], b[1], b[2] + sg * b[5] / 2, b[3], 0.08, b[5] / 2 / Math.cos(ang) + 0.05, 0.02, b[6], Object.assign({}, o2, { rx: sg * ang })); G.box(b[0], b[1] - b[4] / 2, b[2], b[3] - 0.05, b[4] / 2, b[5] - 0.2, 0.01, '#C9BFA8', { tex: 10, spec: 0.1 }); }
     else G.box(b[0], b[1], b[2], b[3], b[4], b[5], Math.min(0.06, b[3], b[4], b[5]), b[6], o2);
   };
-  for (const bx of M.solid) drawB(bx.b);
+  for (const bx of M.solid) if (bx.b[6]) drawB(bx.b);
   if (M.decor) for (const b of M.decor) drawB(b);
+  if (mode === 'zombies' && ZS) zRender(performance.now());
   for (const f of fires) for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + f.t, rr = 1.8 + Math.sin(f.t * 5 + i) * 0.5; G.sphere(f.p[0] + Math.cos(a) * rr, 0.3 + Math.abs(Math.sin(f.t * 7 + i)) * 0.4, f.p[2] + Math.sin(a) * rr, 0.35, i % 2 ? '#FF7A1A' : '#FFC233', { emit: 1, a: 0.85 }); }
   for (const e of ents) if (e.alive && e !== me) drawChar(e);
   for (const n of nades) G.sphere(n.p[0], n.p[1], n.p[2], n.kind === 'knife' ? 0.08 : 0.12, n.kind === 'frag' ? '#3A5A2A' : n.kind === 'semtex' ? '#E5484D' : n.kind === 'molotov' ? '#E39424' : n.kind === 'knife' ? '#C9D2DC' : '#9AA5B1', { spec: 1, ky: n.kind === 'knife' ? 2.4 : 1 });
