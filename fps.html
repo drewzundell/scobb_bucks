@@ -121,6 +121,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .scope::after { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #000; }
 .board { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(92vw, 520px); background: rgba(8,9,13,.88); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; font-size: 14.5px; }
 /* ===== Scobb Zombies HUD ===== */
+.zrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.zin { width: 96px; text-transform: uppercase; letter-spacing: .25em; font: 800 16px var(--font); padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: inherit; }
+.zcodebig { font: 900 54px var(--font); letter-spacing: .3em; color: #FFE9A8; margin: 8px 0 4px; }
+.zchip { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid var(--line); font-weight: 700; }
+.z-pts .mate { font-size: 13px; color: #CDE7FF; }
 #zhud { position: absolute; inset: 0; pointer-events: none; }
 .z-round { position: absolute; left: 22px; bottom: calc(120px + env(safe-area-inset-bottom, 0px)); color: #C0392B; font: 900 64px Georgia, serif; text-shadow: 0 0 18px rgba(192,57,43,.6), 0 3px 4px rgba(0,0,0,.8); line-height: 1; }
 .z-round small { display: block; font: 800 14px var(--font); color: #FF8A8E; letter-spacing: .12em; text-transform: uppercase; }
@@ -236,7 +241,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <div id="ui"></div>
 <div id="hud" hidden></div>
 <script type="module">
-import { create } from './scobb3d.js?v=20261102r';
+import { create } from './scobb3d.js?v=20261102s';
 const $ = s => document.querySelector(s);
 const TEST = new URLSearchParams(location.search).has('test');
 
@@ -391,95 +396,320 @@ function stairs(x, z, dir, n, w, col) { const out = []; for (let i = 0; i < n; i
 function walls(S, H, col) { return [[0, H / 2, -S, S, H / 2, 0.5, col], [0, H / 2, S, S, H / 2, 0.5, col], [-S, H / 2, 0, 0.5, H / 2, S, col], [S, H / 2, 0, 0.5, H / 2, S, col]]; }
 const crate = (x, z, s, col, y) => [x, (y || 0) + s, z, s, s, s, col];
 // Box: [x, centerY, z, halfX, halfY, halfZ, color, emissive, texture, shape]. Textures: 1 brick, 2 wood, 3 concrete, 4 corrugated metal,
-// 5 grass, 6 asphalt, 7 shingles, 8 tile, 9 sand, 10 siding, 11 glass, 12 container steel. Shapes: 1 upright tank, 2 gable roof, 3 pipe along x, 4 pipe along z.
+// 5 grass, 6 asphalt, 7 shingles, 8 tile, 9 sand, 10 siding, 11 glass, 12 container steel, 15 marble. Shapes: 1 upright tank, 2 gable roof, 3 pipe along x, 4 pipe along z.
 const BX = (x, y0, z, hx, hy, hz, c, tex, emit, shape) => [x, y0 + hy, z, hx, hy, hz, c, emit || 0, tex || 0, shape || 0];
-function house(cx, cz, face, wall, roof) {
-  const o = [], W = 5, D = 3.6, H = 2.8, T = 0.15, fz = cz + face * D, bz = cz - face * D, U = H + 0.2, H2 = 2.6;
-  const wx = (x0, x1, z, y0, h, tex, c) => o.push(BX((x0 + x1) / 2, y0, z, (x1 - x0) / 2, h / 2, T, c || wall, tex == null ? 10 : tex));
-  const wz = (x, z0, z1, y0, h, tex, c) => o.push(BX(x, y0, (z0 + z1) / 2, T, h / 2, Math.abs(z1 - z0) / 2, c || wall, tex == null ? 10 : tex));
-  wx(cx - W, cx - 0.8, fz, 0, H); wx(cx + 0.8, cx + W, fz, 0, H); wx(cx - 0.8, cx + 0.8, fz, 2.2, H - 2.2);
-  wx(cx - W, cx + 1.7, bz, 0, H); wx(cx + 3.3, cx + W, bz, 0, H); wx(cx + 1.7, cx + 3.3, bz, 2.2, H - 2.2);
-  wz(cx - W, Math.min(fz, bz), Math.max(fz, bz), 0, H); wz(cx + W, Math.min(fz, bz), Math.max(fz, bz), 0, H);
-  for (const gx of [cx - 3, cx + 3]) o.push(BX(gx, 1.0, fz + face * 0.17, 0.8, 0.5, 0.03, '#E8E4DA', 11));
-  o.push(BX(cx + W + 0.17, 1.0, cz, 0.03, 0.5, 1.2, '#E8E4DA', 11), BX(cx - W - 0.17, 1.0, cz, 0.03, 0.5, 1.2, '#E8E4DA', 11));
-  o.push(BX(cx + 0.7, H, cz, W - 0.7 + 0.15, 0.1, D + 0.15, '#8E6A48', 2));
-  o.push(BX(cx - W + 0.7, H, cz - face * D / 2, 0.85, 0.1, D / 2 + 0.15, '#8E6A48', 2));
-  for (let i = 0; i < 7; i++) { const hh = 0.4 * (i + 1); o.push([cx - W + 0.7, hh / 2, fz - face * (0.6 + i * 0.5), 0.55, hh / 2, 0.25, '#7A5A3C', 0, 2, 0]); }
-  wx(cx - W, cx - 1.6, fz, U, H2); wx(cx + 1.6, cx + W, fz, U, H2); wx(cx - 1.6, cx + 1.6, fz, U, 0.9); wx(cx - 1.6, cx + 1.6, fz, U + 2.1, H2 - 2.1);
-  wx(cx - W, cx + W, bz, U, H2); wz(cx - W, Math.min(fz, bz), Math.max(fz, bz), U, H2); wz(cx + W, Math.min(fz, bz), Math.max(fz, bz), U, H2);
-  o.push(BX(cx, U + H2, cz, W + 0.4, 0.12, D + 0.4, '#5C6370', 3), [cx, U + H2 + 1.0, cz, W + 0.5, 0.9, D + 0.5, roof, 0, 7, 2]);
+// ---- building kit ----
+const SW = 0.15;
+// A wall along x at z, standing on y0. Gaps: [from, to, 'door' | 'win'].
+function wX(o, x0, x1, z, y0, h, c, tex, gaps) {
+  gaps = (gaps || []).slice().sort((a, b) => a[0] - b[0]); let x = x0;
+  for (const [a, b, k] of gaps) {
+    if (a > x) o.push(BX((x + a) / 2, y0, z, (a - x) / 2, h / 2, SW, c, tex));
+    const m = (a + b) / 2, hw = (b - a) / 2;
+    if (k === 'win') { o.push(BX(m, y0, z, hw, 0.45, SW, c, tex)); o.push(BX(m, y0 + 2.0, z, hw, (h - 2.0) / 2, SW, c, tex)); }
+    else if (h > 2.35) o.push(BX(m, y0 + 2.35, z, hw, (h - 2.35) / 2, SW, c, tex));
+    x = b;
+  }
+  if (x < x1) o.push(BX((x + x1) / 2, y0, z, (x1 - x) / 2, h / 2, SW, c, tex));
+}
+function wZ(o, z0, z1, x, y0, h, c, tex, gaps) {
+  gaps = (gaps || []).slice().sort((a, b) => a[0] - b[0]); let z = z0;
+  for (const [a, b, k] of gaps) {
+    if (a > z) o.push(BX(x, y0, (z + a) / 2, SW, h / 2, (a - z) / 2, c, tex));
+    const m = (a + b) / 2, hw = (b - a) / 2;
+    if (k === 'win') { o.push(BX(x, y0, m, SW, 0.45, hw, c, tex)); o.push(BX(x, y0 + 2.0, m, SW, (h - 2.0) / 2, hw, c, tex)); }
+    else if (h > 2.35) o.push(BX(x, y0 + 2.35, m, SW, (h - 2.35) / 2, hw, c, tex));
+    z = b;
+  }
+  if (z < z1) o.push(BX(x, y0, (z + z1) / 2, SW, h / 2, (z1 - z) / 2, c, tex));
+}
+// A floor slab whose top is at y, with an optional hole [x0, z0, x1, z1] for stairs.
+function slab(o, x0, z0, x1, z1, y, c, tex, hole) {
+  const t = 0.12, rects = hole ? [[x0, z0, x1, hole[1]], [x0, hole[3], x1, z1], [x0, hole[1], hole[0], hole[3]], [hole[2], hole[1], x1, hole[3]]] : [[x0, z0, x1, z1]];
+  for (const [a, b, cc, d] of rects) if (cc - a > 0.05 && d - b > 0.05) o.push(BX((a + cc) / 2, y - 2 * t, (b + d) / 2, (cc - a) / 2, t, (d - b) / 2, c, tex));
+}
+// A flight of stairs rising 0.3 per step, starting at (x, z) and climbing toward dir.
+function flight(o, x, z, y0, dir, n, w, c, tex) {
+  const run = 0.42, rise = 0.3, ax = dir === 'x' || dir === '-x', sg = dir[0] === '-' ? -1 : 1;
+  for (let i = 0; i < n; i++) { const top = (i + 1) * rise, cx = ax ? x + sg * (i + 0.5) * run : x, cz = ax ? z : z + sg * (i + 0.5) * run; o.push(BX(cx, y0, cz, ax ? run / 2 : w / 2, top / 2, ax ? w / 2 : run / 2, c, tex)); }
+}
+const lowX = (o, x0, x1, z, y0, c) => o.push(BX((x0 + x1) / 2, y0, z, (x1 - x0) / 2, 0.5, 0.06, c, 4));
+const lowZ = (o, z0, z1, x, y0, c) => o.push(BX(x, y0, (z0 + z1) / 2, 0.06, 0.5, (z1 - z0) / 2, c, 4));
+const furn = {
+  couch: (o, x, z, along, c) => { const hx = along ? 1.1 : 0.45, hz = along ? 0.45 : 1.1; o.push(BX(x, 0, z, hx, 0.25, hz, c, 0)); o.push(along ? BX(x, 0.5, z + 0.35, hx, 0.25, 0.1, c, 0) : BX(x + 0.35, 0.5, z, 0.1, 0.25, hz, c, 0)); },
+  table: (o, x, z, y0, hx, hz) => { o.push(BX(x, y0 + 0.72, z, hx, 0.04, hz, '#6A4A2E', 2)); for (const sx of [-1, 1]) for (const sz of [-1, 1]) o.push(BX(x + sx * (hx - 0.06), y0, z + sz * (hz - 0.06), 0.04, 0.36, 0.04, '#4A3220', 2)); },
+  bed: (o, x, z, y0, c) => { o.push(BX(x, y0, z, 0.8, 0.25, 1.05, c, 0)); o.push(BX(x, y0, z - 1.05, 0.8, 0.5, 0.06, '#5A3A22', 2)); },
+  counter: (o, x, z, y0, hx, hz) => { o.push(BX(x, y0, z, hx, 0.46, hz, '#E8E2D6', 15)); },
+  fridge: (o, x, z, y0) => o.push(BX(x, y0, z, 0.38, 0.95, 0.35, '#DDE3EA', 0)),
+  shelf: (o, x, z, y0, hx, hz) => o.push(BX(x, y0, z, hx, 1.0, hz, '#6A4A2E', 2)),
+  crate: (o, x, z, y0, s, c) => o.push(BX(x, y0, z, s, s, s, c || '#B97A3E', 2))
+};
+// Move a list of boxes: swap, mirror and shift them into place.
+function place(list, f) { return list.map(b => { const [x, z] = f(b[0], b[2]); const sw = f.swap; return [x, b[1], z, sw ? b[5] : b[3], b[4], sw ? b[3] : b[5]].concat(b.slice(6)); }); }
+
+// ======================= Cul-de-sac: two houses face off across a street with a school bus =======================
+// One house in its own frame: front wall at z = 0 faces -z, the house runs x 0..10 and z 0..8, the garage sits at x 10..15.
+function cdsHouse(wall, trim, roof, accent) {
+  const o = [], H = 3, U = 3, H2 = 2.8;
+  // ground floor
+  wX(o, 0, 10, 0, 0, H, wall, 10, [[1.5, 3.5, 'win'], [6, 7.2, 'door'], [8.2, 9.4, 'win']]);
+  wX(o, 0, 10, 8, 0, H, wall, 10, [[5.4, 6.6, 'win'], [7.4, 8.6, 'door']]);
+  wZ(o, 0, 8, 0, 0, H, wall, 10, [[2.5, 4.5, 'win']]);
+  wZ(o, 0, 8, 10, 0, H, wall, 10, [[5.2, 6.4, 'door']]);
+  wZ(o, 4.4, 8, 5, 0, H, '#E8E2D6', 3, [[5.4, 6.6, 'door']]);
+  flight(o, 0.35, 7.2, 0, 'x', 10, 1.1, '#7A5A3C', 2);
+  furn.couch(o, 2.4, 1.0, true, accent); furn.table(o, 2.4, 2.6, 0, 0.6, 0.4); o.push(BX(0.45, 0, 1.2, 0.25, 0.55, 0.8, '#3A3A44', 0));
+  furn.counter(o, 9.55, 5.5, 0, 0.3, 1.2); furn.fridge(o, 9.5, 7.3, 0); furn.table(o, 7.2, 3.0, 0, 0.8, 0.6);
+  // upstairs
+  slab(o, 0, 0, 10, 8, U, '#8E6A48', 2, [0.3, 6.6, 4.75, 7.85]);
+  wX(o, 0, 10, 0, U, H2, wall, 10, [[1.4, 3.6, 'win'], [6.4, 8.6, 'win']]);
+  wX(o, 0, 10, 8, U, H2, wall, 10, [[6, 8, 'win']]);
+  wZ(o, 0, 8, 0, U, H2, wall, 10, [[2.4, 4.2, 'win']]);
+  wZ(o, 0, 8, 10, U, H2, wall, 10, [[3, 4.6, 'win']]);
+  wZ(o, 0, 4.6, 5, U, H2, '#E8E2D6', 3, [[1.6, 2.8, 'door']]);
+  lowX(o, 0.3, 4.4, 6.5, U, '#5A3A22');
+  furn.bed(o, 2.4, 2.4, U, accent); furn.bed(o, 8, 2.6, U, '#5BC8F5'); o.push(BX(8.8, U, 6.6, 0.9, 0.5, 0.35, '#6A4A2E', 2));
+  // roof
+  o.push(BX(5, U + H2, 4, 5.3, 0.12, 4.3, '#5C6370', 3));
+  o.push([5, U + H2 + 1.0, 4, 5.5, 0.9, 4.5, roof, 0, 7, 2]);
+  // garage: open door to the street, a car, shelves
+  wX(o, 10, 15, 2, 0, H, wall, 10, [[10.5, 14.5, 'door']]);
+  wX(o, 10, 15, 8, 0, H, wall, 10, [[11.8, 13.2, 'win']]);
+  wZ(o, 2, 8, 15, 0, H, wall, 10, [[4.4, 5.6, 'win']]);
+  o.push(BX(12.5, H, 5, 2.65, 0.12, 3.15, '#5C6370', 3));
+  o.push(BX(12.4, 0, 5.4, 0.95, 0.55, 1.8, accent, 0), BX(12.4, 0.95, 5.6, 0.85, 0.35, 1.1, '#2B3A48', 11));
+  furn.shelf(o, 14.55, 6.6, 0, 0.25, 1.0);
+  // trim and porch
+  o.push(BX(6.6, 0, -0.55, 1.2, 0.12, 0.45, trim, 3));
+  // backyard fence with a gate, a shed and a picnic table
+  for (const [x0, x1] of [[-1, 6.5], [8.5, 16]]) o.push(BX((x0 + x1) / 2, 0, 13, (x1 - x0) / 2, 0.6, 0.06, '#C9A27A', 2));
+  o.push(BX(-1, 0, 10.5, 0.06, 0.6, 2.5, '#C9A27A', 2), BX(16, 0, 10.5, 0.06, 0.6, 2.5, '#C9A27A', 2));
+  o.push(BX(14.2, 0, 11.4, 1.0, 1.1, 0.9, '#8E98A3', 4)); furn.table(o, 3.4, 10.6, 0, 1.0, 0.5);
   return o;
 }
-const fence = (x, z, hx, hz) => BX(x, 0, z, hx, 0.55, hz, '#C9A27A', 2);
-const container = (x, z, alongX, c, y0) => alongX ? BX(x, y0 || 0, z, 3, 1.3, 1.2, c, 12) : BX(x, y0 || 0, z, 1.2, 1.3, 3, c, 12);
-const MAPS = [
-  { name: 'Atomic Cul-de-sac', blurb: 'Two houses face off across a street with a school bus in the middle', sky: '#BFE3FF', ground: '#6E8C55', fog: ['#CFE3F2', 0.006], floor: '#5E8C3A', floorTex: 5, S: 22, tint: 'linear-gradient(135deg,#7FBF5A,#3E6E8E)',
-    boxes: [...walls(22, 3, '#C9A27A').map(b => b.concat([0, 2, 0])), BX(0, 0, 0, 22, 0.02, 3.4, '#3A3D42', 6),
-      ...house(-7, -11, 1, '#E8D9B0', '#8A3B2E'), ...house(7, 11, -1, '#A9CBE0', '#3B4A5E'),
-      BX(-2.5, 0.3, 0.6, 4.3, 1.3, 1.25, '#F2B531', 0), BX(-2.5, 1.7, 0.6, 4.1, 0.4, 1.27, '#2B3A48', 11), BX(-2.5, 0.0, 0.6, 4.4, 0.18, 1.1, '#2A2D33', 0),
-      [-5.6, 0.45, 0.6, 0.45, 0.45, 1.3, '#15171C', 0, 0, 4], [0.6, 0.45, 0.6, 0.45, 0.45, 1.3, '#15171C', 0, 0, 4],
-      BX(7, 0, -1.4, 2.3, 0.9, 1.05, '#C94A3B', 0), BX(8.4, 0.9, -1.4, 0.9, 0.55, 1.0, '#C94A3B', 0), BX(8.4, 1.0, -1.4, 0.92, 0.35, 1.02, '#2B3A48', 11),
-      fence(-7, -18.5, 6, 0.06), fence(-13.1, -15, 0.06, 3.5), fence(-0.9, -16, 0.06, 2.5), fence(7, 18.5, 6, 0.06), fence(13.1, 15, 0.06, 3.5), fence(0.9, 16, 0.06, 2.5),
-      BX(-16, 0, 14, 2, 1.4, 2, '#8E98A3', 4), BX(16, 0, -14, 2, 1.4, 2, '#8E98A3', 4), BX(15, 0, 4.6, 0.8, 0.5, 0.8, '#7A5A3C', 2), BX(-15, 0, -4.6, 0.8, 0.5, 0.8, '#7A5A3C', 2), BX(-18, 0, 6, 0.5, 0.6, 1.6, '#2F8F5B', 0), BX(18, 0, -6, 0.5, 0.6, 1.6, '#2F8F5B', 0)],
-    spawns: [[-7, 0, -20], [7, 0, 20], [-17, 0, -18], [17, 0, 18], [-20, 0, 0], [20, 0, 0], [-18, 0, 10], [18, 0, -10]] },
-  { name: 'Shipyard', blurb: 'A tiny yard of stacked shipping containers. Fast and chaotic', sky: '#C7D2E0', ground: '#5C6370', fog: ['#B9C3D0', 0.01], floor: '#8C8F94', floorTex: 3, S: 14, tint: 'linear-gradient(135deg,#D9443B,#2F74E8)',
-    boxes: [...walls(14, 4, '#6E7684').map(b => b.concat([0, 4, 0])),
-      container(-6.5, -6.5, true, '#C0392B'), container(0, -6.5, false, '#2F74E8'), container(6.5, -6.5, true, '#23A26F'), container(-6.5, 0, false, '#E39424'), container(6.5, 0, false, '#7C4DEB'),
-      container(-6.5, 6.5, true, '#2F74E8'), container(0, 6.5, false, '#C0392B'), container(6.5, 6.5, true, '#E39424'), container(-6.5, -6.5, true, '#23A26F', 2.6), container(6.5, 6.5, true, '#C0392B', 2.6),
-      BX(0, 0, 0, 0.8, 0.8, 0.8, '#B97A3E', 2), BX(1.6, 0, 1.2, 0.6, 0.6, 0.6, '#B97A3E', 2), BX(-2.8, 0, 3, 0.6, 0.6, 0.6, '#B97A3E', 2), BX(3, 0, -3.2, 0.6, 0.6, 0.6, '#B97A3E', 2)],
-    spawns: [[-12, 0, -12], [12, 0, 12], [-12, 0, 12], [12, 0, -12], [0, 0, -11.5], [0, 0, 11.5], [-11.5, 0, 0], [11.5, 0, 0]] },
-  { name: 'Pipeworks', blurb: 'A desert oil yard around a tall tower. Whoever holds the top rules it', sky: '#F5D9A8', ground: '#B08A55', fog: ['#E8CFA0', 0.008], floor: '#C9A46B', floorTex: 9, S: 22, tint: 'linear-gradient(135deg,#E8B86A,#7A5A3C)',
-    boxes: [...walls(22, 3, '#B58F52').map(b => b.concat([0, 3, 0])),
-      BX(0, 2.3, 0, 3, 0.1, 3, '#6E7684', 4), BX(0, 4.7, 0, 2.2, 0.1, 2.2, '#6E7684', 4), BX(0, 7.1, 0, 1.4, 0.1, 1.4, '#6E7684', 4),
-      ...[[-2.8, -2.8], [2.8, -2.8], [-2.8, 2.8], [2.8, 2.8]].map(([x, z]) => [x, 3.6, z, 0.16, 3.6, 0.16, '#3A3F4A', 0, 0, 1]),
-      ...stairs(3.2, -1.5, 'x', 6, 0.6, '#5C6370').map(b => b.concat([0, 4, 0])),
-      [3.35 + 3.0, 1.2, -1.5, 0.3, 1.2, 0.6, '#5C6370', 0, 4, 0],
-      ...[0, 1, 2, 3, 4, 5].map(i => [-1.8, 2.4 + 0.4 * (i + 1) / 2 + 0.0, 3.4 - i * 0.6, 0.5, 0.2, 0.3, '#5C6370', 0, 4, 0]),
-      ...[0, 1, 2, 3, 4, 5].map(i => [1.0 - i * 0.45, 4.8 + 0.2 + i * 0.4, -2.0, 0.25, 0.2, 0.45, '#5C6370', 0, 4, 0]),
-      [-12, 1.5, -12, 2.2, 1.5, 2.2, '#D9D9D9', 0, 4, 1], [12, 1.5, 12, 2.2, 1.5, 2.2, '#D9D9D9', 0, 4, 1], [13, 1.2, -9, 1.6, 1.2, 1.6, '#C94A3B', 0, 4, 1],
-      [-8, 0.55, 8, 6, 0.55, 0.55, '#7A6E5A', 0, 4, 3], [9, 0.55, 2, 0.55, 0.55, 5, '#7A6E5A', 0, 4, 4], [-14, 0.55, 2, 0.55, 0.55, 4, '#7A6E5A', 0, 4, 4],
-      BX(-16, 0, -2, 0.3, 1.2, 4, '#B58F52', 3), BX(4, 0, 15, 4, 1.2, 0.3, '#B58F52', 3), BX(-4, 0, -15, 4, 1.2, 0.3, '#B58F52', 3),
-      BX(16, 0, 4, 2, 1.5, 1.6, '#8E98A3', 4), BX(-6, 0, 14, 1.6, 1.4, 2, '#8E98A3', 4), BX(8, 0, -14, 2.5, 1.3, 1.2, '#E39424', 12)],
-    spawns: [[-19, 0, -19], [19, 0, 19], [-19, 0, 19], [19, 0, -19], [0, 0, -19], [0, 0, 19], [-19, 0, 0], [19, 0, -4]] },
-  { name: 'Terminal', blurb: 'An airport hall with gates, shops, a raised walkway and a plane outside', sky: '#DDE6F0', ground: '#7A8296', fog: ['#D5DDE8', 0.006], floor: '#C8CCD2', floorTex: 8, S: 26, tint: 'linear-gradient(135deg,#9FB4C8,#3E4A5E)',
-    boxes: [[0, 0.6, -26, 26, 0.6, 0.5, '#8E98A3', 0, 3, 0], [0, 3.6, -26, 26, 2.4, 0.4, '#5A6E82', 0, 11, 0], [0, 0.6, 26, 26, 0.6, 0.5, '#8E98A3', 0, 3, 0], [0, 3.6, 26, 26, 2.4, 0.4, '#5A6E82', 0, 11, 0],
-      [-26, 3, 0, 0.5, 3, 26, '#B9BDC6', 0, 3, 0], [26, 3, 0, 0.5, 3, 26, '#B9BDC6', 0, 3, 0],
-      ...[-16, -8, 0, 8, 16].map(x => [x, 3, 0, 0.6, 3, 0.6, '#E0E3E8', 0, 3, 0]),
-      ...[-18, -10, 10, 18].flatMap(x => [BX(x, 0, -12, 3, 0.25, 0.4, '#2F4A7A', 0), BX(x, 0, -9, 3, 0.25, 0.4, '#2F4A7A', 0), BX(x, 0, 12, 3, 0.25, 0.4, '#2F4A7A', 0), BX(x, 0, 9, 3, 0.25, 0.4, '#2F4A7A', 0)]),
-      BX(-4, 0, -18, 3, 1.3, 2.2, '#9FB4C8', 11), BX(4, 0, 18, 3, 1.3, 2.2, '#9FB4C8', 11), BX(-4, 0, -15.4, 3, 0.55, 0.4, '#7A4A26', 2), BX(4, 0, 15.4, 3, 0.55, 0.4, '#7A4A26', 2),
-      BX(-12, 0, 0, 2.4, 0.55, 0.6, '#5C6370', 3), BX(12, 0, 0, 2.4, 0.55, 0.6, '#5C6370', 3),
-      BX(-21, 3, 0, 4.5, 0.15, 24, '#9AA0A8', 3), ...stairs(-15.9, 18, '-z', 8, 0.7, '#8E98A3').map(b => b.concat([0, 3, 0])), [-15.9, 1.6, 13.5, 0.7, 1.6, 0.3, '#8E98A3', 0, 3, 0],
-      BX(-16.6, 3.3, -6, 0.06, 0.5, 18, '#9FB4C8', 11)],
-    decor: [[0, 3, -40, 3, 3, 14, '#E8ECF2', 0, 0, 4], [-6, 3, -40, 6, 0.3, 2, '#E8ECF2'], [6, 3, -40, 6, 0.3, 2, '#E8ECF2'], [0, 6.2, -50, 0.3, 3, 2, '#2F74E8']],
-    spawns: [[-23, 0, -22], [23, 0, 22], [-23, 0, 22], [23, 0, -22], [0, 0, -22], [0, 0, 22], [-21, 3.2, -18], [21, 0, 0]] },
-  { name: 'Highrise', blurb: 'Skyscraper rooftops above a glowing city, with a helipad and glass offices', sky: '#2E3A66', ground: '#1E2238', fog: ['#3A4470', 0.008], floor: '#8E949C', floorTex: 3, S: 24, tint: 'linear-gradient(135deg,#3A4470,#E39424)',
-    boxes: [...walls(24, 1.1, '#9AA0A8').map(b => b.concat([0, 3, 0])),
-      BX(-13, 0, -13, 5.5, 0.04, 5.5, '#3A3D42', 6), BX(-13, 0.08, -13, 0.25, 0.01, 3, '#F2C14E', 0, 1), BX(-14.8, 0.08, -13, 0.25, 0.01, 3, '#F2C14E', 0, 1), BX(-11.2, 0.08, -13, 0.25, 0.01, 3, '#F2C14E', 0, 1), BX(-13, 0.08, -13, 1.6, 0.01, 0.25, '#F2C14E', 0, 1),
-      BX(0, 0, 0, 6, 1.6, 4, '#7A8C9E', 11), BX(0, 3.2, 0, 6.2, 0.1, 4.2, '#5C6370', 3),
-      BX(13, 0, 6, 9, 1.5, 15, '#9AA0A8', 3), ...stairs(1.6, 10, 'x', 7, 1.2, '#7A8296').map(b => b.concat([0, 3, 0])),
-      BX(15, 3, 12, 1.6, 0.9, 1.2, '#8E98A3', 4), BX(10, 3, -2, 1.6, 0.9, 1.2, '#8E98A3', 4), BX(18, 3, -4, 0.3, 0.55, 3, '#9AA0A8', 3),
-      BX(-15, 0, 9, 2.4, 1.6, 2, '#B9BDC6', 3), BX(-5, 0, 15, 1.4, 0.8, 1.4, '#8E98A3', 4), BX(4, 0, -14, 1.4, 0.8, 1.4, '#8E98A3', 4), BX(-20, 0, -2, 0.6, 1.2, 3, '#B9BDC6', 3)],
-    decor: [...[[-50, 25, -10, 6, 25, 8], [-45, 18, 30, 7, 18, 6], [45, 30, -20, 8, 30, 8], [55, 20, 25, 6, 20, 9], [0, 22, -60, 10, 22, 6], [10, 28, 60, 8, 28, 7], [-30, 15, -55, 6, 15, 6], [35, 16, 55, 7, 16, 6]].map(b => [b[0], b[1] - 30, b[2], b[3], b[4], b[5], '#4A5A7A', 0, 11, 0])],
-    spawns: [[-20, 0, -20], [20, 3, 18], [-20, 0, 20], [20, 3, -6], [0, 0, -20], [-4, 0, 20], [-20, 0, 4], [8, 3, 4]] }
-];
+function culDeSac() {
+  const yellow = place(cdsHouse('#E8D9B0', '#B8A27A', '#8A3B2E', '#E5484D'), Object.assign((x, z) => [x - 10, z + 7], {}));
+  const green = place(cdsHouse('#B8D9B0', '#8AA27A', '#3B4A5E', '#2F74E8'), Object.assign((x, z) => [10 - x, -z - 7], {}));
+  const b = [].concat(yellow, green);
+  for (const [x, z, hx, hz] of [[0, -24, 26, 0.5], [0, 24, 26, 0.5], [-26, 0, 0.5, 24], [26, 0, 0.5, 24]]) b.push(BX(x, 0, z, hx, 1.3, hz, '#2F6B3A', 5));
+  b.push(BX(0, 0, 0, 26, 0.02, 3.8, '#3A3D42', 6), [0, 0.02, 0, 4, 0.02, 4, '#3A3D42', 0, 6, 1]);
+  // the school bus, the truck and a parked car
+  b.push(BX(-3, 0.3, 0.4, 4.4, 1.3, 1.25, '#F2B531', 0), BX(-3, 1.7, 0.4, 4.2, 0.42, 1.27, '#2B3A48', 11), BX(-3, 0, 0.4, 4.5, 0.18, 1.1, '#2A2D33', 0));
+  b.push([-6.2, 0.45, 0.4, 0.45, 0.45, 1.3, '#15171C', 0, 0, 4], [0.4, 0.45, 0.4, 0.45, 0.45, 1.3, '#15171C', 0, 0, 4]);
+  b.push(BX(8, 0, -1.4, 2.4, 0.9, 1.05, '#C94A3B', 0), BX(9.6, 0.9, -1.4, 0.9, 0.55, 1.0, '#C94A3B', 0), BX(9.6, 1.0, -1.4, 0.92, 0.35, 1.02, '#2B3A48', 11));
+  b.push(BX(-18, 0, 2.6, 2.0, 0.6, 0.9, '#2F74E8', 0), BX(-18, 1.2, 2.6, 1.2, 0.35, 0.85, '#2B3A48', 11));
+  b.push(BX(18, 0, -2.6, 2.0, 0.6, 0.9, '#7C4DEB', 0), BX(18, 1.2, -2.6, 1.2, 0.35, 0.85, '#2B3A48', 11));
+  b.push(BX(-23, 0, 14, 0.5, 0.6, 1.6, '#2F8F5B', 0), BX(23, 0, -14, 0.5, 0.6, 1.6, '#2F8F5B', 0), BX(-14, 0, -12, 0.8, 0.45, 0.8, '#7A5A3C', 2), BX(14, 0, 12, 0.8, 0.45, 0.8, '#7A5A3C', 2));
+  return { name: 'Cul-de-sac', blurb: 'Two two-story houses face off across a street with a school bus in the middle', sky: '#BFE3FF', ground: '#6E8C55', fog: ['#CFE3F2', 0.006], floor: '#5E8C3A', floorTex: 5, S: 26, tint: 'linear-gradient(135deg,#7FBF5A,#3E6E8E)',
+    boxes: b, decor: [],
+    spawns: [[-5, 0, 18], [5, 0, -18], [-22, 0, 0], [22, 0, 0], [-22, 0, 12], [22, 0, -12], [-4, 3, 8.6], [4, 3, -8.6], [-14, 0, -18], [14, 0, 18]] };
+}
+
+// ======================= Shipyard: a tight square of shipping containers =======================
+function shipyard() {
+  const b = [], S = 16;
+  for (const [x, z, hx, hz] of [[0, -S, S, 0.4], [0, S, S, 0.4], [-S, 0, 0.4, S], [S, 0, 0.4, S]]) b.push(BX(x, 0, z, hx, 2.2, hz, '#6E7684', 4));
+  // an open container you can walk through, or a closed one; either can be stacked
+  const box = (x, z, alongX, c, open, y0) => {
+    y0 = y0 || 0; const L = 3.05, W = 1.22, H = 2.6;
+    if (!open) { b.push(alongX ? BX(x, y0, z, L, H / 2, W, c, 12) : BX(x, y0, z, W, H / 2, L, c, 12)); return; }
+    if (alongX) { b.push(BX(x, y0, z - W, L, H / 2, 0.06, c, 12), BX(x, y0, z + W, L, H / 2, 0.06, c, 12), BX(x, y0 + H - 0.12, z, L, 0.06, W, c, 12)); }
+    else { b.push(BX(x - W, y0, z, 0.06, H / 2, L, c, 12), BX(x + W, y0, z, 0.06, H / 2, L, c, 12), BX(x, y0 + H - 0.12, z, W, 0.06, L, c, 12)); }
+  };
+  box(-8, -8, true, '#C0392B', true); box(0, -9, false, '#2F74E8', false); box(0, -9, false, '#23A26F', false, 2.6); box(8, -8, true, '#23A26F', true);
+  box(-9, 0, false, '#E39424', false); box(0, 0, true, '#7C4DEB', true); box(9, 0, false, '#2F74E8', false);
+  box(-8, 8, true, '#2F74E8', true); box(0, 9, false, '#C0392B', false); box(0, 9, false, '#E39424', false, 2.6); box(8, 8, true, '#E39424', true);
+  // crate stairs up onto the stacked containers
+  for (let i = 0; i < 6; i++) b.push(BX(-4.6 - i * 0.5, 0, -10.0, 0.25, (i + 1) * 0.22, 0.6, '#B97A3E', 2));
+  for (let i = 0; i < 6; i++) b.push(BX(4.6 + i * 0.5, 0, 10.0, 0.25, (i + 1) * 0.22, 0.6, '#B97A3E', 2));
+  for (const [x, z, s] of [[-3.2, 3.4, 0.6], [3.4, -3.2, 0.6], [-12.6, -3.2, 0.7], [12.6, 3.2, 0.7], [3, 4.2, 0.5], [-3, -4.2, 0.5], [-12.4, 9.6, 0.6], [12.4, -9.6, 0.6]]) furn.crate(b, x, z, 0, s);
+  return { name: 'Shipyard', blurb: 'A tiny yard of containers. Walk through the open ones, climb onto the stacks', sky: '#C7D2E0', ground: '#5C6370', fog: ['#B9C3D0', 0.01], floor: '#8C8F94', floorTex: 3, S, tint: 'linear-gradient(135deg,#D9443B,#2F74E8)',
+    boxes: b, decor: [], spawns: [[-13, 0, -13], [13, 0, 13], [-13, 0, 13], [13, 0, -13], [0, 0, -13.5], [0, 0, 13.5], [-13.5, 0, 0], [13.5, 0, 0]] };
+}
+
+// ======================= Pipeworks: a four-level oil tower in the desert =======================
+function pipeworks() {
+  const b = [], S = 26, M = '#6E7684', R = '#8A8F98';
+  for (const [x, z, hx, hz] of [[0, -S, S, 0.5], [0, S, S, 0.5], [-S, 0, 0.5, S], [S, 0, 0.5, S]]) b.push(BX(x, 0, z, hx, 2.5, hz, '#B58F52', 9));
+  // tower: a cage at the bottom, then three platforms joined by stairs
+  for (const [x, z] of [[-3.4, -3.4], [3.4, -3.4], [-3.4, 3.4], [3.4, 3.4]]) b.push([x, 4.6, z, 0.18, 4.6, 0.18, '#3A3F4A', 0, 0, 1]);
+  wX(b, -3.5, 3.5, -3.5, 0, 1.2, M, 4, [[-0.8, 0.8, 'door']]); wX(b, -3.5, 1.2, 3.5, 0, 1.2, M, 4, []); wZ(b, -3.5, 3.5, -3.5, 0, 1.2, M, 4, [[-0.8, 0.8, 'door']]); wZ(b, -3.5, 3.5, 3.5, 0, 1.2, M, 4, [[-0.8, 0.8, 'door']]);
+  flight(b, -3.0, 4.3, 0, 'x', 10, 1.0, '#5C6370', 4); b.push(BX(1.95, 2.88, 4.15, 0.75, 0.06, 0.75, M, 4));
+  slab(b, -3.5, -3.5, 3.5, 3.5, 3, M, 4);
+  lowX(b, -3.5, 1.2, 3.5, 3, R); lowX(b, -3.5, 3.5, -3.5, 3, R); lowZ(b, -3.5, 3.5, -3.5, 3, R);
+  flight(b, 3.0, 2.6, 3, '-z', 10, 0.85, '#5C6370', 4); b.push(BX(3.0, 5.88, -2.2, 0.45, 0.06, 0.5, M, 4));
+  slab(b, -2.5, -2.5, 2.5, 2.5, 6, M, 4);
+  lowX(b, -2.5, 2.5, -2.5, 6, R); lowZ(b, -2.5, 1.5, -2.5, 6, R);
+  flight(b, 2.2, 2.0, 6, '-x', 10, 0.8, '#5C6370', 4); b.push(BX(-2.0, 8.88, 2.0, 0.45, 0.06, 0.45, M, 4));
+  slab(b, -1.6, -1.6, 1.6, 1.6, 9, M, 4); lowX(b, -1.6, 1.6, -1.6, 9, R); lowZ(b, -1.6, 1.6, 1.6, 9, R); lowZ(b, -1.6, 0.9, -1.6, 9, R);
+  // a two-story shack in the corner
+  const X0 = 13, X1 = 21, Z0 = -21, Z1 = -14, W = '#8E98A3';
+  wX(b, X0, X1, Z1, 0, 3, W, 4, [[15, 16.2, 'door'], [18, 19.6, 'win']]); wX(b, X0, X1, Z0, 0, 3, W, 4, [[16, 17.4, 'win']]); wZ(b, Z0, Z1, X0, 0, 3, W, 4, [[-18.5, -16.8, 'win']]); wZ(b, Z0, Z1, X1, 0, 3, W, 4, [[-18, -16.8, 'door']]);
+  flight(b, 13.5, -20.4, 0, 'x', 10, 1.0, '#5C6370', 4);
+  slab(b, X0, Z0, X1, Z1, 3, '#6A5A48', 2, [13.3, -20.95, 17.8, -19.85]);
+  wX(b, X0, X1, Z1, 3, 2.6, W, 4, [[14.4, 16.4, 'win'], [17.6, 19.6, 'win']]); wX(b, X0, X1, Z0, 3, 2.6, W, 4); wZ(b, Z0, Z1, X0, 3, 2.6, W, 4, [[-19, -16.6, 'win']]); wZ(b, Z0, Z1, X1, 3, 2.6, W, 4, [[-19, -16.6, 'win']]);
+  b.push(BX(17, 5.6, -17.5, 4.2, 0.12, 3.7, '#5C6370', 4));
+  furn.table(b, 19.2, -15.6, 0, 0.9, 0.5); furn.crate(b, 20.2, -20.2, 0, 0.5); furn.table(b, 19, -16.5, 3, 0.8, 0.5);
+  // pipes, tanks, ruins and sandbags
+  b.push([-9, 0.6, 9, 7, 0.6, 0.6, '#7A6E5A', 0, 4, 3], [10, 0.6, 4, 0.6, 0.6, 6, '#7A6E5A', 0, 4, 4], [-15, 0.6, -3, 0.6, 0.6, 5, '#7A6E5A', 0, 4, 4], [4, 1.8, -10, 6, 0.45, 0.45, '#9A8E7A', 0, 4, 3]);
+  b.push([-14, 1.6, -14, 2.4, 1.6, 2.4, '#D9D9D9', 0, 4, 1], [15, 1.6, 15, 2.4, 1.6, 2.4, '#D9D9D9', 0, 4, 1], [-16, 1.3, 15, 1.8, 1.3, 1.8, '#C94A3B', 0, 4, 1]);
+  for (const [x, z, hx, hz] of [[-20, 4, 0.3, 3], [6, 18, 3.5, 0.3], [-5, -18, 3.5, 0.3], [20, 0, 0.3, 3.5]]) b.push(BX(x, 0, z, hx, 1.2, hz, '#B58F52', 3));
+  for (const [x, z] of [[8, 8], [-8, -8], [8, -6], [-7, 6]]) b.push(BX(x, 0, z, 1.2, 0.45, 0.35, '#B5A17A', 9));
+  return { name: 'Pipeworks', blurb: 'A desert oil yard around a four-level tower. Whoever holds the top rules it', sky: '#F5D9A8', ground: '#B08A55', fog: ['#E8CFA0', 0.008], floor: '#C9A46B', floorTex: 9, S, tint: 'linear-gradient(135deg,#E8B86A,#7A5A3C)',
+    boxes: b, decor: [], spawns: [[-22, 0, -22], [22, 0, 22], [-22, 0, 22], [22, 0, -8], [0, 0, -22], [0, 0, 22], [-22, 0, 0], [17, 3, -16]] };
+}
+
+// ======================= Terminal: an airport with an upstairs lounge and a plane to walk through =======================
+function terminal() {
+  const b = [], d = [], S = 32, Wl = '#B9BDC6', Gl = '#5A6E82', H = 4.2, U = 4.2;
+  // outer walls: windows on the long sides, glass doors onto the tarmac
+  wX(b, -30, 6, -16, 0, H * 2, Wl, 3, [[-26, -20, 'win'], [-16, -10, 'win'], [-6, 0, 'win']]);
+  wX(b, -30, 6, 16, 0, H * 2, Wl, 3, [[-26, -20, 'win'], [-16, -10, 'win'], [-6, 0, 'win']]);
+  wZ(b, -16, 16, -30, 0, H * 2, Wl, 3, [[-10, -6, 'win'], [6, 10, 'win']]);
+  wZ(b, -16, 16, 6, 0, H, Gl, 11, [[-10.5, -7.5, 'door'], [7.5, 10.5, 'door']]); b.push(BX(6, H, 0, SW, H / 2, 16, Gl, 11));
+  // upstairs lounge over the west half, open to the hall below
+  slab(b, -30, -16, -14, 16, U, '#9AA0A8', 8);
+  lowZ(b, -16, -13.4, -14, U, '#B9BDC6'); lowZ(b, -10.6, 10.6, -14, U, '#B9BDC6'); lowZ(b, 13.4, 16, -14, U, '#B9BDC6');
+  flight(b, -8.1, -12, 0, '-x', 14, 1.6, '#8E98A3', 3); flight(b, -8.1, 12, 0, '-x', 14, 1.6, '#8E98A3', 3);
+  for (const z of [-8, 0, 8]) { furn.couch(b, -24, z, true, '#2F4A7A'); b.push(BX(-24, U, z, 1.1, 0.25, 0.45, '#2F4A7A', 0), BX(-24, U + 0.5, z + 0.35, 1.1, 0.25, 0.1, '#2F4A7A', 0)); }
+  b.push(BX(-19, U, -11, 1.6, 1.0, 0.1, '#9FB4C8', 11), BX(-19, U, 11, 1.6, 1.0, 0.1, '#9FB4C8', 11), BX(-27, U, 0, 1.2, 0.55, 2.4, '#4A2A18', 2));
+  b.push(BX(-12, H * 2, 0, 18, 0.12, 16, '#5C6370', 3));
+  // ground floor: gate seating, a burger stand, a bookstore, an info desk and pillars
+  for (const x of [-3, 1]) for (const z of [-12, -9, 9, 12]) b.push(BX(x, 0, z, 1.6, 0.25, 0.4, '#2F4A7A', 0));
+  wX(b, -22, -16, 9, 0, 2.6, '#C0392B', 0, [[-20, -18, 'win']]); wZ(b, 9, 15.8, -16, 0, 2.6, '#C0392B', 0, [[10.5, 12, 'door']]); furn.counter(b, -19, 10, 0, 2.2, 0.3); for (const [x, z] of [[-20.5, 13.5], [-17.5, 13.5]]) furn.table(b, x, z, 0, 0.5, 0.5);
+  wX(b, -22, -16, -9, 0, 2.6, '#2F74E8', 0, [[-20, -18, 'win']]); wZ(b, -15.8, -9, -16, 0, 2.6, '#2F74E8', 0, [[-12, -10.5, 'door']]); for (const z of [-14.5, -12.5, -10.5]) furn.shelf(b, -19.6, z, 0, 1.4, 0.2);
+  b.push(BX(-20, 0, 0, 1.6, 0.55, 0.9, '#4A2A18', 2), BX(-20, 1.1, 0, 1.6, 0.04, 0.95, '#E8E2D6', 15));
+  for (const [x, z] of [[-18, -8], [-18, 8], [-4, -4], [-4, 4]]) b.push([x, H, z, 0.45, H, 0.45, '#E0E3E8', 0, 3, 1]);
+  // tarmac: the plane, its airstairs, baggage carts and cones
+  const py = 2.0;
+  slab(b, 12, -1.8, 30, 1.8, py, '#C8CCD2', 8);
+  wX(b, 12, 30, -1.9, py, 2.4, '#E8ECF2', 0, [[14, 15.2, 'door'], [17, 18, 'win'], [20, 21, 'win'], [23, 24, 'win'], [26.8, 28, 'door']]);
+  wX(b, 12, 30, 1.9, py, 2.4, '#E8ECF2', 0, [[14, 15.2, 'door'], [17, 18, 'win'], [20, 21, 'win'], [23, 24, 'win'], [26.8, 28, 'door']]);
+  wZ(b, -1.9, 1.9, 12, py, 2.4, '#E8ECF2', 0); wZ(b, -1.9, 1.9, 30, py, 2.4, '#E8ECF2', 0);
+  b.push(BX(21, py + 2.4, 0, 9.2, 0.12, 2.05, '#E8ECF2', 0), BX(21, 0, 0, 9, py / 2 - 0.12, 1.5, '#9AA0A8', 0));
+  for (let r = 0; r < 6; r++) for (const sz of [-1.1, 1.1]) b.push(BX(16 + r * 1.8, py, sz, 0.3, 0.3, 0.5, '#2F4A7A', 0));
+  flight(b, 14.6, -5.1, 0, 'z', 7, 1.1, '#9AA0A8', 4); flight(b, 27.4, 5.1, 0, '-z', 7, 1.1, '#9AA0A8', 4);
+  d.push(BX(21, py + 0.8, -6.5, 3, 0.12, 4.5, '#D5DAE3', 0), BX(21, py + 0.8, 6.5, 3, 0.12, 4.5, '#D5DAE3', 0), BX(30.6, py + 1.5, 0, 0.8, 2.5, 0.12, '#2F74E8', 0), BX(10.8, py, 0, 1.2, 1.2, 1.6, '#E8ECF2', 0), [18, py - 0.2, -5.5, 0.7, 0.7, 1.4, '#B9BDC6', 0, 0, 3], [18, py - 0.2, 5.5, 0.7, 0.7, 1.4, '#B9BDC6', 0, 0, 3]);
+  for (const [x, z] of [[10, -12], [11.5, -12], [10, 12], [11.5, 12]]) b.push(BX(x, 0, z, 0.6, 0.45, 1.0, '#E39424', 4));
+  for (const [x, z] of [[16, -10], [24, 10], [28, -10]]) b.push([x, 0.35, z, 0.18, 0.35, 0.18, '#FF7A1A', 0, 0, 1]);
+  return { name: 'Terminal', blurb: 'An airport with a gate hall, an upstairs lounge, shops, and a plane you can board', sky: '#DDE6F0', ground: '#7A8296', fog: ['#D5DDE8', 0.005], floor: '#C8CCD2', floorTex: 8, S, tint: 'linear-gradient(135deg,#9FB4C8,#3E4A5E)',
+    boxes: b, decor: d, spawns: [[-27, 0, -13], [-27, 0, 13], [-26, U, -13], [-26, U, 13], [28, 0, -14], [28, 0, 14], [20, 0, -12], [20, 0, 12], [-2, 0, 0], [21, py, 0]] };
+}
+
+// ======================= Highrise: skyscraper rooftops above a glowing city =======================
+function highrise() {
+  const b = [], d = [], S = 28, C = '#9AA0A8', U = 3.4, R = 6.8;
+  for (const [x, z, hx, hz] of [[0, -S, S, 0.3], [0, S, S, 0.3], [-S, 0, 0.3, S], [S, 0, 0.3, S]]) b.push(BX(x, 0, z, hx, 0.55, hz, C, 3));
+  // the office: two floors of glass offices and stairs up to a roof with a helipad
+  const X0 = -25, X1 = -7, Z0 = -10, Z1 = 10, Wl = '#7A8C9E';
+  wX(b, X0, X1, Z0, 0, U, Wl, 11, [[-24, -22.6, 'win'], [-20, -18, 'door'], [-16, -14, 'win']]); wX(b, X0, X1, Z1, 0, U, Wl, 11, [[-22, -19, 'win'], [-16, -13, 'win'], [-11, -9, 'door']]);
+  wZ(b, Z0, Z1, X0, 0, U, Wl, 11, [[-6, -2, 'win'], [2, 6, 'win']]); wZ(b, Z0, Z1, X1, 0, U, Wl, 11, [[-7, -5.6, 'door'], [-1, 1, 'win'], [5.6, 7, 'door']]);
+  for (const z of [-5, 0, 5]) for (const x of [-21, -16]) furn.table(b, x, z, 0, 1.2, 0.6);
+  b.push(BX(-12, 0, -3, 0.06, 1.1, 2.5, '#9FB4C8', 11), BX(-12, 0, 3.8, 0.06, 1.1, 2.0, '#9FB4C8', 11));
+  flight(b, -8.2, -8.8, 0, '-x', 11, 1.3, '#8E98A3', 3); b.push(BX(-13.25, U - 0.12, -8.8, 0.45, 0.06, 0.65, '#8E98A3', 3));
+  slab(b, X0, Z0, X1, Z1, U, '#8E949C', 8, [-13.7, -9.6, -7.9, -8.0]);
+  wX(b, X0, X1, Z0, U, U, Wl, 11, [[-23, -17, 'win'], [-15, -10, 'win']]); wX(b, X0, X1, Z1, U, U, Wl, 11, [[-23, -17, 'win'], [-15, -10, 'win']]);
+  wZ(b, Z0, Z1, X0, U, U, Wl, 11, [[-7, 7, 'win']]); wZ(b, Z0, Z1, X1, U, U, Wl, 11, [[-3, 3, 'win']]);
+  for (const z of [-4, 4]) furn.table(b, -20, z, U, 1.4, 0.7);
+  flight(b, -9.0, 8.6, U, '-x', 11, 1.2, '#8E98A3', 3); b.push(BX(-14.1, R - 0.12, 8.6, 0.45, 0.06, 0.6, '#8E98A3', 3));
+  slab(b, X0, Z0, X1, Z1, R, '#8E949C', 3, [-14.5, 7.9, -8.8, 9.3]);
+  lowX(b, X0, X1, Z0, R, C); lowX(b, X0, X1, Z1, R, C); lowZ(b, Z0, Z1, X0, R, C); lowZ(b, Z0, Z1, X1, R, C);
+  b.push(BX(-18, R, 0, 4, 0.04, 4, '#3A3D42', 6), BX(-18, R + 0.05, 0, 0.25, 0.01, 2.4, '#F2C14E', 0, 1), BX(-19.6, R + 0.05, 0, 0.25, 0.01, 2.4, '#F2C14E', 0, 1), BX(-16.4, R + 0.05, 0, 0.25, 0.01, 2.4, '#F2C14E', 0, 1), BX(-18, R + 0.05, 0, 1.4, 0.01, 0.25, '#F2C14E', 0, 1));
+  // middle roof: AC units, vents and a stairwell hut
+  for (const [x, z] of [[-2, -14], [-2, 14], [2, -4], [2, 4]]) b.push(BX(x, 0, z, 1.4, 0.8, 1.0, '#8E98A3', 4));
+  b.push(BX(-2, 0, 0, 1.6, 1.5, 1.6, '#B9BDC6', 3), BX(-14, 0, 18, 3, 0.5, 2, '#9FB4C8', 11), BX(-14, 0, -18, 3, 0.5, 2, '#9FB4C8', 11));
+  // the raised east roof, with stairs up, a water tower and a shed you can walk into
+  b.push(BX(16, 0, 0, 10, 1.5, 26, '#9AA0A8', 3));
+  flight(b, 1.8, -12, 0, 'x', 10, 2.0, '#7A8296', 3); flight(b, 1.8, 12, 0, 'x', 10, 2.0, '#7A8296', 3);
+  for (const [x, z] of [[10, -20], [14, -20], [10, -16], [14, -16]]) b.push([x, 4.5, z, 0.12, 1.5, 0.12, '#3A3F4A', 0, 0, 1]);
+  b.push([12, 7.3, -18, 2.4, 1.3, 2.4, '#7A5A3C', 0, 2, 1]);
+  wX(b, 14, 22, 8, 3, 2.8, '#B9BDC6', 3, [[16, 17.2, 'door']]); wX(b, 14, 22, 14, 3, 2.8, '#B9BDC6', 3, [[18, 19.6, 'win']]); wZ(b, 8, 14, 14, 3, 2.8, '#B9BDC6', 3, [[10, 11.6, 'win']]); wZ(b, 8, 14, 22, 3, 2.8, '#B9BDC6', 3);
+  b.push(BX(18, 5.8, 11, 4.2, 0.12, 3.2, '#5C6370', 4)); furn.crate(b, 20.8, 12.8, 3, 0.5); furn.table(b, 18, 10.4, 3, 0.8, 0.5);
+  for (const [x, z] of [[10, 0], [22, -6], [8, 20]]) b.push(BX(x, 3, z, 1.4, 0.8, 1.0, '#8E98A3', 4));
+  d.push(...[[-60, 25, -10, 6, 25, 8], [-55, 18, 30, 7, 18, 6], [55, 30, -20, 8, 30, 8], [60, 20, 25, 6, 20, 9], [0, 22, -66, 10, 22, 6], [10, 28, 66, 8, 28, 7], [-30, 15, -62, 6, 15, 6], [35, 16, 60, 7, 16, 6]].map(q => [q[0], q[1] - 30, q[2], q[3], q[4], q[5], '#4A5A7A', 0, 11, 0]));
+  return { name: 'Highrise', blurb: 'Rooftops above a glowing city: a two-floor office with a helipad roof, and a raised east deck', sky: '#2E3A66', ground: '#1E2238', fog: ['#3A4470', 0.008], floor: '#8E949C', floorTex: 3, S, tint: 'linear-gradient(135deg,#3A4470,#E39424)',
+    boxes: b, decor: d, spawns: [[-23, 0, -8], [-23, U, 8], [-18, R, -5], [24, 3, 22], [24, 3, -22], [-4, 0, -24], [-4, 0, 24], [16, 3, 12]] };
+}
+const MAPS = [culDeSac(), shipyard(), pipeworks(), terminal(), highrise()];
+
 for (const m of MAPS) {
   m.solid = m.boxes.map(b => ({ min: [b[0] - b[3], b[1] - b[4], b[2] - b[5]], max: [b[0] + b[3], b[1] + b[4], b[2] + b[5]], b }));
   m.solid.push({ min: [-m.S, -1, -m.S], max: [m.S, 0, m.S], b: [0, -0.5, 0, m.S, 0.5, m.S, m.floor, 0, m.floorTex || 0, 0] });
   m.way = m.spawns.concat(m.boxes.filter(b => !b[7] && b[4] < 2.6 && b[3] > 1).map(b => [b[0], b[1] + b[4], b[2]]));
 }
 
+// ---- bot navigation: standing spots on every floor, roof and step, linked where you can really walk ----
+// A slim body check for standing spots, so the middle of a 0.42 m stair step still counts.
+function navBlocked(p) { const r = 0.14; for (const bx of M.solid) if (p[0] + r > bx.min[0] && p[0] - r < bx.max[0] && p[1] + PH > bx.min[1] && p[1] < bx.max[1] && p[2] + r > bx.min[2] && p[2] - r < bx.max[2]) return true; return false; }
+function buildNav(m) {
+  const prev = M; M = m;
+  const pts = [];
+  for (const bx of m.solid) {
+    const y = bx.max[1]; if (y > 12 || !bx.b[6]) continue;
+    const w = bx.max[0] - bx.min[0], dd = bx.max[2] - bx.min[2];
+    if (Math.min(w, dd) < 0.4) continue;
+    const nx = Math.max(1, Math.round(w / 2.2)), nz = Math.max(1, Math.round(dd / 2.2));
+    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
+      const q = [bx.min[0] + (i + 0.5) * w / nx, y + 0.01, bx.min[2] + (j + 0.5) * dd / nz];
+      if (Math.abs(q[0]) > m.S - 0.8 || Math.abs(q[2]) > m.S - 0.8) continue;
+      if (!navBlocked(q)) pts.push(q);
+    }
+  }
+  const C = 3.2, grid = new Map(), K = (x, z) => Math.floor(x / C) + ',' + Math.floor(z / C);
+  pts.forEach((q, i) => { const k = K(q[0], q[2]); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(i); });
+  const nb = pts.map(() => []);
+  pts.forEach((a2, i) => {
+    const cx = Math.floor(a2[0] / C), cz = Math.floor(a2[2] / C);
+    for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) for (const j of grid.get((cx + dx) + ',' + (cz + dz)) || []) {
+      if (j <= i) continue;
+      const b2 = pts[j], hz = Math.hypot(b2[0] - a2[0], b2[2] - a2[2]), dy = b2[1] - a2[1];
+      if (hz > 3.2 || hz < 0.05 || Math.abs(dy) > 0.62) continue;
+      const top = Math.max(a2[1], b2[1]), d = [(b2[0] - a2[0]) / hz, 0, (b2[2] - a2[2]) / hz];
+      if (worldHit([a2[0], top + 0.9, a2[2]], d, hz) < hz - 0.05) continue;
+      if (Math.abs(dy) < 0.05 && worldHit([a2[0], top + 0.35, a2[2]], d, hz) < hz - 0.05) continue;
+      let ok = true; for (const f of [0.25, 0.5, 0.75]) { const mid = [a2[0] + (b2[0] - a2[0]) * f, top + 0.45, a2[2] + (b2[2] - a2[2]) * f]; if (worldHit(mid, [0, -1, 0], 1.25) >= 1.25) { ok = false; break; } }
+      if (!ok) continue;
+      nb[i].push(j); nb[j].push(i);
+    }
+  });
+  // keep the biggest connected area as the places bots wander to
+  const comp = new Int32Array(pts.length).fill(-1); let best = -1, bestN = 0;
+  for (let i = 0; i < pts.length; i++) {
+    if (comp[i] >= 0) continue; const st = [i]; comp[i] = i; let n = 0;
+    while (st.length) { const k = st.pop(); n++; for (const j of nb[k]) if (comp[j] < 0) { comp[j] = i; st.push(j); } }
+    if (n > bestN) { bestN = n; best = i; }
+  }
+  const main = []; for (let i = 0; i < pts.length; i++) if (comp[i] === best) main.push(i);
+  M = prev;
+  return { pts, nb, main, comp };
+}
+function navNear(p) {
+  const N = M.nav; let best = -1, bd = 1e9;
+  for (const i of N.main) { const q = N.pts[i], d = (q[0] - p[0]) ** 2 + ((q[1] - p[1]) * 2.5) ** 2 + (q[2] - p[2]) ** 2; if (d < bd) { bd = d; best = i; } }
+  return best;
+}
+function navPath(a, b) {
+  const N = M.nav; if (a < 0 || b < 0) return [];
+  const prev = new Int32Array(N.pts.length).fill(-1), q = [a]; prev[a] = a;
+  for (let h = 0; h < q.length; h++) { const k = q[h]; if (k === b) break; for (const j of N.nb[k]) if (prev[j] < 0) { prev[j] = k; q.push(j); } }
+  if (prev[b] < 0) return [];
+  const path = []; for (let k = b; k !== a; k = prev[k]) path.push(k); path.reverse();
+  return path;
+}
+
 /* ================= account: owned gear, your avatar look, K/D ================= */
 let FB = null, fsdb = null, ME_UID = null;
 async function initFirebase() {
   try {
-    const cfg = await import('./firebase-config.js?v=20261102r');
+    const cfg = await import('./firebase-config.js?v=20261102s');
     const base = 'https://www.gstatic.com/firebasejs/12.15.0/';
-    const [app, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
-    FB = Object.assign({}, app, au, fs);
+    const [app, au, fs, rd] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js'), import(base + 'firebase-database.js').catch(() => null)]);
+    FB = Object.assign({}, app, au, fs); FB.r = rd;
     const a = FB.initializeApp(cfg.FIREBASE_CONFIG);
     const auth = FB.getAuth(a); fsdb = FB.getFirestore(a);
+    try { rtdb = rd ? rd.getDatabase(a) : null; } catch (e) { rtdb = null; }
     FB.onAuthStateChanged(auth, u => {
-      ME_UID = u ? u.uid : null;
+      ME_UID = u ? u.uid : null; myName = u ? '@' + String(u.email || '').split('@')[0] : '';
       if (u) FB.onSnapshot(FB.doc(fsdb, 'fpsStats/' + u.uid), d => {
         stats = d.data() || {}; owned = new Set(stats.owned || []); skinsOwned = new Set(stats.skins || []); myLook = stats.look || null;
         if (stats.lo && (stats.loT || 0) > (loadout.t || 0)) { try { loadout = Object.assign({}, DEFAULT_LOADOUT, JSON.parse(stats.lo)); localStorage.setItem('scobbstrike-loadout2', JSON.stringify(loadout)); } catch (e2) { /* keep the local one */ } }
@@ -533,12 +763,25 @@ function drawUI() {
     h += `<div class="stats">${st('Damage', g.dmg, base.dmg)}${st('Fire rate', g.rpm, base.rpm)}${st('Magazine', g.mag, base.mag)}${st('Range', g.range, base.range, ' m')}${st('Reload', g.reload, base.reload, ' s', true, x => x.toFixed(1))}${st('Move', g.move * 100, base.move * 100, '%')}${st('Aim time', g.ads * 1000, base.ads * 1000, ' ms', true)}${st('Kick', g.recoil * 1000, base.recoil * 1000, '', true)}${st('Zoom', g.zoom, base.zoom, '×', false, x => x.toFixed(1))}</div>`;
     h += `<div class="slots">${slots.map(([k, label, cur]) => `<button type="button" class="slotb${smithSlot === k ? ' on' : ''}" data-act="slot" data-v="${k}"><span>${label}</span><b>${cur}</b></button>`).join('')}</div>`;
     h += `<div class="sopts">${slotOptions(id, smithSlot, at)}</div></div>`;
+  } else if (view === 'zlobby') {
+    const L = ZN.lobby || {}, pl = L.pl || {}, n = Object.keys(pl).length;
+    h += `<div class="panel wide"><h2>Co-op lobby</h2><p class="small soft">Send your friends this code. They open Scobb Strike, go to Scobb Zombies and join with it. Up to 4 players.</p><div class="zcodebig">${ZN.code}</div>`;
+    h += `<h3>Players (${n}/4)</h3><div class="zrow">${Object.entries(pl).map(([id, q]) => `<span class="zchip">${zesc(q.n)}${id === L.h ? ' · host' : ''}${id === ME_UID ? ' (you)' : ''}</span>`).join('')}</div>`;
+    h += `<h3>Map</h3>${ZN.host ? `<div class="wgrid">${ZMAPS.map((m, i) => `<button type="button" class="wcard${(L.m || 0) === i ? ' eq' : ''}" data-act="zmap" data-v="${i}"><b>${m.name}</b><span>${m.blurb}</span></button>`).join('')}</div>` : `<p>${ZMAPS[L.m || 0].name}</p>`}`;
+    h += ZN.host ? `<button type="button" class="btn block" data-act="zcoopstart" style="margin-top:8px">Start with ${n} player${n === 1 ? '' : 's'}</button>` : `<p class="small soft">Waiting for the host to start…</p>`;
+    h += `<button type="button" class="btn ghost block" data-act="zleave" style="margin-top:8px">Leave lobby</button></div>`;
   } else if (view === 'zombies') {
     h += `<div class="panel wide"><h2>Scobb Zombies</h2><p class="small soft">Survive round after round. Zombies climb in through the windows, so rebuild the barriers. Earn points for every hit and kill, then spend them on doors, wall guns, the Mystery Box and Perk-a-Colas. Turn on the power to wake up the perks and Pack-a-Punch. Your own guns, camos and attachments come with you.</p>`;
     h += `<h3>Map</h3><div class="wgrid">${ZMAPS.map((m, i) => `<button type="button" class="wcard${zSel.map === i ? ' eq' : ''}" data-act="zmap" data-v="${i}"><b>${m.name}</b><span>${m.blurb}</span></button>`).join('')}</div>`;
     h += `<h3>Field upgrade</h3><div class="row">${Object.keys(ZFIELD).map(k => opt('zfu', k, zSel.fu === k, ZFIELD[k].name, ZFIELD[k].blurb)).join('')}</div>`;
     h += `<p class="small soft">Best round ${stats.zr || 0} · ${stats.zk || 0} zombie kills · ${stats.zq ? 'main quest done ' + stats.zq + '×' : 'main quest not done yet'}</p>`;
-    h += `<button type="button" class="btn block" data-act="zstart" style="margin-top:6px">Start ${ZMAPS[zSel.map].name}</button>`;
+    h += `<button type="button" class="btn block" data-act="zstart" style="margin-top:6px">Play solo on ${ZMAPS[zSel.map].name}</button>`;
+    if (zcoReady()) {
+      zWatchList();
+      const open = Object.entries(ZN.lobbies).filter(([c, l]) => l && l.st === 'lobby' && Object.keys(l.pl || {}).length < 4 && (!l.t || Date.now() - l.t < 30 * 60000));
+      h += `<h3>Co-op</h3><p class="small soft">Play with up to 3 friends. One of you hosts, everyone else joins with the code.</p><div class="zrow"><button type="button" class="btn" data-act="zhost">Host a co-op game</button><input id="zcode" class="zin" maxlength="4" placeholder="CODE" autocomplete="off"><button type="button" class="btn ghost" data-act="zjoin">Join</button></div>`;
+      if (open.length) h += `<div class="wgrid" style="margin-top:8px">${open.map(([c, l]) => `<button type="button" class="wcard" data-act="zjoinc" data-v="${c}"><b>${zesc(l.hn)}’s lobby</b><span>${ZMAPS[l.m || 0].name} · ${Object.keys(l.pl || {}).length}/4 · code ${c}</span></button>`).join('')}</div>`;
+    } else h += `<p class="small soft" style="margin-top:10px">Log in on ScobbBucks to play co-op with friends.</p>`;
     h += `<details class="small soft" style="margin-top:12px"><summary>How it works</summary><p><b>Keys:</b> F buys and opens things, hold F at a window to rebuild it. V knifes. G throws a frag. X uses your field upgrade. 1 to 3 switch guns. Hold C at the crafting table and press 1 to 4 to craft. Tab shows your stats and the main quest step.</p><p><b>Points:</b> 10 per hit, 60 per kill, 100 for a headshot kill, 130 for a knife kill, 10 per plank. Double Points doubles them.</p><p><b>Perks</b> (up to ${ZPERK_LIMIT}): ${Object.values(ZPERKS).map(p => `${p.name} ${p.cost}`).join(', ')}. Going down loses them.</p><p><b>Power-ups</b> drop from zombies: Max Ammo, Insta-Kill, Double Points, Nuke, Carpenter and Fire Sale.</p><p><b>Salvage</b> drops too. Spend it at the crafting table on armor plates, grenades, a self-revive, or a better weapon rarity (Uncommon to Legendary).</p><p><b>Every 5th round</b> is a Hellhound round.</p><p><b>Main quest:</b> there’s more to each map than surviving. Start by turning on the power.</p></details></div>`;
   } else if (view === 'armory') {
     h += `<div class="panel"><h2>Armory</h2><p class="small soft">Each class has 5 guns. Higher tiers hit harder and handle better. Unlock them with ScobbBucks in the ScobbBucks app under Scobb Strike Armory, and they show up here.</p>`;
@@ -651,7 +894,12 @@ ui.addEventListener('click', e => {
   else if (a === 'practice') return beginPractice();
   else if (a === 'range') return beginRange();
   else if (a === 'gungame') return beginPractice('gun');
-  else if (a === 'zmap') { zSel.map = Number(v); drawUI(); return; }
+  else if (a === 'zmap') { zSel.map = Number(v); if (view === 'zlobby' && ZN.host && zcoReady()) FB.r.update(zR('lobbies/' + ZN.code), { m: zSel.map }).catch(() => {}); drawUI(); return; }
+  else if (a === 'zhost') return zHostLobby();
+  else if (a === 'zjoin') return zJoinLobby(($('#zcode') || {}).value);
+  else if (a === 'zjoinc') return zJoinLobby(v);
+  else if (a === 'zcoopstart') return zStartCoop();
+  else if (a === 'zleave') return zLeaveLobby();
   else if (a === 'zfu') { zSel.fu = v; drawUI(); return; }
   else if (a === 'zstart') { const go = () => beginZombies(zSel.map); const first = (() => { try { return !localStorage.getItem('scobbstrike-controls-seen'); } catch (e) { return false; } })(); if (first && !TEST) { try { localStorage.setItem('scobbstrike-controls-seen', '1'); } catch (e) { /* ignore */ } } return go(); }
   else if (a === 'store') return openStore();
@@ -662,7 +910,7 @@ ui.addEventListener('click', e => {
 function openStore(kind) {
   if (document.querySelector('.store')) return;
   const armory = kind === 'armory', d = document.createElement('div'); d.className = 'store';
-  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102r" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
+  d.innerHTML = `<div class="store-bar"><b>${armory ? 'Armory' : 'Inventory'}</b><button type="button" class="btn ghost" id="st-x">Close</button></div><iframe src="./?store=${armory ? 'armory' : '1'}&v=20261102s" title="${armory ? 'Armory' : 'Inventory'}" allow="clipboard-write"></iframe>`;
   document.body.appendChild(d);
   d.querySelector('#st-x').onclick = () => d.remove();
 }
@@ -737,7 +985,7 @@ function spawn(e) {
   else for (const s of M.spawns) { const d = others.length ? Math.min(...others.map(o => len(sub(o.p, s)))) : 99; if (d > bestD) { bestD = d; best = s; } }
   e.p = best.slice(); e.p[1] += 0.05; e.v = [0, 0, 0]; e.hp = 100; e.alive = true; e.yaw = Math.atan2(-e.p[0], e.p[2]); e.pitch = 0; e.prot = PROT;
   e.guns.forEach(g => { g.ammo = g.s.mag; }); e.cur = 0; e.reloadT = 0; e.tac = mode === 'gun' ? 0 : 1; e.leth = mode === 'gun' ? 0 : e.lo.perks[1] === 1 ? 2 : 1; e.flashT = 0; e.cook = -1; e.lastHurt = -99;
-  if (e.bot) { e.goal = null; e.target = null; e.react = 0; e.strafe = 1; e.aimErr = [rand(-0.2, 0.2), rand(-0.1, 0.1)]; e.nadeT = rand(6, 14); e.tacT = rand(4, 10); }
+  if (e.bot) { e.goal = null; e.path = null; e.lastSeen = null; e.target = null; e.react = 0; e.strafe = 1; e.aimErr = [rand(-0.2, 0.2), rand(-0.1, 0.1)]; e.nadeT = rand(6, 14); e.tacT = rand(4, 10); }
 }
 let forceMap = null;
 function newMatch(isAttract, mapOrder) {
@@ -920,6 +1168,7 @@ function botThink(b, dt) {
   let wantMove;
   if (b.target && b.flashT <= 0) {
     const tp = add(b.target.p, [0, 1.0, 0]), d = sub(tp, eye), dist = len(d);
+    if (canSee(eye, tp)) { b.lastSeen = b.target.p.slice(); b.lastSeenT = match.clock; }
     const yaw = Math.atan2(d[0], -d[2]), pitch = Math.asin(d[1] / dist);
     let dy = yaw - b.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
     b.yaw += Math.max(-5 * dt, Math.min(5 * dt, dy)); b.pitch += (pitch - b.pitch) * Math.min(1, dt * 6);
@@ -936,12 +1185,24 @@ function botThink(b, dt) {
     b.tacT -= dt;
     if (b.tacT <= 0 && b.tac > 0) { b.tacT = 99; if (b.lo.tac === 'stim') { if (b.hp < 50) { b.tac--; b.stimT = 1; } else b.tacT = 2; } else { b.tac--; throwNade(b, b.lo.tac, 0); } }
   } else {
-    if (!b.goal || len(sub([b.goal[0], 0, b.goal[2]], [b.p[0], 0, b.p[2]])) < 1.5 || b.stuck > 0.8) { b.goal = M.way[Math.floor(Math.random() * M.way.length)]; b.stuck = 0; }
-    const d = sub(b.goal, b.p), yaw = Math.atan2(d[0], -d[2]);
-    let dy = yaw - b.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
-    b.yaw += Math.max(-4 * dt, Math.min(4 * dt, dy)); b.pitch *= 0.9; b.ads = 0;
-    wantMove = nrm([d[0], 0, d[2]]);
-    if (b.stuck > 0.3 && b.ground) b.v[1] = 7;
+    if (!M.nav) M.nav = buildNav(M);
+    b.navT = (b.navT || 0) - dt;
+    if (!b.path || !b.path.length || b.navT <= 0 || b.stuck > 0.9) {
+      const hunt = b.lastSeen && match.clock - (b.lastSeenT || -99) < 10;
+      const g = hunt ? navNear(b.lastSeen) : M.nav.main[Math.floor(Math.random() * M.nav.main.length)];
+      b.path = navPath(navNear(b.p), g); b.navT = hunt ? 3 : 8; b.stuck = 0;
+      if (hunt && !b.path.length) b.lastSeen = null;
+    }
+    let tg = b.path.length ? M.nav.pts[b.path[0]] : null;
+    while (tg && Math.hypot(tg[0] - b.p[0], tg[2] - b.p[2]) < 0.55 && Math.abs(tg[1] - b.p[1]) < 1.0) { b.path.shift(); tg = b.path.length ? M.nav.pts[b.path[0]] : null; }
+    if (!tg) { b.path = null; if (b.lastSeen && Math.hypot(b.lastSeen[0] - b.p[0], b.lastSeen[2] - b.p[2]) < 2) b.lastSeen = null; wantMove = [0, 0, 0]; }
+    else {
+      const d = sub(tg, b.p), yaw = Math.atan2(d[0], -d[2]);
+      let dy = yaw - b.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2;
+      b.yaw += Math.max(-6 * dt, Math.min(6 * dt, dy)); b.pitch *= 0.9; b.ads = 0;
+      wantMove = nrm([d[0], 0, d[2]]);
+    }
+    if (b.stuck > 0.35 && b.ground) b.v[1] = 7;
   }
   if (b.guns[b.cur].ammo <= 0) reload(b);
   const sp = 4.6 * W.move;
@@ -1235,7 +1496,10 @@ function mapRandomizer(win, done) {
 }
 function quit() {
   if (document.exitPointerLock) document.exitPointerLock();
-  if (mode === 'zombies') { if (ZS && !ZS.over && ZS.round > 1) zSave(false); const zh = document.getElementById('zhud'); if (zh) zh.remove(); Z = []; ZS = null; }
+  if (mode === 'zombies') {
+    if (ZN.on) { if (ZN.host && ZS && !ZS.over) { ZS.over = true; ZN.lastS = 0; zNetTick(); } if (zcoReady()) FB.r.remove(zR('games/' + ZN.code + '/p/' + ME_UID)).catch(() => {}); zLeaveLobby(true); }
+    if (ZS && !ZS.over && ZS.round > 1) zSave(false); const zh = document.getElementById('zhud'); if (zh) zh.remove(); Z = []; ZS = null;
+  }
   if ((mode === 'match' || mode === 'gun') && me && !attract && match && match.phase !== 'done' && ((me.tk || 0) + (me.td || 0)) > 0) recordMatch(false, true);
   hideDeath(); paused = false; mode = 'match'; startAttract();
 }
@@ -1287,7 +1551,7 @@ function step(dt) {
       e.v[0] = (f[0] * mz + r[0] * mx) * sp; e.v[2] = (f[2] * mz + r[2] * mx) * sp;
       if (keys.Space && e.ground && !(mode === 'zombies' && zDown())) e.v[1] = 7;
       e.bob += Math.hypot(e.v[0], e.v[2]) * dt;
-      if ((mouse.l || touchFire) && live && !sprint) { const did = shoot(e); if (did && !e.guns[e.cur].s.auto) { mouse.l = false; touchFire = false; } }
+      if ((mouse.l || touchFire) && live && !sprint && !(mode === 'zombies' && ZS && ZS.dead)) { const did = shoot(e); if (did && !e.guns[e.cur].s.auto) { mouse.l = false; touchFire = false; } }
       e.kick = Math.max(0, (e.kick || 0) - dt * 8);
     }
     e.walk += Math.hypot(e.v[0], e.v[2]) * dt;
@@ -1474,7 +1738,7 @@ const ZBOX_IDS = Object.keys(WEAPONS), ZBOX_STATS = Object.fromEntries(ZBOX_IDS.
 let ZM = null, Z = [], ZS = null, zFlowT = 0, zFlow = null, zNav = null, zPups = [], zMines = [], zBolts = [];
 const zSel = { map: 0, fu: 'shroud' };
 const zHas = id => !!(ZS && ZS.perks.includes(id));
-const zDown = () => !!(ZS && ZS.downT > 0);
+const zDown = () => !!(ZS && (ZS.downT > 0 || ZS.dead));
 const zCount = r => (r < 10 ? [6, 8, 13, 18, 24, 27, 28, 28, 29][r - 1] : Math.floor(0.0842 * r * r + 0.1954 * r + 22.05));
 const zHealth = r => (r < 10 ? 150 + 100 * (r - 1) : Math.floor(950 * Math.pow(1.1, r - 9)));
 const zDogRound = r => r >= 5 && r % 5 === 0;
@@ -1516,10 +1780,10 @@ function zBuildNav() {
   zFlow = null;
 }
 const zCell = (x, z) => { const N = zNav.N, i = Math.floor((x + zNav.S) / NC), j = Math.floor((z + zNav.S) / NC); return i < 0 || j < 0 || i >= N || j >= N ? -1 : j * N + i; };
-function zMakeFlow(tx, tz) {
+function zMakeFlow(pts) {
   const N = zNav.N, dist = new Int32Array(N * N).fill(1e9), q = new Int32Array(N * N); let qh = 0, qt = 0;
-  const s = zCell(tx, tz); if (s < 0) return null;
-  dist[s] = 0; q[qt++] = s;
+  for (const pt of pts) { const s = zCell(pt[0], pt[2]); if (s >= 0 && dist[s]) { dist[s] = 0; q[qt++] = s; } }
+  if (!qt) return null;
   while (qh < qt) {
     const k = q[qh++], i = k % N, j = (k - i) / N;
     for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
@@ -1533,8 +1797,8 @@ function zMakeFlow(tx, tz) {
   return dist;
 }
 // ---- starting a game ----
-function beginZombies(mapIdx) {
-  mode = 'zombies'; attract = false;
+function beginZombies(mapIdx, coop) {
+  mode = 'zombies'; attract = false; if (!coop) ZN.on = false;
   ZM = zPrep(ZMAPS[mapIdx]); M = ZM;
   match = { round: 0, maps: [0], clock: 0, phase: 'live' };
   const look = myLook ? Object.assign({ body: '#B98BFF' }, myLook) : botLook('#B98BFF');
@@ -1548,7 +1812,8 @@ function beginZombies(mapIdx) {
   setMapLook(); G.light(ZM.light);
   nades = []; fires = []; smokes = []; fx = []; tracers = []; feed = [];
   view = 'game'; drawUI(); buildHud(); zBuildHud(); $('#hud').hidden = false; paused = false;
-  zNextRound();
+  if (coop) zNetBegin();
+  if (!coop || ZN.host) zNextRound(); else zMsg('Co-op', 'Joining the host’s game…');
   if (!TEST && !touchDev && cv.requestPointerLock) cv.requestPointerLock();
 }
 // A gun for zombies: your own attachments and camo on it, plus reserve ammo.
@@ -1567,13 +1832,14 @@ function zRestat(g) {
   g.s = Object.assign({}, b, { dmg: b.dmg * r * p, mag: Math.round(b.mag * (g.pap ? 1.5 : 1)), rpm: b.rpm * (g.pap ? 1.1 : 1), name: (g.pap ? '★ ' : '') + b.name });
 }
 function zNextRound() {
+  if (ZS.dead) zRespawn();
   ZS.round++; ZS.pupsThisRound = 0;
   const r = ZS.round, dogs = zDogRound(r);
   ZS.dogRound = dogs;
   ZS.toSpawn = dogs ? Math.min(24, 4 + r) : zCount(r);
   ZS.spawnT = 2.5;
   if (r > 1) { me.leth = Math.min(4, me.leth + 2); }
-  zMsg(dogs ? `Round ${r} · Hellhounds` : `Round ${r}`, dogs ? 'Something is coming. Stay out of the open.' : r === 1 ? `${ZM.name}. Survive. Rebuild barriers with F.` : '');
+  zSay(dogs ? `Round ${r} · Hellhounds` : `Round ${r}`, dogs ? 'Something is coming. Stay out of the open.' : r === 1 ? `${ZM.name}. Survive. Rebuild barriers with F.` : '');
 }
 function zMsg(a, b) { say(a, b); }
 // ---- spawning ----
@@ -1584,7 +1850,7 @@ function zSpawnOne() {
       const a = Math.random() * Math.PI * 2, d = 7 + Math.random() * 6, x = me.p[0] + Math.cos(a) * d, z = me.p[2] + Math.sin(a) * d, k = zCell(x, z);
       if (k < 0 || zNav.blk[k] || !zInOpen(x, z)) continue;
       fx.push({ p: [x, 1.5, z], v: [0, 0, 0], t: 0, life: 0.5, c: '#9EF6FF', r: 1.4, boom: 1 });
-      Z.push({ zombie: true, kind: 'dog', p: [x, 0.05, z], v: [0, 0, 0], hp: hp * 0.4, max: hp * 0.4, speed: 6.2, state: 'chase', yaw: a + Math.PI, walk: 0, atkT: 0, ground: false, col: '#3A1414' });
+      Z.push({ id: ++zId, zombie: true, kind: 'dog', p: [x, 0.05, z], v: [0, 0, 0], hp: hp * 0.4, max: hp * 0.4, speed: 6.2, state: 'chase', yaw: a + Math.PI, walk: 0, atkT: 0, ground: false, col: '#3A1414' });
       return true;
     }
     return false;
@@ -1596,7 +1862,7 @@ function zSpawnOne() {
   const roll = Math.random();
   const run = r >= 10 ? 0.8 : r >= 6 ? 0.45 : r >= 4 ? 0.12 : 0, jog = r >= 3 ? 0.5 : 0;
   const speed = roll < run ? 4.0 + Math.random() * 0.4 : roll < run + jog ? 2.5 + Math.random() * 0.3 : 1.25 + Math.random() * 0.25;
-  Z.push({ zombie: true, kind: 'z', p: [sx, 0.05, sz], v: [0, 0, 0], hp, max: hp, speed, state: 'outside', win: w, yaw: Math.atan2(w.n[0], -w.n[1]), walk: Math.random() * 10, atkT: 0, ground: false, col: pick(['#8FA37A', '#9AA58A', '#7F9A6A', '#A0A890']), shirt: pick(['#4A4A52', '#5A3A2A', '#3A4A5A', '#6A5A4A', '#4A5A3A']) });
+  Z.push({ id: ++zId, zombie: true, kind: 'z', p: [sx, 0.05, sz], v: [0, 0, 0], hp, max: hp, speed, state: 'outside', win: w, yaw: Math.atan2(w.n[0], -w.n[1]), walk: Math.random() * 10, atkT: 0, ground: false, col: pick(['#8FA37A', '#9AA58A', '#7F9A6A', '#A0A890']), shirt: pick(['#4A4A52', '#5A3A2A', '#3A4A5A', '#6A5A4A', '#4A5A3A']) });
   return true;
 }
 const zInOpen = (x, z) => { for (const zn of ZS.opened) for (const r of ZM.zones[zn] || []) if (x > r[0] && x < r[2] && z > r[1] && z < r[3]) return true; return false; };
@@ -1606,8 +1872,9 @@ function zStep(dt) {
   const now = match.clock;
   ZS.insta = Math.max(0, ZS.insta - dt); ZS.double = Math.max(0, ZS.double - dt); ZS.fire = Math.max(0, ZS.fire - dt); ZS.invis = Math.max(0, ZS.invis - dt);
   ZS.fuCharge = Math.min(1, ZS.fuCharge + dt / 120);
+  if (ZN.on) { zNetTick(); zCoopDownStep(dt); zReviveStep(dt); if (!ZN.host) { zClientStep(dt); return; } }
   // downed: Quick Revive brings you back, otherwise it's game over
-  if (ZS.downT > 0) {
+  if (!ZN.on && ZS.downT > 0) {
     ZS.downT -= dt; me.v[0] = 0; me.v[2] = 0;
     if (ZS.downT <= 0) { me.hp = me.maxHp; ZS.armor = ZS.armorTier * 50; me.lastHurt = now; zMsg('Back on your feet', ZS.selfRevived ? 'Self-revive used.' : `Quick Revive used (${ZS.qrUses} of 3).`); for (const z of Z) if (len(sub(z.p, me.p)) < 4) { z.p = add(z.p, scl(nrm([z.p[0] - me.p[0], 0, z.p[2] - me.p[2]]), 3)); } }
   }
@@ -1615,24 +1882,24 @@ function zStep(dt) {
   if (ZS.betweenT > 0) { ZS.betweenT -= dt; if (ZS.betweenT <= 0) zNextRound(); }
   else if (!ZS.boss || !ZS.boss.alive) {
     if (ZS.toSpawn > 0 && Z.filter(z => z.kind !== 'boss').length < 24) { ZS.spawnT -= dt; if (ZS.spawnT <= 0) { if (zSpawnOne()) ZS.toSpawn--; ZS.spawnT = ZS.dogRound ? 2.2 : Math.max(0.25, 2.2 * Math.pow(0.93, ZS.round)); } }
-    if (ZS.toSpawn <= 0 && !Z.some(z => z.kind !== 'boss')) { if (ZS.dogRound) zDropPup('max', me.p.slice()); ZS.betweenT = 10; zMsg(`Round ${ZS.round} survived`, 'The next one is coming.'); }
+    if (ZS.toSpawn <= 0 && !Z.some(z => z.kind !== 'boss')) { if (ZS.dogRound) zDropPup('max', me.p.slice()); ZS.betweenT = 10; zSay(`Round ${ZS.round} survived`, 'The next one is coming.'); }
   }
   // the flow field follows you
   zFlowT -= dt;
-  if (zFlowT <= 0 || !zFlow) { zFlowT = 0.25; zFlow = zMakeFlow(me.p[0], me.p[2]); }
-  const target = ZS.invis > 0 ? null : me;
-  for (const z of Z.slice()) zThink(z, dt, target);
+  const tg = zTargets();
+  if (zFlowT <= 0 || !zFlow) { zFlowT = 0.25; zFlow = zMakeFlow(tg.map(t => t.p)); }
+  for (const z of Z.slice()) zThink(z, dt, zPick(z, tg));
   // barrier repair
   const w = zNearWindow();
   if (w && keys.KeyF && w.planks < 6 && !zDown()) { ZS.repairT -= dt; if (ZS.repairT <= 0) { ZS.repairT = zHas('speed') ? 0.4 : 0.75; w.planks++; zPoints(10); fx.push({ p: [w.x, 1.4, w.z], v: [0, 1, 0], t: 0, life: 0.3, c: '#B87333', r: 0.15 }); } }
   else ZS.repairT = 0.2;
   // power-ups
-  for (const pu of zPups.slice()) { pu.t += dt; if (pu.t > 30) { zPups.splice(zPups.indexOf(pu), 1); continue; } if (len(sub([pu.p[0], 0, pu.p[2]], [me.p[0], 0, me.p[2]])) < 1.3) { zPups.splice(zPups.indexOf(pu), 1); zGrabPup(pu.kind); } }
+  for (const pu of zPups.slice()) { pu.t += dt; if (pu.t > 30) { zPups.splice(zPups.indexOf(pu), 1); continue; } if (len(sub([pu.p[0], 0, pu.p[2]], [me.p[0], 0, me.p[2]])) < 1.3 && !zDown()) { if (ZN.on) zGrabHost(pu, ME_UID); else { zPups.splice(zPups.indexOf(pu), 1); zGrabPup(pu.kind); } } }
   // energy mines
   for (const mn of zMines.slice()) { const hit = Z.find(z => z.alive !== false && len(sub(z.p, mn.p)) < 2); if (hit) { zMines.splice(zMines.indexOf(mn), 1); zExplode(mn.p, 4, 600 + ZS.round * 120, true); } }
   // Mystery Box timers and Pack-a-Punch
   const bx = ZS.box; bx.t -= dt;
-  if (bx.state === 'spin' && bx.t <= 0) { if (bx.bear) { bx.state = 'bear'; bx.t = 3; zMsg('Bye bye!', 'The Mystery Box is moving. You got your points back.'); zPoints(950, true); } else { bx.state = 'offer'; bx.t = 9; } }
+  if (bx.state === 'spin' && bx.t <= 0) { if (bx.bear) { bx.state = 'bear'; bx.t = 3; zSay('Bye bye!', 'The Mystery Box is moving.'); if (!ZN.on || bx.owner === ME_UID) zPoints(950, true); } else { bx.state = 'offer'; bx.t = 9; } }
   else if (bx.state === 'offer' && bx.t <= 0) { bx.state = 'idle'; bx.gun = null; }
   else if (bx.state === 'bear' && bx.t <= 0) { bx.state = 'idle'; bx.gun = null; bx.uses = 0; let nx = bx.at; while (nx === bx.at) nx = Math.floor(Math.random() * ZM.boxSpots.length); bx.at = nx; zSolids(); }
   if (ZS.papBusy && performance.now() > ZS.papBusy.until) { const g = ZS.papBusy.g; g.pap = true; g.camo = PAP_CAMO; zRestat(g); g.ammo = g.s.mag; g.max = Math.round(g.max * 1.5); g.res = g.max; ZS.papBusy = null; zMsg('Pack-a-Punched', g.s.name); }
@@ -1657,14 +1924,14 @@ function zThink(z, dt, target) {
   }
   // inside: chase you through the flow field, or straight at you when close
   let dir = null;
-  if (target && !zDown()) {
+  if (target) {
     const dx = target.p[0] - z.p[0], dz = target.p[2] - z.p[2], dist = Math.hypot(dx, dz);
     if (dist < 1.05 && Math.abs(target.p[1] - z.p[1]) < 1.2) {
       z.v[0] = 0; z.v[2] = 0; z.yaw = Math.atan2(dx, -dz);
-      if (z.atkT <= 0) { z.atkT = z.kind === 'dog' ? 0.7 : 1.0; z.swing = 0.4; setTimeout(() => { if (Z.includes(z) && len(sub(z.p, me.p)) < 1.5 && !ZS.over) zHurt(z.kind === 'boss' ? 90 : z.kind === 'dog' ? 25 : 50, 'zombie'); }, 380); }
+      if (z.atkT <= 0) { z.atkT = z.kind === 'dog' ? 0.7 : 1.0; z.swing = 0.4; const dmg = z.kind === 'boss' ? 90 : z.kind === 'dog' ? 25 : 50, tgt = target; setTimeout(() => { if (!ZS || !Z.includes(z) || ZS.over) return; if (tgt.me) { if (len(sub(z.p, me.p)) < 1.5) zHurt(dmg, 'zombie'); } else { const q = ZN.players[tgt.uid]; if (q && Math.hypot(q.x - z.p[0], q.z - z.p[2]) < 1.5) ZN.dmgOut[tgt.uid] = (ZN.dmgOut[tgt.uid] || 0) + dmg; } }, 380); }
       moveBody(z, dt); return;
     }
-    if (dist < 3 && canSee(add(z.p, [0, 1.4, 0]), eyeOf(target))) dir = [dx / dist, dz / dist];
+    if (dist < 3 && canSee(add(z.p, [0, 1.4, 0]), [target.p[0], target.p[1] + 1.6, target.p[2]])) dir = [dx / dist, dz / dist];
     else if (zFlow) {
       const N = zNav.N, k = zCell(z.p[0], z.p[2]);
       if (k >= 0) {
@@ -1705,7 +1972,8 @@ function zHitTest(o, d, best) {
   return { best, victim, part };
 }
 function zHit(z, dmg, part, how) {
-  if (z.jar != null) { ZS.jars[z.jar] = true; const j = ZM.jars[z.jar]; for (let i = 0; i < 24; i++) fx.push({ p: j.slice(), v: [rand(-4, 4), rand(1, 5), rand(-4, 4)], t: 0, life: 0.8, c: '#9EF6FF', r: 0.1 }); const n = ZS.jars.filter(Boolean).length; zMsg(`Aether jar ${n} of 3`, n === 3 ? 'Something answered. Check the Pack-a-Punch.' : 'There are more of them hidden around.'); if (n === 3) ZS.quest = 2; return; }
+  if (zClient()) { zClientHit(z, dmg, part, how); return; }
+  if (z.jar != null) { ZS.jars[z.jar] = true; const j = ZM.jars[z.jar]; for (let i = 0; i < 24; i++) fx.push({ p: j.slice(), v: [rand(-4, 4), rand(1, 5), rand(-4, 4)], t: 0, life: 0.8, c: '#9EF6FF', r: 0.1 }); const n = ZS.jars.filter(Boolean).length; zSay(`Aether jar ${n} of 3`, n === 3 ? 'Something answered. Check the Pack-a-Punch.' : 'There are more of them hidden around.'); if (n === 3) ZS.quest = 2; return; }
   if (!Z.includes(z)) return;
   const head = part === 'head';
   let amt = dmg * 1.6 * (head ? (zHas('dead') ? 3.1 : 2.5) : part === 'legs' ? 0.8 : 1) * (zHas('dt') ? 1.3 : 1);
@@ -1715,18 +1983,17 @@ function zHit(z, dmg, part, how) {
   if (z.hp <= 0) zKill(z, how === 'melee' ? 'melee' : head ? 'head' : 'body');
   else zPoints(10);
 }
-function zKill(z, how, noPts) {
+function zKill(z, how, noPts, other) {
   const i = Z.indexOf(z); if (i < 0) return;
-  Z.splice(i, 1); ZS.kills++; me.tk = (me.tk || 0) + 1;
-  if (how === 'head') ZS.heads++;
+  Z.splice(i, 1);
+  if (!other) { ZS.kills++; me.tk = (me.tk || 0) + 1; if (how === 'head') ZS.heads++; ZS.fuCharge = Math.min(1, ZS.fuCharge + 0.02); }
   if (!noPts) zPoints(z.kind === 'boss' ? 5000 : how === 'melee' ? 130 : how === 'head' ? 100 : 60);
-  ZS.fuCharge = Math.min(1, ZS.fuCharge + 0.02);
   for (let k = 0; k < 10; k++) fx.push({ p: add(z.p, [0, 1, 0]), v: [rand(-3, 3), rand(1, 5), rand(-3, 3)], t: 0, life: 0.6, c: k % 2 ? '#5A1A1A' : z.col, r: 0.12 });
   if (z.kind === 'boss') { z.alive = false; return; }
-  if (Math.random() < 0.14) { ZS.salvage += Math.random() < 0.2 ? 100 : 50; }
+  if (!other && Math.random() < 0.14) { ZS.salvage += Math.random() < 0.2 ? 100 : 50; }
   if (ZS.pupsThisRound < 4 && Math.random() < 0.03) zDropPup(pick(Object.keys(ZPUPS)), z.p.slice());
 }
-function zDropPup(kind, p) { ZS.pupsThisRound++; zPups.push({ kind, p: [p[0], 0, p[2]], t: 0 }); }
+function zDropPup(kind, p) { ZS.pupsThisRound++; zPups.push({ id: ++zId, kind, p: [p[0], 0, p[2]], t: 0 }); }
 function zGrabPup(k) {
   const P = ZPUPS[k]; zMsg(P.name, '');
   if (k === 'max') { for (const g of me.guns) { g.res = g.max; } me.leth = 4; }
@@ -1751,6 +2018,10 @@ function zHurt(amt, how) {
   if (me.hp > 0) return;
   me.hp = 1; ZS.downs++;
   ZS.selfRevived = false;
+  if (ZN.on) {
+    if (ZS.selfRevive > 0) { ZS.selfRevive--; ZS.perks = []; zRecalc(); ZS.downT = 4; ZS.bleed = false; zMsg('You’re down!', 'Using your self-revive. You lost your perks.'); return; }
+    ZS.perks = []; zRecalc(); ZS.downT = 30; ZS.bleed = true; zMsg('You’re down!', 'A teammate can revive you. You have 30 seconds.'); return;
+  }
   if (zHas('qr') && ZS.qrUses < 3) { ZS.qrUses++; ZS.perks = []; zRecalc(); ZS.downT = 4; zMsg('You’re down!', `Quick Revive is getting you back up. You lost your perks.${ZS.qrUses < 3 ? ' You can buy Quick Revive again.' : ''}`); return; }
   if (ZS.selfRevive > 0) { ZS.selfRevive--; ZS.selfRevived = true; ZS.perks = []; zRecalc(); ZS.downT = 4; zMsg('You’re down!', 'Using your self-revive. You lost your perks.'); return; }
   zGameOver();
@@ -1758,6 +2029,7 @@ function zHurt(amt, how) {
 function zRecalc() { me.maxHp = zHas('jug') ? 250 : 150; me.hp = Math.min(me.hp, me.maxHp); }
 function zGameOver() {
   ZS.over = true; match.phase = 'done'; me.v = [0, 0, 0];
+  if (ZN.on && ZN.host) { ZN.lastS = 0; zNetTick(); FB.r.update(zR('lobbies/' + ZN.code), { st: 'over' }).catch(() => {}); }
   const mins = Math.floor((performance.now() - ZS.startAt) / 60000);
   say('Game Over', `You survived ${ZS.round} round${ZS.round === 1 ? '' : 's'} on ${ZM.name}. ${ZS.kills} kills, ${ZS.heads} headshots, ${mins} min. Press Esc for the menu.`, true);
   zSave(false);
@@ -1770,7 +2042,7 @@ function zWin() {
   document.body.appendChild(d); setTimeout(() => d.remove(), 7000);
 }
 function zSave(quest) {
-  if (!FB || !ME_UID) return;
+  if (!FB || !ME_UID || !FB.increment) return;
   const up = { zk: FB.increment(ZS.kills), zg: FB.increment(1) };
   if (ZS.round > (stats.zr || 0)) up.zr = ZS.round;
   if (quest) up.zq = FB.increment(1);
@@ -1783,14 +2055,16 @@ const zNear = (x, z, r) => Math.hypot(me.p[0] - x, me.p[2] - z) < (r || 1.7);
 function zOption() {
   if (zDown() || ZS.over) return null;
   const g = me.guns[me.cur];
-  for (const d of ZM.doors) if (!d.open && zNear(d.box[0], d.box[2], 2.0)) return { t: `Press F to ${d.look === 'debris' ? 'clear the debris' : 'open the door'} to the ${d.label}`, cost: d.cost, go: () => { d.open = true; ZS.opened.add(d.zone); ZM.doors.filter(x => x.zone === d.zone && x.label === d.label).forEach(x => { x.open = true; }); zSolids(); zMsg(`${d.label} opened`, ''); } };
+  const rv = zMateToRevive(); if (rv) return { t: `Hold F to revive ${zesc(rv.q.n || 'your teammate')}` };
+  for (const d of ZM.doors) if (!d.open && zNear(d.box[0], d.box[2], 2.0)) return { t: `Press F to ${d.look === 'debris' ? 'clear the debris' : 'open the door'} to the ${d.label}`, cost: d.cost, go: () => zWorld('door', ZM.doors.indexOf(d)) };
   for (const pk of ZM.perks) if (zNear(pk.p[0], pk.p[1], 1.7)) {
     const P = ZPERKS[pk.id];
     if (zHas(pk.id)) return { t: `You already have ${P.name}` };
-    if (pk.id === 'qr' && ZS.qrUses >= 3) return { t: 'Quick Revive is used up' };
+    if (pk.id === 'qr' && ZS.qrUses >= 3 && !ZN.on) return { t: 'Quick Revive is used up' };
     if (!ZS.power && !P.noPower) return { t: `${P.name} needs the power on` };
     if (ZS.perks.length >= ZPERK_LIMIT && !ZS.questDone) return { t: `You can carry ${ZPERK_LIMIT} perks` };
-    return { t: `Press F to drink ${P.name}. ${P.blurb}`, cost: P.cost, go: () => { ZS.perks.push(pk.id); zRecalc(); if (pk.id === 'jug') me.hp = me.maxHp; zMsg(P.name, P.blurb); } };
+    const blurb = pk.id === 'qr' && ZN.on ? 'Revive teammates twice as fast' : P.blurb;
+    return { t: `Press F to drink ${P.name}. ${blurb}`, cost: P.cost, go: () => { ZS.perks.push(pk.id); zRecalc(); if (pk.id === 'jug') me.hp = me.maxHp; zMsg(P.name, blurb); } };
   }
   for (const wb of ZM.walls) if (zNear(wb.p[0] + wb.n[0] * 0.9, wb.p[2] + wb.n[1] * 0.9, 1.5)) {
     const have = me.guns.find(x => x.key === wb.gun), nm = WEAPONS[wb.gun].name;
@@ -1799,19 +2073,20 @@ function zOption() {
   }
   const s0 = ZM.boxSpots[ZS.box.at], bx = ZS.box;
   if (zNear(s0[0], s0[1], 1.8)) {
-    if (bx.state === 'offer' && bx.gun) return { t: `Press F to take the ${bx.gun.s.name}`, go: () => { zGive(bx.gun); bx.state = 'idle'; bx.gun = null; } };
-    if (bx.state === 'idle') { const c = ZS.fire > 0 ? 10 : 950; return { t: 'Press F to spin the Mystery Box', cost: c, go: () => zSpinBox() }; }
+    if (bx.state === 'offer' && bx.gun && (!ZN.on || bx.owner === ME_UID)) return { t: `Press F to take the ${bx.gun.s.name}`, go: () => { zGive(zClient() ? zGun(bx.gun.key) : bx.gun); if (ZN.on) zWorld('take'); else { bx.state = 'idle'; bx.gun = null; } } };
+    if (bx.state === 'offer') return { t: 'Someone else’s gun is in the box' };
+    if (bx.state === 'idle') { const c = ZS.fire > 0 ? 10 : 950; return { t: 'Press F to spin the Mystery Box', cost: c, go: () => (ZN.on ? zWorld('spin') : zSpinBox()) }; }
     return null;
   }
-  if (zNear(ZM.power[0], ZM.power[2], 1.8) && !ZS.power) return { t: 'Press F to turn on the power', go: () => { ZS.power = true; if (ZS.quest === 0) ZS.quest = 1; zMsg('The power is on', 'Perk-a-Colas and Pack-a-Punch are working. Something hums in the walls.'); } };
+  if (zNear(ZM.power[0], ZM.power[2], 1.8) && !ZS.power) return { t: 'Press F to turn on the power', go: () => zWorld('power') };
   if (zNear(ZM.pap[0], ZM.pap[1], 2.0)) {
     if (!ZS.power) return { t: 'Pack-a-Punch needs the power on' };
-    if (ZS.quest === 2 && !ZS.core) return { t: 'Press F to take the glowing core from the machine', go: () => { ZS.core = true; ZS.quest = 3; zMsg('You took the core', 'Bring it to the altar.'); } };
+    if (ZS.quest === 2 && !ZS.core) return { t: 'Press F to take the glowing core from the machine', go: () => zWorld('core') };
     if (ZS.papBusy) return { t: 'Pack-a-Punch is working…' };
     if (g.pap) return { t: 'This weapon is already Pack-a-Punched' };
     return { t: `Press F to Pack-a-Punch the ${g.s.name}`, cost: 5000, go: () => { ZS.papBusy = { g, until: performance.now() + 3000 }; zMsg('Pack-a-Punch', 'Upgrading…'); } };
   }
-  if (zNear(ZM.altar[0], ZM.altar[1], 1.8) && ZS.quest === 3) return { t: 'Press F to place the core on the altar', go: () => zStartBoss() };
+  if (zNear(ZM.altar[0], ZM.altar[1], 1.8) && ZS.quest === 3) return { t: 'Press F to place the core on the altar', go: () => zWorld('altar') };
   if (zNear(ZM.craft[0], ZM.craft[1], 1.9)) return { craft: true, t: 'Crafting table: 1 armor, 2 frag grenade, 3 self-revive, 4 upgrade weapon rarity' };
   const w = zNearWindow();
   if (w && w.planks < 6) return { t: 'Hold F to rebuild the barrier' };
@@ -1847,10 +2122,10 @@ function zStartBoss() {
   ZS.core = false; ZS.quest = 4;
   for (const z of Z.slice()) zKill(z, 'body', true);
   const hp = 30000 + ZS.round * 4000, bs = ZM.bossSpawn;
-  ZS.boss = { zombie: true, kind: 'boss', p: [bs[0], 0.05, bs[1]], v: [0, 0, 0], hp, max: hp, speed: 2.6, state: 'chase', yaw: 0, walk: 0, atkT: 0, ground: false, col: '#B98BFF', alive: true };
+  ZS.boss = { id: ++zId, zombie: true, kind: 'boss', p: [bs[0], 0.05, bs[1]], v: [0, 0, 0], hp, max: hp, speed: 2.6, state: 'chase', yaw: 0, walk: 0, atkT: 0, ground: false, col: '#B98BFF', alive: true };
   Z.push(ZS.boss); ZS.toSpawn = 0;
   for (let i = 0; i < 40; i++) fx.push({ p: [bs[0], 1.5, bs[1]], v: [rand(-6, 6), rand(1, 8), rand(-6, 6)], t: 0, life: 0.8, c: '#B98BFF', r: 0.2 });
-  zMsg('The Jelly Juggernaut', 'Put it down for good.');
+  zSay('The Jelly Juggernaut', 'Put it down for good.');
 }
 function zKey(code) {
   if (!ZS || ZS.over) return false;
@@ -1938,6 +2213,7 @@ function zRender(t) {
   // lamps flicker until the power comes on
   for (const zn in ZM.zones) for (const rr of ZM.zones[zn]) { const cx = (rr[0] + rr[2]) / 2, cz = (rr[1] + rr[3]) / 2, fl = lit ? 1 : (Math.sin(t / 90 + cx) > 0.3 ? 0.7 : 0.25); G.sphere(cx, 2.85, cz, 0.16, '#FFE9A8', { emit: fl }); G.blob(cx, 0.02, cz, 3.2, 0.08 * fl); }
   for (const z of Z) drawZombie(z, t);
+  if (ZN.on) zDrawMates(t);
 }
 function zBuildHud() {
   const h = document.createElement('div'); h.id = 'zhud';
@@ -1949,14 +2225,14 @@ function zHud() {
   const g = me.guns[me.cur];
   hudEls.round.textContent = ZM.name; hudEls.time.textContent = ZS.betweenT > 0 ? `Next round in ${Math.ceil(ZS.betweenT)}` : `${Z.length + ZS.toSpawn} left`;
   $('#z-round').innerHTML = `<b>${ZS.round}</b>${ZS.dogRound ? '<small>Hellhounds</small>' : ''}`;
-  $('#z-pts').innerHTML = `<b>${ZS.pts.toLocaleString()}</b><small>points</small>`;
+  $('#z-pts').innerHTML = `<b>${ZS.pts.toLocaleString()}</b><small>points</small>${ZN.on ? Object.values(ZN.players).map(q => `<div class="mate">${zesc(q.n)} ${(q.ps || 0).toLocaleString()}${q.dd ? ' · out' : q.dn ? ' · down' : ''}</div>`).join('') : ''}`;
   $('#z-perks').innerHTML = ZS.perks.map(id => `<span style="background:${ZPERKS[id].col}" title="${ZPERKS[id].name}">${ZPERKS[id].icon}</span>`).join('');
   $('#z-pups').innerHTML = [['insta', ZS.insta], ['double', ZS.double], ['fire', ZS.fire]].filter(x => x[1] > 0).map(([k, s]) => `<span style="border-color:${ZPUPS[k].col}">${ZPUPS[k].icon} ${ZPUPS[k].name} ${Math.ceil(s)}</span>`).join('') + (ZS.invis > 0 ? `<span>Invisible ${Math.ceil(ZS.invis)}</span>` : '');
   const fu = ZFIELD[ZS.fu];
   $('#z-gear').innerHTML = `<span>Armor ${'▰'.repeat(Math.ceil(ZS.armor / 50))}${'▱'.repeat(Math.max(0, ZS.armorTier - Math.ceil(ZS.armor / 50)))}${ZS.armorTier ? '' : ' none'}</span><span>Salvage ${ZS.salvage}</span><span>Grenades ${me.leth}</span>${ZS.selfRevive ? '<span>Self-revive</span>' : ''}<span class="${ZS.fuCharge >= 1 ? 'ready' : ''}">${fu.name} ${ZS.fuCharge >= 1 ? 'ready · X' : Math.floor(ZS.fuCharge * 100) + '%'}</span>`;
   const o = zOption();
   $('#z-prompt').innerHTML = o ? `${o.t}${o.cost ? ` <b>[${o.cost.toLocaleString()}]</b>` : ''}${o.craft ? `<div class="small">Hold C and press 1 to 4 · You have ${ZS.salvage} salvage · Armor ${ZS.armorTier >= 3 ? 'refill 250' : ARMOR_COST[Math.min(3, ZS.armorTier + 1)]} · Grenade 250 · Self-revive 1,500 · ${g.rar >= 4 ? 'weapon maxed' : ZRAR[g.rar + 1][0] + ' ' + ZRAR_COST[g.rar + 1]}</div>` : ''}` : '';
-  $('#z-down').hidden = !zDown();
+  $('#z-down').hidden = !zDown(); if (zDown()) $('#z-down').textContent = ZS.dead ? 'You bled out · back next round' : ZS.bleed ? `You’re down · ${Math.ceil(ZS.downT)}s for a teammate to revive you` : 'You’re down';
   hudEls.hp.textContent = `${Math.max(0, Math.ceil(me.hp))} / ${me.maxHp}`;
   hudEls.hpbar.style.width = Math.max(0, me.hp / me.maxHp * 100) + '%';
   hudEls.ammo.textContent = `${g.ammo} / ${g.res}`;
@@ -1968,12 +2244,265 @@ function zHud() {
   for (const pk of ZM.perks) { if (Math.hypot(me.p[0] - pk.p[0], me.p[2] - pk.p[1]) > 8) continue; const p = G.toScreen(pk.p[0], 2.35, pk.p[1]); if (p) lab += `<div class="perklbl" style="left:${p[0]}px;top:${p[1]}px;border-color:${ZPERKS[pk.id].col}">${ZPERKS[pk.id].name} · ${ZPERKS[pk.id].cost}</div>`; }
   for (const pu of zPups) { const p = G.toScreen(pu.p[0], 1.55, pu.p[2]); if (p) lab += `<div class="perklbl" style="left:${p[0]}px;top:${p[1]}px;border-color:${ZPUPS[pu.kind].col}">${ZPUPS[pu.kind].name}</div>`; }
   if (ZS.boss && ZS.boss.alive) lab += `<div class="bossbar"><b>The Jelly Juggernaut</b><i style="width:${Math.max(0, ZS.boss.hp / ZS.boss.max * 100)}%"></i></div>`;
+  if (ZN.on) lab += zMateLabels();
   $('#z-labels').innerHTML = lab;
 }
 function zBoard() {
   const mins = Math.floor((performance.now() - ZS.startAt) / 60000);
   hudEls.board.innerHTML = `<table><tr><th>Player</th><th>Points</th><th>Kills</th><th>Headshots</th><th>Downs</th></tr><tr class="me"><td>You</td><td>${ZS.pts}</td><td>${ZS.kills}</td><td>${ZS.heads}</td><td>${ZS.downs}</td></tr></table><p class="small soft" style="margin:8px 0 0">Round ${ZS.round} on ${ZM.name} · ${mins} min · Best round ${Math.max(stats.zr || 0, ZS.round)}. Main quest: ${['turn on the power', 'find and shoot 3 glowing Aether jars', 'take the core from Pack-a-Punch', 'bring the core to the altar', 'beat the Jelly Juggernaut', 'done'][ZS.quest]}.</p>`;
 }
+
+/* ================= Scobb Zombies co-op ================= */
+// One player hosts and runs the real game: zombies, rounds, doors, power, the box, power-ups and the quest.
+// Everyone sends their position, shots and purchases. Points, perks and guns stay with each player.
+let rtdb = null, myName = '';
+const ZN = { on: false, host: false, code: '', lobby: null, unsub: [], players: {}, lastP: 0, lastS: 0, evLog: [], evSeq: 0, evSeen: 0, dmgOut: {}, dmgSeen: 0, revOut: {}, revSeen: 0, ghost: new Set(), grabbed: new Set(), msg: [0, '', ''], msgSeen: 0, lobbies: {}, watchingList: false, mates: {} };
+let zId = 0;
+const zcoReady = () => !!(FB && FB.r && rtdb && ME_UID);
+const zR = p => FB.r.ref(rtdb, 'zco/' + p);
+const zClient = () => ZN.on && !ZN.host;
+function zCode() { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; let c = ''; for (let i = 0; i < 4; i++) c += A[Math.floor(Math.random() * A.length)]; return c; }
+function zUnsub() { ZN.unsub.forEach(f => { try { f(); } catch (e) { /* gone */ } }); ZN.unsub = []; }
+// ---- lobbies ----
+function zWatchList() {
+  if (ZN.watchingList || !zcoReady()) return; ZN.watchingList = true;
+  FB.r.onValue(zR('lobbies'), s => { ZN.lobbies = s.val() || {}; if (view === 'zombies') drawUI(); }, () => {});
+}
+function zHostLobby() {
+  if (!zcoReady()) { flashMsg('Log in on ScobbBucks to play co-op.'); return; }
+  const code = zCode();
+  ZN.host = true; ZN.code = code;
+  FB.r.set(zR('lobbies/' + code), { h: ME_UID, hn: myName, m: zSel.map, st: 'lobby', t: FB.r.serverTimestamp(), pl: { [ME_UID]: { n: myName } } }).then(() => zWatchLobby(code)).catch(() => flashMsg('Couldn’t make a lobby. The bank may need to add the co-op rule in Firebase.'));
+}
+function zJoinLobby(code) {
+  code = String(code || '').trim().toUpperCase();
+  if (!zcoReady()) { flashMsg('Log in on ScobbBucks to play co-op.'); return; }
+  if (!/^[A-Z]{4}$/.test(code)) { flashMsg('Lobby codes are 4 letters.'); return; }
+  FB.r.get(zR('lobbies/' + code)).then(s => {
+    const v = s.val();
+    if (!v || v.st !== 'lobby') { flashMsg('That lobby isn’t open.'); return; }
+    if (Object.keys(v.pl || {}).length >= 4 && !(v.pl || {})[ME_UID]) { flashMsg('That lobby is full.'); return; }
+    ZN.host = false; ZN.code = code;
+    return FB.r.set(zR('lobbies/' + code + '/pl/' + ME_UID), { n: myName }).then(() => zWatchLobby(code));
+  }).catch(() => flashMsg('Couldn’t join. The bank may need to add the co-op rule in Firebase.'));
+}
+function zWatchLobby(code) {
+  zUnsub();
+  FB.r.onDisconnect(zR('lobbies/' + code + (ZN.host ? '' : '/pl/' + ME_UID))).remove().catch(() => {});
+  view = 'zlobby'; drawUI();
+  ZN.unsub.push(FB.r.onValue(zR('lobbies/' + code), s => {
+    const v = s.val(); ZN.lobby = v;
+    if (!v) { if (view === 'zlobby') { flashMsg('The host closed the lobby.'); zLeaveLobby(true); } return; }
+    if (v.st === 'live' && mode !== 'zombies') { zSel.map = v.m || 0; beginZombies(zSel.map, true); return; }
+    if (view === 'zlobby') drawUI();
+  }, () => {}));
+}
+function zLeaveLobby(silent) {
+  zUnsub();
+  if (zcoReady() && ZN.code) { if (ZN.host) FB.r.remove(zR('lobbies/' + ZN.code)).catch(() => {}); else FB.r.remove(zR('lobbies/' + ZN.code + '/pl/' + ME_UID)).catch(() => {}); }
+  Object.assign(ZN, { on: false, host: false, code: '', lobby: null, players: {}, mates: {} });
+  if (!silent || view === 'zlobby') { view = 'zombies'; drawUI(); }
+}
+function zStartCoop() {
+  if (!ZN.host || !ZN.code) return;
+  FB.r.remove(zR('games/' + ZN.code)).catch(() => {}).then(() => FB.r.update(zR('lobbies/' + ZN.code), { st: 'live', m: zSel.map }));
+}
+// ---- once the game starts ----
+function zNetBegin() {
+  const code = ZN.code;
+  ZN.on = true; ZN.players = {}; ZN.mates = {}; ZN.evLog = []; ZN.evSeq = 0; ZN.evSeen = 0; ZN.dmgOut = {}; ZN.dmgSeen = 0; ZN.revOut = {}; ZN.revSeen = 0; ZN.ghost = new Set(); ZN.grabbed = new Set(); ZN.msg = [0, '', '']; ZN.msgSeen = 0; zId = 0;
+  const ids = Object.keys((ZN.lobby && ZN.lobby.pl) || {}).sort(), i = Math.max(0, ids.indexOf(ME_UID));
+  me.p = [ZM.start[0] + (i - (ids.length - 1) / 2) * 1.3, 0.05, ZM.start[2]];
+  FB.r.onDisconnect(zR('games/' + code + '/p/' + ME_UID)).remove().catch(() => {});
+  ZN.unsub.push(FB.r.onValue(zR('games/' + code + '/p'), s => { const v = s.val() || {}; delete v[ME_UID]; ZN.players = v; }, () => {}));
+  if (ZN.host) ZN.unsub.push(FB.r.onChildAdded(zR('games/' + code + '/ev'), s => { const e = s.val(); FB.r.remove(zR('games/' + code + '/ev/' + s.key)).catch(() => {}); if (e && ZS) zHostEvent(e); }));
+  else ZN.unsub.push(FB.r.onValue(zR('games/' + code + '/s'), s => { const v = s.val(); if (v && ZS) zApplySnap(v); }, () => {}));
+}
+function zSend(e) { if (!ZN.on || !zcoReady()) return; e.u = ME_UID; FB.r.push(zR('games/' + ZN.code + '/ev'), e).catch(() => {}); }
+// Every player shares where they are; the host also shares the whole world.
+function zNetTick() {
+  const now = performance.now();
+  if (now - ZN.lastP > 100) {
+    ZN.lastP = now; const g = me.guns[me.cur];
+    FB.r.set(zR('games/' + ZN.code + '/p/' + ME_UID), { n: myName, x: +me.p[0].toFixed(2), y: +me.p[1].toFixed(2), z: +me.p[2].toFixed(2), yw: +me.yaw.toFixed(2), pt: +me.pitch.toFixed(2), g: g.key, cm: g.camo || '', lk: me.look, dn: ZS.downT > 0 && !ZS.dead ? 1 : 0, dd: ZS.dead ? 1 : 0, inv: ZS.invis > 0 ? 1 : 0, ps: ZS.pts, fl: me.flashMuzzle > 0 ? 1 : 0, t: FB.r.serverTimestamp() }).catch(() => {});
+  }
+  if (ZN.host && now - ZN.lastS > 125) {
+    ZN.lastS = now; const r2 = v => Math.round(v * 100) / 100, bx = ZS.box;
+    const KC = { z: 0, dog: 1, boss: 2 }, SC = { outside: 0, climb: 1, chase: 2 };
+    FB.r.set(zR('games/' + ZN.code + '/s'), {
+      r: ZS.round, ts: ZS.toSpawn, bt: +ZS.betweenT.toFixed(1), dog: ZS.dogRound ? 1 : 0, pw: ZS.power ? 1 : 0,
+      dr: ZM.doors.map(d => (d.open ? 1 : 0)), wp: ZM.windows.map(w => w.planks),
+      z: Z.map(z => [z.id, KC[z.kind], r2(z.p[0]), r2(z.p[1]), r2(z.p[2]), r2(z.yaw), Math.max(1, Math.ceil(z.hp / z.max * 100)), SC[z.state] || 2, z.frozen > 0 ? 1 : 0, z.swing > 0 ? 1 : 0, Math.round(z.speed * 10), z.win ? z.win.id : -1]),
+      bx: [bx.at, ['idle', 'spin', 'offer', 'bear'].indexOf(bx.state), bx.gun ? bx.gun.key : '', bx.owner || '', +Math.max(0, bx.t).toFixed(1)],
+      pu: zPups.map(pu => [pu.id, pu.kind, r2(pu.p[0]), r2(pu.p[2]), Math.round(pu.t)]),
+      q: ZS.quest, jr: ZS.jars.map(j => (j ? 1 : 0)), bh: ZS.boss && ZS.boss.alive ? [Math.round(ZS.boss.hp), ZS.boss.max] : 0,
+      ins: +ZS.insta.toFixed(1), dbl: +ZS.double.toFixed(1), fs: +ZS.fire.toFixed(1),
+      ev: ZN.evLog.slice(-12), dm: ZN.dmgOut, rv: ZN.revOut, ov: ZS.over ? 1 : 0, ms: ZN.msg
+    }).catch(() => {});
+    // the game ends when nobody is left standing
+    const mates = Object.values(ZN.players).filter(q => q.t && Date.now() - q.t < 10000);
+    if (!ZS.over && (ZS.downT > 0 || ZS.dead) && mates.every(q => q.dn || q.dd)) zGameOver();
+  }
+}
+// World messages reach everyone.
+function zSay(a, b) { zMsg(a, b); if (ZN.on && ZN.host) ZN.msg = [ZN.msg[0] + 1, a, b || '']; }
+function zLog(kind, by) { ZN.evLog.push([++ZN.evSeq, kind, by]); if (ZN.evLog.length > 20) ZN.evLog.shift(); }
+// ---- the host handles what other players do ----
+function zHostEvent(e) {
+  if (e.t === 'hit') { const z = Z.find(x => x.id === e.id); if (!z) return; z.hp -= Math.max(0, +e.d || 0); fx.push({ p: add(z.p, [0, 1, 0]), v: [0, 1, 0], t: 0, life: 0.25, c: '#6A1A1A', r: 0.12 }); if (z.hp <= 0) zKill(z, e.h, true, true); return; }
+  if (e.t === 'jar') return zHit({ jar: e.i }, 1, 'jar', 'gun');
+  if (e.t === 'rep') { const w = ZM.windows[e.w]; if (w && w.planks < 6) w.planks++; return; }
+  if (e.t === 'rev') { ZN.revOut[e.v] = (ZN.revOut[e.v] || 0) + 1; if (e.v === ME_UID) zRevived(); return; }
+  if (e.t === 'grab') { const pu = zPups.find(p => p.id === e.i); if (pu) zGrabHost(pu, e.u); return; }
+  zDoWorld(e);
+}
+// Doors, the power, the box and the quest change the shared world.
+function zWorld(t, i) { if (zClient()) zSend({ t, i }); else zDoWorld({ t, i, u: ME_UID }); }
+function zDoWorld(e) {
+  if (e.t === 'door') { const d = ZM.doors[e.i]; if (!d || d.open) return; ZM.doors.filter(x => x.zone === d.zone && x.label === d.label).forEach(x => { x.open = true; }); ZS.opened.add(d.zone); zSolids(); zSay(`${d.label} opened`, ''); }
+  if (e.t === 'power' && !ZS.power) { ZS.power = true; if (ZS.quest === 0) ZS.quest = 1; zSay('The power is on', 'Perk-a-Colas and Pack-a-Punch are working. Something hums in the walls.'); }
+  if (e.t === 'spin' && ZS.box.state === 'idle') { zSpinBox(); ZS.box.owner = e.u; }
+  if (e.t === 'take' && ZS.box.state === 'offer' && ZS.box.owner === e.u) { ZS.box.state = 'idle'; ZS.box.gun = null; ZS.box.owner = ''; }
+  if (e.t === 'core' && ZS.quest === 2) { ZS.quest = 3; ZS.coreBy = e.u; zSay('The core is out', 'Bring it to the altar.'); }
+  if (e.t === 'altar' && ZS.quest === 3) zStartBoss();
+}
+function zGrabHost(pu, by) {
+  zPups.splice(zPups.indexOf(pu), 1);
+  const k = pu.kind;
+  if (k === 'insta') ZS.insta = 30;
+  if (k === 'double') ZS.double = 30;
+  if (k === 'fire') ZS.fire = 30;
+  if (k === 'nuke') { for (const z of Z.slice()) if (z.kind !== 'boss') zKill(z, 'body', true, true); }
+  if (k === 'carp') for (const w of ZM.windows) w.planks = 6;
+  zLog(k, by);
+  zPupLocal(k);
+}
+// What a power-up does for you yourself.
+function zPupLocal(k) {
+  zMsg(ZPUPS[k].name, '');
+  if (k === 'max') { for (const g of me.guns) g.res = g.max; me.leth = 4; }
+  if (k === 'nuke') { zPoints(400); fx.push({ p: add(me.p, [0, 2, 0]), v: [0, 0, 0], t: 0, life: 0.6, c: '#FFF2B0', r: 12, boom: 1 }); }
+  if (k === 'carp') zPoints(200);
+}
+// ---- other players follow the host's world ----
+function zApplySnap(v) {
+  if (v.r > ZS.round) { ZS.round = v.r; if (ZS.dead) zRespawn(); }
+  ZS.toSpawn = v.ts; ZS.betweenT = v.bt; ZS.dogRound = !!v.dog;
+  if (v.pw && !ZS.power) ZS.power = true;
+  let doorsChanged = false;
+  (v.dr || []).forEach((o, i) => { const d = ZM.doors[i]; if (d && !!o !== d.open) { d.open = !!o; if (d.open) ZS.opened.add(d.zone); doorsChanged = true; } });
+  (v.wp || []).forEach((n, i) => { if (ZM.windows[i]) ZM.windows[i].planks = n; });
+  // zombies: move toward where the host says they are
+  const seen = new Set(), KS = ['z', 'dog', 'boss'], ST = ['outside', 'climb', 'chase'];
+  for (const a of v.z || []) {
+    const [id, kc, x, y, z2, yaw, pct, sc, fr, sw, sp, wi] = a; seen.add(id);
+    if (ZN.ghost.has(id)) continue;
+    let z = Z.find(q => q.id === id);
+    const kind = KS[kc], max = kind === 'boss' ? (v.bh ? v.bh[1] : 1) : zHealth(ZS.round) * (kind === 'dog' ? 0.4 : 1);
+    if (!z) { z = { zombie: true, id, kind, p: [x, y, z2], tp: [x, y, z2], v: [0, 0, 0], yaw, walk: Math.random() * 10, col: pick(['#8FA37A', '#9AA58A', '#7F9A6A', '#A0A890']), shirt: pick(['#4A4A52', '#5A3A2A', '#3A4A5A', '#6A5A4A', '#4A5A3A']), max }; Z.push(z); }
+    z.tp = [x, y, z2]; z.ty = yaw; z.max = max; z.hp = pct / 100 * max; z.state = ST[sc]; z.frozen = fr ? 1 : 0; z.swing = sw ? 0.3 : 0; z.speed = sp / 10; z.win = ZM.windows[wi] || null; z.reach = sc === 0 ? 1 : 0;
+  }
+  for (const z of Z.slice()) if (!seen.has(z.id)) Z.splice(Z.indexOf(z), 1);
+  for (const id of ZN.ghost) if (!seen.has(id)) ZN.ghost.delete(id);
+  // the box, power-ups and the quest
+  const bx = v.bx || [0, 0, '', '', 0], prevAt = ZS.box.at;
+  ZS.box.at = bx[0]; ZS.box.state = ['idle', 'spin', 'offer', 'bear'][bx[1]] || 'idle'; ZS.box.owner = bx[3]; ZS.box.t = bx[4];
+  ZS.box.gun = bx[2] ? (ZS.box.gun && ZS.box.gun.key === bx[2] ? ZS.box.gun : zGun(bx[2])) : null;
+  if (prevAt !== ZS.box.at || doorsChanged) zSolids();
+  zPups = (v.pu || []).map(a => ({ id: a[0], kind: a[1], p: [a[2], 0, a[3]], t: a[4] }));
+  ZS.quest = v.q; ZS.jars = (v.jr || [0, 0, 0]).map(Boolean);
+  ZS.boss = v.bh ? { alive: true, hp: v.bh[0], max: v.bh[1] } : (ZS.boss && ZS.boss.alive ? { alive: false } : ZS.boss);
+  if (ZS.quest === 5 && !ZS.questDone) zWin();
+  ZS.insta = v.ins || 0; ZS.double = v.dbl || 0; ZS.fire = v.fs || 0;
+  for (const [seq, k] of v.ev || []) if (seq > ZN.evSeen) { ZN.evSeen = seq; zPupLocal(k); }
+  const dm = (v.dm || {})[ME_UID] || 0; if (dm > ZN.dmgSeen) { const d = dm - ZN.dmgSeen; ZN.dmgSeen = dm; zHurt(d, 'zombie'); }
+  const rv = (v.rv || {})[ME_UID] || 0; if (rv > ZN.revSeen) { ZN.revSeen = rv; zRevived(); }
+  if (v.ms && v.ms[0] > ZN.msgSeen) { ZN.msgSeen = v.ms[0]; zMsg(v.ms[1], v.ms[2]); }
+  if (v.ov && !ZS.over) zGameOver();
+}
+// What a non-host player runs each frame: smooth the zombies, rebuild windows, grab power-ups.
+function zClientStep(dt) {
+  for (const z of Z) {
+    if (!z.tp) continue;
+    const k = Math.min(1, dt * 10), ox = z.p[0], oz = z.p[2];
+    z.p = [z.p[0] + (z.tp[0] - z.p[0]) * k, z.p[1] + (z.tp[1] - z.p[1]) * k, z.p[2] + (z.tp[2] - z.p[2]) * k];
+    let dy = (z.ty || 0) - z.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; z.yaw += dy * k;
+    z.walk += Math.hypot(z.p[0] - ox, z.p[2] - oz) * 2.2; z.swing = Math.max(0, (z.swing || 0) - dt);
+  }
+  const w = zNearWindow();
+  if (w && keys.KeyF && w.planks < 6 && !zDown()) { ZS.repairT -= dt; if (ZS.repairT <= 0) { ZS.repairT = zHas('speed') ? 0.4 : 0.75; w.planks++; zSend({ t: 'rep', w: w.id }); zPoints(10); } }
+  else ZS.repairT = 0.2;
+  for (const pu of zPups) if (!ZN.grabbed.has(pu.id) && len(sub([pu.p[0], 0, pu.p[2]], [me.p[0], 0, me.p[2]])) < 1.3) { ZN.grabbed.add(pu.id); zSend({ t: 'grab', i: pu.id }); }
+}
+// ---- going down together ----
+function zCoopDownStep(dt) {
+  if (ZS.downT <= 0) return;
+  ZS.downT -= dt; me.v[0] = 0; me.v[2] = 0;
+  if (ZS.downT > 0) return;
+  if (ZS.bleed) { ZS.bleed = false; ZS.dead = true; zMsg('You bled out', 'You’ll be back at the start of the next round.'); }
+  else zRevived();
+}
+function zRevived() { ZS.downT = 0; ZS.bleed = false; ZS.dead = false; me.hp = me.maxHp; ZS.armor = ZS.armorTier * 50; me.lastHurt = match.clock; zMsg('Back on your feet', ''); }
+function zRespawn() { ZS.dead = false; ZS.downT = 0; ZS.bleed = false; ZS.perks = []; zRecalc(); me.hp = me.maxHp; me.guns = [zGun(loadout.secondary || 'pi0')]; me.cur = 0; me.p = [ZM.start[0], 0.05, ZM.start[2]]; me.v = [0, 0, 0]; zMsg('You’re back', 'You lost your perks and guns. Start again with your pistol.'); }
+// A downed teammate near you that you could revive.
+function zMateToRevive() {
+  if (!ZN.on || zDown()) return null;
+  for (const id in ZN.players) { const q = ZN.players[id]; if (q.dn && !q.dd && Math.hypot(me.p[0] - q.x, me.p[2] - q.z) < 1.8) return { id, q }; }
+  return null;
+}
+// ---- drawing teammates ----
+function zDrawMates(t) {
+  for (const id in ZN.players) {
+    const q = ZN.players[id]; if (q.dd || !q.t) continue;
+    let m = ZN.mates[id];
+    if (!m) m = ZN.mates[id] = { p: [q.x, q.y, q.z], yaw: q.yw, pitch: 0, walk: 0, look: q.lk || {}, col: (q.lk && q.lk.body) || '#B98BFF', hp: 100, prot: 0, flashMuzzle: 0, camo: '' };
+    const k = 0.25, ox = m.p[0], oz = m.p[2];
+    m.p = [m.p[0] + (q.x - m.p[0]) * k, m.p[1] + ((q.dn ? -0.55 : q.y) - m.p[1]) * k, m.p[2] + (q.z - m.p[2]) * k];
+    let dy = q.yw - m.yaw; while (dy > Math.PI) dy -= Math.PI * 2; while (dy < -Math.PI) dy += Math.PI * 2; m.yaw += dy * k;
+    m.pitch = q.pt; m.walk += Math.hypot(m.p[0] - ox, m.p[2] - oz); m.look = q.lk || m.look; m.col = (q.lk && q.lk.body) || m.col; m.camo = q.cm || ''; m.flashMuzzle = q.fl ? 0.05 : 0; m.prot = q.inv ? 1 : 0;
+    drawChar(m);
+  }
+}
+function zMateLabels() {
+  let h = '';
+  for (const id in ZN.players) {
+    const q = ZN.players[id], m = ZN.mates[id]; if (!m || q.dd) continue;
+    const p = G.toScreen(m.p[0], m.p[1] + (q.dn ? 1.4 : 2.15), m.p[2]); if (!p) continue;
+    h += `<div class="perklbl" style="left:${p[0]}px;top:${p[1]}px;border-color:${q.dn ? '#E5484D' : '#5BC8F5'}">${String(q.n || 'Player').replace(/</g, '&lt;')}${q.dn ? ' · down, hold F to revive' : ''}</div>`;
+  }
+  return h;
+}
+
+function zReviveStep(dt) {
+  const m = zMateToRevive();
+  if (m && keys.KeyF) { ZS.revT = (ZS.revT || 0) + dt; if (ZS.revT >= (zHas('qr') ? 2 : 4)) { ZS.revT = 0; if (ZN.host) ZN.revOut[m.id] = (ZN.revOut[m.id] || 0) + 1; else zSend({ t: 'rev', v: m.id }); zMsg(`You revived ${m.q.n || 'your teammate'}`, ''); } }
+  else ZS.revT = 0;
+}
+function zTargets() {
+  const out = [];
+  if (!zDown() && ZS.invis <= 0) out.push({ me: true, p: me.p });
+  if (ZN.on) for (const id in ZN.players) { const q = ZN.players[id]; if (q && !q.dn && !q.dd && !q.inv && q.t && Date.now() - q.t < 8000) out.push({ uid: id, p: [q.x, q.y, q.z] }); }
+  return out;
+}
+function zPick(z, tg) { let best = null, bd = 1e9; for (const t of tg) { const d = Math.hypot(t.p[0] - z.p[0], t.p[2] - z.p[2]); if (d < bd) { bd = d; best = t; } } return best; }
+function zClientHit(z, dmg, part, how) {
+  if (z.jar != null) { zSend({ t: 'jar', i: z.jar }); return; }
+  if (!Z.includes(z)) return;
+  const head = part === 'head';
+  let amt = dmg * 1.6 * (head ? (zHas('dead') ? 3.1 : 2.5) : part === 'legs' ? 0.8 : 1) * (zHas('dt') ? 1.3 : 1);
+  if (ZS.insta > 0 && z.kind !== 'boss') amt = z.hp + 1;
+  zSend({ t: 'hit', id: z.id, d: Math.round(amt), h: how === 'melee' ? 'melee' : head ? 'head' : 'body' });
+  z.hp -= amt; hitmark(z.hp <= 0);
+  fx.push({ p: add(z.p, [0, head ? 1.45 : 0.9, 0]), v: [0, 1, 0], t: 0, life: 0.25, c: '#6A1A1A', r: 0.12 });
+  if (z.hp > 0) { zPoints(10); return; }
+  ZN.ghost.add(z.id); Z.splice(Z.indexOf(z), 1);
+  ZS.kills++; me.tk = (me.tk || 0) + 1; if (head) ZS.heads++;
+  zPoints(z.kind === 'boss' ? 5000 : how === 'melee' ? 130 : head ? 100 : 60);
+  ZS.fuCharge = Math.min(1, ZS.fuCharge + 0.02);
+  if (Math.random() < 0.14) ZS.salvage += Math.random() < 0.2 ? 100 : 50;
+  for (let k = 0; k < 10; k++) fx.push({ p: add(z.p, [0, 1, 0]), v: [rand(-3, 3), rand(1, 5), rand(-3, 3)], t: 0, life: 0.6, c: k % 2 ? '#5A1A1A' : z.col, r: 0.12 });
+}
+const zesc = v => String(v == null ? '' : v).replace(/[<&]/g, c => (c === '<' ? '&lt;' : '&amp;'));
 
 /* ================= drawing ================= */
 // A scobb character built from your ScobbBucks avatar: body color, top, pants, hat, glasses and backpack.
